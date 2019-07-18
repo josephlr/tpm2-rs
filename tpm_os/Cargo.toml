@@ -1,0 +1,16 @@
+[package]
+name = "tpm_os"
+version = "0.1.0"
+authors = ["Joe Richey <joerichey@google.com>"]
+edition = "2018"
+license = "Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/josephlr/tpm"
+documentation = "https://docs.rs/tpm"
+homepage = "https://github.com/josephlr/tpm"
+description = "OS-specific bindings to the TPM2"
+keywords = ["tpm", "tss", "tpm2"]
+categories = ["cryptography"]
+
+[dependencies]
+tpm_core = { path = "../tpm_core", features = ["alloc", "std"] }
