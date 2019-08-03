@@ -1,4 +1,5 @@
-// Traits and types for dealing with TPM data
+//! Common Traits and types for dealing with TPM data
+
 use core::convert::TryInto;
 use core::mem;
 
@@ -29,28 +30,24 @@ fn check_size_out<'a>(size: usize, bytes: &mut &'a [u8]) -> Result<&'a [u8]> {
 }
 
 impl DataIn for () {
-    #[inline]
     fn into_bytes<'a>(&self, bytes: &'a mut [u8]) -> Result<&'a mut [u8]> {
         Ok(bytes)
     }
 }
 
 impl DataOut for () {
-    #[inline]
     fn from_bytes(_: &mut &[u8]) -> Result<Self> {
         Ok(())
     }
 }
 
 impl DataIn for bool {
-    #[inline]
     fn into_bytes<'a>(&self, bytes: &'a mut [u8]) -> Result<&'a mut [u8]> {
         (*self as u8).into_bytes(bytes)
     }
 }
 
 impl DataOut for bool {
-    #[inline]
     fn from_bytes(bytes: &mut &[u8]) -> Result<Self> {
         match u8::from_bytes(bytes)? {
             0 => Ok(false),
@@ -62,7 +59,6 @@ impl DataOut for bool {
 
 macro_rules! int_impls { ($($T: ty)+) => { $(
     impl DataOut for $T {
-        #[inline]
         fn from_bytes(bytes: &mut &[u8]) -> Result<Self> {
             let data = check_size_out(mem::size_of::<Self>(), bytes)?;
             let arr = data.try_into().unwrap();
@@ -71,7 +67,6 @@ macro_rules! int_impls { ($($T: ty)+) => { $(
     }
 
     impl DataIn for $T {
-        #[inline]
         fn into_bytes<'a>(&self, bytes: &'a mut [u8]) -> Result<&'a mut [u8]> {
             let (data, rest) = check_size_in(mem::size_of::<Self>(), bytes)?;
             let arr: &mut [u8; mem::size_of::<Self>()] = data.try_into().unwrap();

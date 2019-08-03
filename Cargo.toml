@@ -13,20 +13,22 @@ keywords = ["tpm", "tss", "tpm2"]
 categories = ["cryptography", "no-std"]
 
 [dependencies]
-tpm_core = { path = "tpm_core", default-features = false }
-tpm_os = { path = "tpm_os", optional = true }
+tpm_core = { path = "core", default-features = false }
+tpm_os = { path = "os", optional = true }
 
 [features]
 default = ["std"]
-std = ["alloc", "tpm_core/std", "tpm_os"]
 alloc = ["tpm_core/alloc"]
+std = ["alloc", "tpm_core/std", "tpm_os"]
+test_hardware = ["tpm_os"]
 
 [dev-dependencies]
 once_cell = "0.2"
+tpm_simulator = { path = "simulator" }
 
 [workspace]
 members = [
-    "tpm_core",
-    "tpm_os",
+    "core",
+    "os",
+    "simulator",
 ]
-

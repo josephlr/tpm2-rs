@@ -6,22 +6,26 @@ pub use tpm_os::OsTpm;
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+    use once_cell::sync::OnceCell;
+
     use core::ops::DerefMut;
     use std::sync::Mutex;
 
-    use super::*;
-    use once_cell::sync::Lazy;
+    #[cfg(feature = "test_hardware")]
+    type TestTpm = tpm_os::OsTpm;
+    #[cfg(not(feature = "test_hardware"))]
+    type TestTpm = tpm_simulator::Simulator;
 
-    fn get_tpm() -> impl DerefMut<Target = OsTpm> {
-        static TPM: Lazy<Mutex<OsTpm>> =
-            Lazy::new(|| Mutex::new(OsTpm::new("/dev/tpm0").expect("Unable to get TPM")));
-        TPM.lock().unwrap()
+    fn get_tpm() -> Result<impl DerefMut<Target = TestTpm>> {
+        static TPM: OnceCell<Mutex<TestTpm>> = OnceCell::new();
+        let tpm = TPM.get_or_try_init(|| TestTpm::new().map(Mutex::new))?;
+        Ok(tpm.lock().unwrap())
     }
 
     #[test]
     fn get_random() -> Result<()> {
-        let mut tpm = get_tpm();
-        let _: &mut dyn Tpm = tpm.deref_mut();
+        let mut tpm = get_tpm()?;
         let output = tpm.get_random(100)?;
         println!("{:?}", output.bytes());
         Ok(())
@@ -29,7 +33,7 @@ mod tests {
 
     #[test]
     fn read_clock() -> Result<()> {
-        let mut tpm = get_tpm();
+        let mut tpm = get_tpm()?;
         let info = tpm.read_clock()?;
         println!("{:?}", info);
         Ok(())

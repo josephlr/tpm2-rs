@@ -13,6 +13,6 @@ keywords = ["tpm", "tss", "tpm2"]
 categories = ["cryptography", "no-std"]
 
 [features]
-default = ["alloc"]
+default = ["std"]
 alloc = []
-std = []
+std = ["alloc"]

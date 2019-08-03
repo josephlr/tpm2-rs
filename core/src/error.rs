@@ -9,6 +9,7 @@ pub enum Error {
     OutLenMismatch,
     RemainingData,
     WouldAllocate,
+    ResponseBuffer,
     Tpm(NonZeroU32),
     #[cfg(feature = "std")]
     Io(std::io::Error),
