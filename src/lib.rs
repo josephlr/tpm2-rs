@@ -19,7 +19,7 @@ mod tests {
 
     fn get_tpm() -> Result<impl DerefMut<Target = TestTpm>> {
         static TPM: OnceCell<Mutex<TestTpm>> = OnceCell::new();
-        let tpm = TPM.get_or_try_init(|| TestTpm::new().map(Mutex::new))?;
+        let tpm = TPM.get_or_try_init(|| TestTpm::get().map(Mutex::new))?;
         Ok(tpm.lock().unwrap())
     }
 

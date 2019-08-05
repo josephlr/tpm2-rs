@@ -10,6 +10,7 @@ pub enum Error {
     RemainingData,
     WouldAllocate,
     ResponseBuffer,
+    TpmInUse,
     Tpm(NonZeroU32),
     #[cfg(feature = "std")]
     Io(std::io::Error),

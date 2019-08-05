@@ -1,20 +1,33 @@
+use core::sync::atomic::{AtomicBool, Ordering::Relaxed};
 use std::fs::{File, OpenOptions};
-use std::io::{Read, Write};
+use std::io::{self, Read, Write};
 use std::path::Path;
 
-use tpm_core::{Result, Tpm};
+use tpm_core::{Error, Result, Tpm};
 
 pub struct OsTpm {
     file: File,
 }
 
+static IN_USE: AtomicBool = AtomicBool::new(false);
+
+fn open_rw(path: impl AsRef<Path>) -> io::Result<File> {
+    OpenOptions::new().read(true).write(true).open(path)
+}
+
 impl OsTpm {
-    pub fn new() -> Result<Self> {
-        Self::at_path("/dev/tpmrm0").or(Self::at_path("/dev/tpm0"))
-    }
-    pub fn at_path(path: impl AsRef<Path>) -> Result<Self> {
-        let file = OpenOptions::new().read(true).write(true).open(path)?;
+    pub fn get() -> Result<Self> {
+        let file = open_rw("/dev/tpmrm0").or(open_rw("/dev/tpm0"))?;
+        if IN_USE.swap(true, Relaxed) {
+            return Err(Error::TpmInUse);
+        }
         Ok(Self { file })
+    }
+}
+
+impl Drop for OsTpm {
+    fn drop(&mut self) {
+        IN_USE.store(false, Relaxed);
     }
 }
 

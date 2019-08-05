@@ -1,4 +1,5 @@
 #![no_std]
+use core::sync::atomic::{AtomicBool, Ordering::Relaxed};
 use tpm_core::constants::StartupType;
 use tpm_core::{Error, Result, Tpm};
 
@@ -23,58 +24,66 @@ extern "C" {
     fn TPM_TearDown() -> libc::c_int;
 }
 
+static IN_USE: AtomicBool = AtomicBool::new(false);
+static WAS_RESET: AtomicBool = AtomicBool::new(false);
+
 pub struct Simulator;
 
 impl Simulator {
-    pub fn new() -> Result<Self> {
-        let mut s = Self;
-        unsafe {
-            s.on();
-            TPM_Manufacture(1);
+    pub fn get() -> Result<Self> {
+        if IN_USE.swap(true, Relaxed) {
+            return Err(Error::TpmInUse);
         }
-        s.startup(StartupType::Clear)?;
+        let mut s = Self;
+        unsafe { s.on(true) }?;
         Ok(s)
     }
 }
 
 impl Simulator {
     pub fn reset(&mut self) -> Result<()> {
-        self.shutdown(StartupType::Clear)?;
         unsafe {
-            self.off();
-            self.on();
+            self.off()?;
+            self.on(false)
         }
-        self.startup(StartupType::Clear)
     }
     pub fn manufacture_reset(&mut self) -> Result<()> {
-        self.shutdown(StartupType::Clear)?;
         unsafe {
-            self.off();
-            self.on();
-            TPM_TearDown();
-            TPM_Manufacture(0);
+            self.off()?;
+            self.on(true)
         }
-        self.startup(StartupType::Clear)
     }
-    unsafe fn on(&mut self) {
+    unsafe fn on(&mut self, manufacture_reset: bool) -> Result<()> {
         // TODO: Should we be ignoring return codes here?
         _plat__Signal_PowerOn();
         _plat__Signal_Reset();
         _plat__SetNvAvail();
         _plat__Signal_PhysicalPresenceOn();
+
+        if manufacture_reset {
+            if WAS_RESET.swap(true, Relaxed) {
+                TPM_TearDown();
+                TPM_Manufacture(0);
+            } else {
+                TPM_Manufacture(1);
+            }
+        }
+
+        self.startup(StartupType::Clear)
     }
-    unsafe fn off(&mut self) {
+    unsafe fn off(&mut self) -> Result<()> {
+        self.shutdown(StartupType::Clear)?;
         _plat__Signal_PhysicalPresenceOff();
         _plat__ClearNvAvail();
         _plat__Signal_PowerOff();
+        Ok(())
     }
 }
 
 impl Drop for Simulator {
     fn drop(&mut self) {
-        self.shutdown(StartupType::Clear)
-            .expect("failed to shutdown simulator");
-        unsafe { self.off() };
+        IN_USE.store(false, Relaxed);
+        unsafe { self.off() }.expect("failed to shutdown simulator");
     }
 }
 
