@@ -19,99 +19,81 @@ pub mod structs;
 pub mod unions;
 pub mod util;
 
-use constants::StartupType;
+use constants::{CommandCode, StartupType};
 use data::{Buffer, DataIn, DataOut};
-use structs::TimeInfo;
+use structs::{CommandHeader, ResponseHeader, TimeInfo};
 
 pub trait Tpm {
     fn exec(&mut self, command: &[u8], response: &mut [u8]) -> Result<usize>;
 
     fn startup(&mut self, su: StartupType) -> Result<()> {
-        run_command(self, 0x144, su)
+        self.run_command(CommandCode::Startup, &su)
     }
 
     fn shutdown(&mut self, su: StartupType) -> Result<()> {
-        run_command(self, 0x145, su)
+        self.run_command(CommandCode::Shutdown, &su)
     }
 
     fn get_random(&mut self, num_bytes: u16) -> Result<Buffer> {
-        run_command(self, 0x17B, num_bytes)
+        self.run_command(CommandCode::GetRandom, &num_bytes)
     }
 
     fn read_clock(&mut self) -> Result<TimeInfo> {
-        run_command(self, 0x181, ())
+        self.run_command(CommandCode::ReadClock, &())
     }
 }
 
-fn run_command<T, I, O>(tpm: &mut T, cmd: u32, input: I) -> Result<O>
-where
-    T: Tpm + ?Sized,
-    I: DataIn,
-    O: DataOut,
-{
-    let mut in_buffer = [0u8; 4096];
-    let mut out_buffer = [0u8; 4096];
+trait TpmImpl: Tpm {
+    fn run_command<O: DataOut>(
+        &mut self,
+        cmd: CommandCode,
+        input: &(impl DataIn + ?Sized),
+    ) -> Result<O> {
+        let mut in_buffer = [0u8; 4096];
+        let mut out_buffer = [0u8; 4096];
 
-    let (header, data) = in_buffer.split_at_mut(10);
-    let unused = input.into_bytes(data)?;
+        let (header, data) = in_buffer.split_at_mut(10);
+        let unused = input.into_bytes(data)?;
 
-    let tag = 0x8001;
-    let size = 4096 - unused.len();
-    CommandHeader {
-        tag,
-        size: size as u32,
-        cmd,
-    }
-    .into_bytes(header)?;
+        let tag = 0x8001;
+        let size = 4096 - unused.len();
+        CommandHeader {
+            tag,
+            size: size as u32,
+            cmd,
+        }
+        .into_bytes(header)?;
 
-    let outlen = tpm.exec(&in_buffer[..size], &mut out_buffer)?;
-    let mut output = &out_buffer[..outlen];
+        let outlen = self.exec(&in_buffer[..size], &mut out_buffer)?;
+        let mut output = &out_buffer[..outlen];
 
-    let header = ResponseHeader::from_bytes(&mut output)?;
-    if header.tag != tag {
-        return Err(Error::TagMismatch);
-    }
-    if header.size as usize != outlen {
-        return Err(Error::OutLenMismatch);
-    }
-    if let Some(err) = NonZeroU32::new(header.resp) {
-        return Err(Error::Tpm(err));
-    }
+        let header = ResponseHeader::from_bytes(&mut output)?;
+        if header.tag != tag {
+            return Err(Error::TagMismatch);
+        }
+        if header.size as usize != outlen {
+            return Err(Error::OutLenMismatch);
+        }
+        if let Some(err) = NonZeroU32::new(header.resp) {
+            return Err(Error::Tpm(err));
+        }
 
-    let o = O::from_bytes(&mut output)?;
-    if !output.is_empty() {
-        return Err(Error::RemainingData);
-    }
-    Ok(o)
-}
-
-struct CommandHeader {
-    tag: u16,
-    size: u32,
-    cmd: u32,
-}
-
-impl DataIn for CommandHeader {
-    fn into_bytes<'a>(&self, mut bytes: &'a mut [u8]) -> Result<&'a mut [u8]> {
-        bytes = self.tag.into_bytes(bytes)?;
-        bytes = self.size.into_bytes(bytes)?;
-        bytes = self.cmd.into_bytes(bytes)?;
-        Ok(bytes)
+        let o = O::from_bytes(&mut output)?;
+        if !output.is_empty() {
+            return Err(Error::RemainingData);
+        }
+        Ok(o)
     }
 }
 
-struct ResponseHeader {
-    tag: u16,
-    size: u32,
-    resp: u32,
-}
+impl<T: Tpm + ?Sized> TpmImpl for T {}
 
-impl DataOut for ResponseHeader {
-    fn from_bytes(bytes: &mut &[u8]) -> Result<Self> {
-        Ok(Self {
-            tag: DataOut::from_bytes(bytes)?,
-            size: DataOut::from_bytes(bytes)?,
-            resp: DataOut::from_bytes(bytes)?,
-        })
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn object_safety() {
+        let _: Option<&dyn Tpm> = None;
     }
 }
