@@ -42,4 +42,10 @@ fn main() {
         .flag_if_supported("-Wno-missing-field-initializers")
         .compile("tpm");
     println!("cargo:rustc-link-lib=crypto");
+
+    for path_res in glob("ms-tpm-20-ref/TPMCmd/**/*").unwrap() {
+        if let Ok(path) = path_res {
+            println!("cargo:rerun-if-changed={}", path.display());
+        }
+    }
 }
