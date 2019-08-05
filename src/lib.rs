@@ -32,6 +32,14 @@ mod tests {
     }
 
     #[test]
+    fn stir_random() -> Result<()> {
+        let mut tpm = get_tpm()?;
+        tpm.stir_random(&[0u8; 10])?;
+        tpm.get_random(100)?;
+        Ok(())
+    }
+
+    #[test]
     fn read_clock() -> Result<()> {
         let mut tpm = get_tpm()?;
         let info = tpm.read_clock()?;

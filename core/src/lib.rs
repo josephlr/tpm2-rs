@@ -38,6 +38,10 @@ pub trait Tpm {
         self.run_command(CommandCode::GetRandom, &num_bytes)
     }
 
+    fn stir_random(&mut self, data: &[u8]) -> Result<()> {
+        self.run_command(CommandCode::StirRandom, data)
+    }
+
     fn read_clock(&mut self) -> Result<TimeInfo> {
         self.run_command(CommandCode::ReadClock, &())
     }
