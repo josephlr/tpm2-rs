@@ -11,6 +11,7 @@ pub enum Error {
     WouldAllocate,
     ResponseBuffer,
     TpmInUse,
+    SimulatorOff,
     Tpm(NonZeroU32),
     #[cfg(feature = "std")]
     Io(std::io::Error),
