@@ -5,6 +5,7 @@ use tpm_core::{Error, Result, Tpm};
 
 extern "C" {
     // Simulator Commands
+    fn _plat__TimerReset();
     fn _TPM_Init();
     fn ExecuteCommand(
         requestSize: u32,
@@ -16,15 +17,6 @@ extern "C" {
     // TPM Manufacturing Commands
     fn TPM_Manufacture(firstTime: libc::c_int) -> libc::c_int;
     fn TPM_TearDown() -> libc::c_int;
-}
-
-#[no_mangle]
-extern "C" fn _plat__IsCanceled() -> libc::c_int {
-    0
-}
-#[no_mangle]
-extern "C" fn _plat__LocalityGet() -> u8 {
-    0
 }
 
 static IN_USE: AtomicBool = AtomicBool::new(false);
@@ -58,9 +50,10 @@ impl Simulator {
     }
     unsafe fn on(&mut self) -> Result<()> {
         TPM_Manufacture(0);
+        _plat__TimerReset();
         _TPM_Init();
-        self.startup(StartupType::Clear)?;
         self.0 = true;
+        self.startup(StartupType::Clear)?;
         Ok(())
     }
     unsafe fn off(&mut self) -> Result<()> {
