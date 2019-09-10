@@ -5,18 +5,13 @@ use tpm_core::{Error, Result, Tpm};
 
 extern "C" {
     // Simulator Commands
-    fn _plat__TimerReset();
-    fn _TPM_Init();
-    fn ExecuteCommand(
+    fn _plat__Reset(forceManufacture: bool);
+    fn _plat__RunCommand(
         requestSize: u32,
         request: *const u8,
         responseSize: *mut u32,
         response: *mut *mut u8,
     );
-
-    // TPM Manufacturing Commands
-    fn TPM_Manufacture(firstTime: libc::c_int) -> libc::c_int;
-    fn TPM_TearDown() -> libc::c_int;
 }
 
 static IN_USE: AtomicBool = AtomicBool::new(false);
@@ -29,7 +24,10 @@ impl Simulator {
             return Err(Error::TpmInUse);
         }
         let mut s = Self(false);
-        unsafe { s.on()? };
+        unsafe {
+            _plat__Reset(true);
+            s.on()?
+        };
         Ok(s)
     }
 }
@@ -38,20 +36,18 @@ impl Simulator {
     pub fn reset(&mut self) -> Result<()> {
         unsafe {
             self.off()?;
+            _plat__Reset(false);
             self.on()
         }
     }
     pub fn manufacture_reset(&mut self) -> Result<()> {
         unsafe {
             self.off()?;
-            TPM_TearDown();
+            _plat__Reset(true);
             self.on()
         }
     }
     unsafe fn on(&mut self) -> Result<()> {
-        TPM_Manufacture(0);
-        _plat__TimerReset();
-        _TPM_Init();
         self.0 = true;
         self.startup(StartupType::Clear)?;
         Ok(())
@@ -81,7 +77,7 @@ impl Tpm for Simulator {
         let mut response_size = response.len() as u32;
         let mut response_ptr = response.as_mut_ptr();
         unsafe {
-            ExecuteCommand(
+            _plat__RunCommand(
                 command.len() as u32,
                 command.as_ptr(),
                 &mut response_size,
