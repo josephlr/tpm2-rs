@@ -41,9 +41,20 @@ mod tests {
 
     #[test]
     fn read_clock() -> Result<()> {
+        use std::thread::sleep;
+        use std::time::Duration;
+
         let mut tpm = get_tpm()?;
-        let info = tpm.read_clock()?;
-        println!("{:?}", info);
+        println!("{:?}", tpm.read_clock()?);
+
+        sleep(Duration::from_millis(10));
+        println!("{:?}", tpm.read_clock()?);
+
+        tpm.reset()?;
+        println!("{:?}", tpm.read_clock()?);
+
+        sleep(Duration::from_millis(10));
+        println!("{:?}", tpm.read_clock()?);
         Ok(())
     }
 }
