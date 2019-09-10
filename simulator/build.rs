@@ -28,7 +28,10 @@ fn main() {
 
     println!("cargo:rustc-link-lib=crypto");
 
-    for dir in &["ms-tpm-20-ref/TPMCmd/**", "ms-tpm-20-ref/Samples/Google"] {
+    for dir in &[
+        "ms-tpm-20-ref/TPMCmd/tpm/**",
+        "ms-tpm-20-ref/Samples/Google",
+    ] {
         for path_res in glob(&format!("{}/*.[hc]", dir)).unwrap() {
             if let Ok(path) = path_res {
                 println!("cargo:rerun-if-changed={}", path.display());
