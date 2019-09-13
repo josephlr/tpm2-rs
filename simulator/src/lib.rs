@@ -1,10 +1,10 @@
 #![no_std]
 use core::sync::atomic::{AtomicBool, Ordering::Relaxed};
-use tpm_core::constants::StartupType;
-use tpm_core::{Error, Result, Tpm};
+use tpm::raw::constants::StartupType;
+use tpm::{Error, Result, raw::Tpm};
 
+// External Simulator API from Samples/Google/Platform.h
 extern "C" {
-    // Simulator Commands
     fn _plat__Reset(forceManufacture: bool);
     fn _plat__RunCommand(
         requestSize: u32,
@@ -24,35 +24,26 @@ impl Simulator {
             return Err(Error::TpmInUse);
         }
         let mut s = Self(false);
-        unsafe {
-            _plat__Reset(true);
-            s.on()?
-        };
+        unsafe { _plat__Reset(true) };
+        s.on()?;
         Ok(s)
     }
-}
-
-impl Simulator {
     pub fn reset(&mut self) -> Result<()> {
-        unsafe {
-            self.off()?;
-            _plat__Reset(false);
-            self.on()
-        }
+        self.off()?;
+        unsafe { _plat__Reset(false) };
+        self.on()
     }
     pub fn manufacture_reset(&mut self) -> Result<()> {
-        unsafe {
-            self.off()?;
-            _plat__Reset(true);
-            self.on()
-        }
+        self.off()?;
+        unsafe { _plat__Reset(true) };
+        self.on()
     }
-    unsafe fn on(&mut self) -> Result<()> {
-        self.0 = true;
+    fn on(&mut self) -> Result<()> {
         self.startup(StartupType::Clear)?;
+        self.0 = true;
         Ok(())
     }
-    unsafe fn off(&mut self) -> Result<()> {
+    fn off(&mut self) -> Result<()> {
         self.shutdown(StartupType::Clear)?;
         self.0 = false;
         Ok(())
@@ -62,7 +53,7 @@ impl Simulator {
 impl Drop for Simulator {
     fn drop(&mut self) {
         if self.0 {
-            let _ = unsafe { self.off() };
+            let _ = self.off();
         }
         IN_USE.store(false, Relaxed);
     }
@@ -70,10 +61,6 @@ impl Drop for Simulator {
 
 impl Tpm for Simulator {
     fn exec(&mut self, command: &[u8], response: &mut [u8]) -> Result<usize> {
-        if !self.0 {
-            return Err(Error::SimulatorOff);
-        }
-
         let mut response_size = response.len() as u32;
         let mut response_ptr = response.as_mut_ptr();
         unsafe {
