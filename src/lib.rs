@@ -1,60 +1,20 @@
-pub use tpm_core::data;
-pub use tpm_core::{Error, Result, Tpm};
+//! A TPM2 TSS. Add more docs and doc-tests.
 
-#[cfg(feature = "tpm_os")]
-pub use tpm_os::OsTpm;
+// #![deny(missing_docs)]
+// #![deny(missing_debug_implementations)]
+// #![doc(test(attr(allow(unused_variables), deny(warnings))))]
+#![no_std]
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use once_cell::sync::OnceCell;
+pub mod raw;
+pub use raw::Tpm;
+mod error;
+pub use error::{Error, Result};
 
-    use core::ops::DerefMut;
-    use std::sync::Mutex;
+#[cfg(feature = "alloc")]
+extern crate alloc;
+#[cfg(feature = "std")]
+extern crate std;
 
-    #[cfg(feature = "test_hardware")]
-    type TestTpm = tpm_os::OsTpm;
-    #[cfg(not(feature = "test_hardware"))]
-    type TestTpm = tpm_simulator::Simulator;
-
-    fn get_tpm() -> Result<impl DerefMut<Target = TestTpm>> {
-        static TPM: OnceCell<Mutex<TestTpm>> = OnceCell::new();
-        let tpm = TPM.get_or_try_init(|| TestTpm::get().map(Mutex::new))?;
-        Ok(tpm.lock().unwrap())
-    }
-
-    #[test]
-    fn get_random() -> Result<()> {
-        let mut tpm = get_tpm()?;
-        let output = tpm.get_random(100)?;
-        println!("{:?}", output.bytes());
-        Ok(())
-    }
-
-    #[test]
-    fn stir_random() -> Result<()> {
-        let mut tpm = get_tpm()?;
-        tpm.stir_random(&[0u8; 10])?;
-        tpm.get_random(100)?;
-        Ok(())
-    }
-
-    #[test]
-    fn read_clock() -> Result<()> {
-        use std::thread::sleep;
-        use std::time::Duration;
-
-        let mut tpm = get_tpm()?;
-        println!("{:?}", tpm.read_clock()?);
-
-        sleep(Duration::from_millis(10));
-        println!("{:?}", tpm.read_clock()?);
-
-        tpm.reset()?;
-        println!("{:?}", tpm.read_clock()?);
-
-        sleep(Duration::from_millis(10));
-        println!("{:?}", tpm.read_clock()?);
-        Ok(())
-    }
-}
+// The os module will be empty depending on the platform/features.
+mod os;
+pub use os::*;

@@ -1,6 +1,6 @@
 //! Constants (i.e. C-style enums) defined in the TPM2 Spec
 
-use crate::data::DataIn;
+use super::data::DataIn;
 use crate::Result;
 
 // TPM_CC constants

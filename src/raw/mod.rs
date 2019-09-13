@@ -1,20 +1,8 @@
-//! A TPM2 TSS. Add more docs and doc-tests.
-
-// #![deny(missing_docs)]
-// #![deny(missing_debug_implementations)]
-// #![doc(test(attr(allow(unused_variables), deny(warnings))))]
-
-#![no_std]
+use crate::{Error, Result};
 use core::num::NonZeroU32;
-
-extern crate alloc;
-#[cfg(feature = "std")]
-extern crate std;
 
 pub mod constants;
 pub mod data;
-mod error;
-pub use error::{Error, Result};
 pub mod structs;
 pub mod unions;
 pub mod util;

@@ -8,27 +8,22 @@ readme = "README.md"
 repository = "https://github.com/josephlr/tpm"
 documentation = "https://docs.rs/tpm"
 homepage = "https://github.com/josephlr/tpm"
-description = "High-level TPM2 TSS"
+description = "Pure Rust TPM2 TSS"
 keywords = ["tpm", "tss", "tpm2"]
 categories = ["cryptography", "no-std"]
 
-[dependencies]
-tpm_core = { path = "core", default-features = false }
-tpm_os = { path = "os", optional = true }
-
 [features]
 default = ["std"]
-alloc = ["tpm_core/alloc"]
-std = ["alloc", "tpm_core/std", "tpm_os"]
-test_hardware = ["tpm_os"]
+alloc = []
+std = ["alloc"]
+test_hardware = ["std"]
+
+[dependencies]
+cfg-if = "0.1.9"
 
 [dev-dependencies]
 once_cell = "0.2"
 tpm_simulator = { path = "simulator" }
 
 [workspace]
-members = [
-    "core",
-    "os",
-    "simulator",
-]
+members = ["simulator"]
