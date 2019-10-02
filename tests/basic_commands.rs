@@ -5,9 +5,9 @@ use once_cell::sync::OnceCell;
 
 use tpm::{Result, Tpm};
 
-#[cfg(feature = "test_hardware")]
+#[cfg(feature = "test-hardware")]
 type TestTpm = tpm::OsTpm;
-#[cfg(not(feature = "test_hardware"))]
+#[cfg(not(feature = "test-hardware"))]
 type TestTpm = tpm_simulator::Simulator;
 
 fn get_tpm() -> Result<impl DerefMut<Target = TestTpm>> {

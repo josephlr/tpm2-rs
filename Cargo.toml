@@ -14,16 +14,15 @@ categories = ["cryptography", "no-std"]
 
 [features]
 default = ["std"]
-alloc = []
-std = ["alloc"]
-test_hardware = ["std"]
+std = ["once_cell"]
+test-hardware = ["std"]
 
 [dependencies]
-cfg-if = "0.1.9"
+cfg-if = "0.1.6"
+once_cell = { version = "1.0.1", optional = true }
 
 [dev-dependencies]
-once_cell = "0.2"
-tpm_simulator = { path = "simulator" }
+tpm-simulator = { path = "simulator" }
 
 [workspace]
 members = ["simulator"]

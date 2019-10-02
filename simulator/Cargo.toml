@@ -1,5 +1,5 @@
 [package]
-name = "tpm_simulator"
+name = "tpm-simulator"
 version = "0.1.0"
 authors = ["Joe Richey <joerichey@google.com>"]
 edition = "2018"
@@ -13,9 +13,13 @@ keywords = ["tpm", "tpm2", "simulator"]
 categories = ["cryptography", "no_std"]
 
 [dependencies]
-libc = { version = "0.2", default-features = false }
 tpm = { path = "..", default-features = false }
+once_cell = { version = "1.0.1", optional = true }
+
+[features]
+default = ["std"]
+std = ["once_cell"]
 
 [build-dependencies]
-cc = { version = "1.0", features = ["parallel"] }
+cc = { version = "1.0.42", features = ["parallel"] }
 glob = "0.3.0"
