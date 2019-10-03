@@ -31,18 +31,28 @@ fn stir_random() -> Result<()> {
 fn read_clock() -> Result<()> {
     use std::thread::sleep;
     use std::time::Duration;
+    {
+        let mut tpm = TestTpm::get()?;
+        println!("{:?}", tpm.read_clock()?);
 
-    let mut tpm = get_tpm()?;
-    println!("{:?}", tpm.read_clock()?);
+        sleep(Duration::from_millis(10));
+        println!("{:?}", tpm.read_clock()?);
 
-    sleep(Duration::from_millis(10));
-    println!("{:?}", tpm.read_clock()?);
+        #[cfg(not(feature = "test-hardware"))]
+        tpm.reset()?;
+        println!("\nAfter reset:");
+        println!("{:?}", tpm.read_clock()?);
 
-    #[cfg(not(feature = "test_hardware"))]
-    tpm.reset()?;
-    println!("{:?}", tpm.read_clock()?);
+        sleep(Duration::from_millis(10));
+        println!("{:?}", tpm.read_clock()?);
+    }
+    {
+        let mut tpm = TestTpm::get()?;
+        println!("\nAfter manufacturer reset:");
+        println!("{:?}", tpm.read_clock()?);
 
-    sleep(Duration::from_millis(10));
-    println!("{:?}", tpm.read_clock()?);
+        sleep(Duration::from_millis(10));
+        println!("{:?}", tpm.read_clock()?);
+    }
     Ok(())
 }
