@@ -40,7 +40,7 @@ pub trait Tpm {
 
     fn get_random<'a>(&mut self, buf: &'a mut [u8]) -> Result<&'a mut [u8]> {
         let len = buf.len() as u16;
-        run(self, CommandCode::GetRandom, &len)?.parse_mut(buf)
+        run(self, CommandCode::GetRandom, &len)?.parse_ref(buf)
     }
 
     fn stir_random(&mut self, data: &[u8]) -> Result<()> {
@@ -55,19 +55,19 @@ pub trait Tpm {
 fn run<'a, T: Tpm + ?Sized>(
     tpm: &'a mut T,
     code: CommandCode,
-    input: &(impl WriteData + ?Sized),
+    input: &(impl CommandData + ?Sized),
 ) -> Result<Response<'a, T>> {
     let tag = tag::Command::NoSessions;
-    let size = (10 + input.data_len()).try_into().unwrap();
+    let size = (10 + input.encoded_len()).try_into().unwrap();
     let cmd_header = CommandHeader { tag, size, code };
 
     tpm.reset_command()?;
-    cmd_header.write_data(tpm)?;
-    input.write_data(tpm)?;
+    cmd_header.encode(tpm)?;
+    input.encode(tpm)?;
 
     tpm.run_command()?;
 
-    let resp_header = ResponseHeader::read_data(tpm)?;
+    let resp_header = ResponseHeader::decode(tpm)?;
     if let Some(err) = NonZeroU32::new(resp_header.code) {
         return Err(Error::Tpm(err));
     }
@@ -87,11 +87,11 @@ struct Response<'a, T: ?Sized> {
 }
 
 impl<T: Tpm + ?Sized> Response<'_, T> {
-    fn parse<D: ReadData>(&mut self) -> Result<D> {
-        D::read_data(self.tpm)
+    fn parse<D: ResponseData>(&mut self) -> Result<D> {
+        D::decode(self.tpm)
     }
-    fn parse_mut<D: ReadDataMut>(&mut self, mut output: D) -> Result<D> {
-        output.read_data_mut(self.tpm)?;
+    fn parse_ref<D: ResponseDataRef>(&mut self, mut output: D) -> Result<D> {
+        output.decode_ref(self.tpm)?;
         Ok(output)
     }
 }

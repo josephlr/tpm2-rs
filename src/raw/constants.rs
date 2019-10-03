@@ -1,5 +1,5 @@
 //! Constants (i.e. C-style enums) defined in the TPM2 Spec
-use super::{ReadData, Tpm, WriteData};
+use super::{CommandData, ResponseData, Tpm};
 use crate::{Error, Result};
 
 // TPM_GENERATED_VALUE (v1.55, Part 2, Section 6.2, Table 7)
@@ -311,33 +311,33 @@ pub enum StartupType {
 
 // GENERATED CODE BELOW
 
-impl WriteData for tag::Attest {
-    fn write_data(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()> {
-        (*self as u16).write_data(writer)
+impl CommandData for tag::Attest {
+    fn encode(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()> {
+        (*self as u16).encode(writer)
     }
 }
 
-impl WriteData for StartupType {
-    fn write_data(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()> {
-        (*self as u16).write_data(writer)
+impl CommandData for StartupType {
+    fn encode(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()> {
+        (*self as u16).encode(writer)
     }
 }
 
-impl WriteData for CommandCode {
-    fn write_data(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()> {
-        (*self as u32).write_data(writer)
+impl CommandData for CommandCode {
+    fn encode(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()> {
+        (*self as u32).encode(writer)
     }
 }
 
-impl WriteData for tag::Command {
-    fn write_data(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()> {
-        (*self as u16).write_data(writer)
+impl CommandData for tag::Command {
+    fn encode(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()> {
+        (*self as u16).encode(writer)
     }
 }
 
-impl ReadData for tag::Command {
-    fn read_data(reader: &mut (impl Tpm + ?Sized)) -> Result<Self> {
-        match u16::read_data(reader)? {
+impl ResponseData for tag::Command {
+    fn decode(reader: &mut (impl Tpm + ?Sized)) -> Result<Self> {
+        match u16::decode(reader)? {
             0x8001 => Ok(tag::Command::NoSessions),
             0x8002 => Ok(tag::Command::Sessions),
             _ => Err(Error::InvalidOutputValue),

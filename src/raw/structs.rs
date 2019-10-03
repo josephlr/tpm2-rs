@@ -1,6 +1,6 @@
 //! Structures defined in the TPM2 Spec
 use super::constants::*;
-use super::{ReadData, Tpm, WriteData};
+use super::{CommandData, ResponseData, Tpm};
 use crate::Result;
 
 // Header for all commands (see v1.55, Part 1, Section 18)
@@ -35,44 +35,44 @@ pub struct TimeInfo {
 
 // GENERATED CODE BELOW
 
-impl ReadData for ClockInfo {
-    fn read_data(reader: &mut (impl Tpm + ?Sized)) -> Result<Self> {
+impl ResponseData for ClockInfo {
+    fn decode(reader: &mut (impl Tpm + ?Sized)) -> Result<Self> {
         Ok(Self {
-            clock: u64::read_data(reader)?,
-            reset_count: u32::read_data(reader)?,
-            restart_count: u32::read_data(reader)?,
-            safe: bool::read_data(reader)?,
+            clock: u64::decode(reader)?,
+            reset_count: u32::decode(reader)?,
+            restart_count: u32::decode(reader)?,
+            safe: bool::decode(reader)?,
         })
     }
 }
 
-impl ReadData for TimeInfo {
-    fn read_data(reader: &mut (impl Tpm + ?Sized)) -> Result<Self> {
+impl ResponseData for TimeInfo {
+    fn decode(reader: &mut (impl Tpm + ?Sized)) -> Result<Self> {
         Ok(Self {
-            time: u64::read_data(reader)?,
-            clock: ClockInfo::read_data(reader)?,
+            time: u64::decode(reader)?,
+            clock: ClockInfo::decode(reader)?,
         })
     }
 }
 
-impl WriteData for CommandHeader {
-    fn data_len(&self) -> usize {
-        0 + self.tag.data_len() + self.size.data_len() + self.code.data_len()
+impl CommandData for CommandHeader {
+    fn encoded_len(&self) -> usize {
+        0 + self.tag.encoded_len() + self.size.encoded_len() + self.code.encoded_len()
     }
-    fn write_data(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()> {
-        self.tag.write_data(writer)?;
-        self.size.write_data(writer)?;
-        self.code.write_data(writer)?;
+    fn encode(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()> {
+        self.tag.encode(writer)?;
+        self.size.encode(writer)?;
+        self.code.encode(writer)?;
         Ok(())
     }
 }
 
-impl ReadData for ResponseHeader {
-    fn read_data(reader: &mut (impl Tpm + ?Sized)) -> Result<Self> {
+impl ResponseData for ResponseHeader {
+    fn decode(reader: &mut (impl Tpm + ?Sized)) -> Result<Self> {
         Ok(Self {
-            tag: tag::Command::read_data(reader)?,
-            size: u32::read_data(reader)?,
-            code: ResponseCode::read_data(reader)?,
+            tag: tag::Command::decode(reader)?,
+            size: u32::decode(reader)?,
+            code: ResponseCode::decode(reader)?,
         })
     }
 }
