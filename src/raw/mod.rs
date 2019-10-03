@@ -1,15 +1,18 @@
-use crate::{Error, Result};
+use core::convert::TryInto;
 use core::num::NonZeroU32;
 
-pub mod constants;
-pub mod data;
-pub mod structs;
-pub mod unions;
-pub mod util;
+use crate::{Error, Result};
 
-use constants::{CommandCode, StartupType};
-use data::{Buffer, DataIn, DataOut};
-use structs::{CommandHeader, ResponseHeader, TimeInfo};
+pub mod constants;
+use constants::*;
+
+pub mod structs;
+use structs::*;
+
+pub mod unions;
+
+mod traits;
+pub use traits::*;
 
 pub trait Tpm {
     /// Attempts to write all of `buf` into the writer. This differs from
