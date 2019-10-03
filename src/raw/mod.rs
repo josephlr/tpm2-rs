@@ -31,69 +31,67 @@ pub trait Tpm {
     fn reset_command(&mut self) -> Result<()>;
 
     fn startup(&mut self, su: StartupType) -> Result<()> {
-        self.run_command(CommandCode::Startup, &su)
+        run(self, CommandCode::Startup, &su)?.parse()
     }
 
     fn shutdown(&mut self, su: StartupType) -> Result<()> {
-        self.run_command(CommandCode::Shutdown, &su)
+        run(self, CommandCode::Shutdown, &su)?.parse()
     }
 
-    fn get_random(&mut self, num_bytes: u16) -> Result<Buffer> {
-        self.run_command(CommandCode::GetRandom, &num_bytes)
+    fn get_random<'a>(&mut self, buf: &'a mut [u8]) -> Result<&'a mut [u8]> {
+        let len = buf.len() as u16;
+        run(self, CommandCode::GetRandom, &len)?.parse_mut(buf)
     }
 
     fn stir_random(&mut self, data: &[u8]) -> Result<()> {
-        self.run_command(CommandCode::StirRandom, data)
+        run(self, CommandCode::StirRandom, data)?.parse()
     }
 
     fn read_clock(&mut self) -> Result<TimeInfo> {
-        self.run_command(CommandCode::ReadClock, &())
+        run(self, CommandCode::ReadClock, &())?.parse()
     }
 }
 
-trait TpmImpl: Tpm {
-    fn run_command<O: DataOut>(
-        &mut self,
-        cmd: CommandCode,
-        input: &(impl DataIn + ?Sized),
-    ) -> Result<O> {
-        let mut in_buffer = [0u8; 4096];
-        let mut out_buffer = [0u8; 4096];
+fn run<'a, T: Tpm + ?Sized>(
+    tpm: &'a mut T,
+    code: CommandCode,
+    input: &(impl WriteData + ?Sized),
+) -> Result<Response<'a, T>> {
+    let tag = tag::Command::NoSessions;
+    let size = (10 + input.data_len()).try_into().unwrap();
+    let cmd_header = CommandHeader { tag, size, code };
 
-        let (header, data) = in_buffer.split_at_mut(10);
-        let unused = input.into_bytes(data)?;
+    tpm.reset_command()?;
+    cmd_header.write_data(tpm)?;
+    input.write_data(tpm)?;
 
-        let tag = 0x8001;
-        let size = 4096 - unused.len();
-        CommandHeader {
-            tag,
-            size: size as u32,
-            cmd,
-        }
-        .into_bytes(header)?;
+    tpm.run_command()?;
 
-        let outlen = self.exec(&in_buffer[..size], &mut out_buffer)?;
-        let mut output = &out_buffer[..outlen];
-
-        let header = ResponseHeader::from_bytes(&mut output)?;
-        if header.tag != tag {
-            return Err(Error::TagMismatch);
-        }
-        if header.size as usize != outlen {
-            return Err(Error::OutLenMismatch);
-        }
-        if let Some(err) = NonZeroU32::new(header.resp) {
-            return Err(Error::Tpm(err));
-        }
-
-        let o = O::from_bytes(&mut output)?;
-        if !output.is_empty() {
-            return Err(Error::RemainingData);
-        }
-        Ok(o)
+    let resp_header = ResponseHeader::read_data(tpm)?;
+    if let Some(err) = NonZeroU32::new(resp_header.code) {
+        return Err(Error::Tpm(err));
     }
+    assert_eq!(resp_header.tag, tag);
+
+    Ok(Response {
+        tpm,
+        bytes_read: 10,
+        bytes_expected: resp_header.size as usize,
+    })
 }
 
-impl<T: Tpm + ?Sized> TpmImpl for T {}
+struct Response<'a, T: ?Sized> {
+    tpm: &'a mut T,
+    bytes_read: usize,
+    bytes_expected: usize,
+}
 
-
+impl<T: Tpm + ?Sized> Response<'_, T> {
+    fn parse<D: ReadData>(&mut self) -> Result<D> {
+        D::read_data(self.tpm)
+    }
+    fn parse_mut<D: ReadDataMut>(&mut self, mut output: D) -> Result<D> {
+        output.read_data_mut(self.tpm)?;
+        Ok(output)
+    }
+}
