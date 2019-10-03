@@ -2,13 +2,147 @@
 use super::{ReadData, Tpm, WriteData};
 use crate::{Error, Result};
 
-use super::data::DataIn;
-use crate::Result;
+// TPM_GENERATED_VALUE (v1.55, Part 2, Section 6.2, Table 7)
+static TPM_MAGIC: &[u8; 4] = b"\xffTPM";
 
-// TPM_CC constants
+// TPM_ALG_ID (v1.55, Part 2, Section 6.3, Tables 8 and 9)
+pub(crate) mod alg {
+    // TPMI_ALG_HASH (v1.55, Part 2, Section 9.25, Table 63)
+    // TPMI_ALG_MAC_SCHEME (v1.55, Part 2, Section 9.34, Table 72)
+    pub(crate) enum Hash {
+        SHA1 = 0x0004,
+        SHA256 = 0x000B,
+        SHA384 = 0x000C,
+        SHA512 = 0x000D,
+        SM3_256 = 0x0012,
+        SHA3_256 = 0x0027,
+        SHA3_384 = 0x0028,
+        SHA3_512 = 0x0029,
+    }
+
+    // TPMI_ALG_ASYM (v1.55, Part 2, Section 9.26, Table 64)
+    pub(crate) enum Asym {
+        RSA = 0x0001,
+        ECC = 0x0023,
+    }
+
+    // TPMI_ALG_SYM (v1.55, Part 2, Section 9.27, Table 65)
+    // TPMI_ALG_SYM_OBJECT (v1.55, Part 2, Section 9.28, Table 66)
+    pub(crate) enum Sym {
+        TDES = 0x0003,
+        AES = 0x0006,
+        XOR = 0x000A, // Not in TPMI_ALG_SYM_OBJECT
+        SM4 = 0x0013,
+        Camellia = 0x0026,
+    }
+
+    // TPMI_ALG_SYM_MODE (v1.55, Part 2, Section 9.29, Table 67)
+    // TPMI_ALG_CIPHER_MODE (v1.55, Part 2, Section 9.35, Table 73)
+    pub(crate) enum SymMode {
+        CTR = 0x0040,
+        OFB = 0x0041,
+        CBC = 0x0042,
+        CFB = 0x0043,
+        ECB = 0x0044,
+    }
+
+    // TPMI_ALG_KDF (v1.55, Part 2, Section 9.30, Table 68)
+    #[allow(non_camel_case_types)]
+    pub(crate) enum Kdf {
+        MGF1 = 0x0007,
+        KDF1_SP800_56A = 0x0020,
+        KDF2 = 0x0021,
+        KDF1_SP800_108 = 0x0022,
+    }
+
+    // TPMI_ALG_KDF (v1.55, Part 2, Section 9.31, Table 69)
+    pub(crate) enum SigScheme {
+        HMAC = 0x0005,
+        RSASSA = 0x0014,
+        RSAPSS = 0x0016,
+        ECDSA = 0x0018,
+        ECDAA = 0x001A,
+        SM2 = 0x001B,
+        ECSchnorr = 0x001C,
+    }
+
+    // TPMI_ALG_KDF (v1.55, Part 2, Section 9.32, Table 70)
+    pub(crate) enum KeyExchange {
+        ECDH = 0x0019,
+        SM2 = 0x001B,
+        ECMQV = 0x001D,
+    }
+
+    // TPMI_ALG_KEYEDHASH_SCHEME (v1.55, Part 2, Section 11.1.19, Table 149)
+    pub(crate) enum KeyedHashScheme {
+        HMAC = 0x0005,
+        XOR = 0x000A,
+    }
+
+    // TPMI_ALG_ASYM_SCHEME (v1.55, Part 2, Section 11.2.3.4, Table 163)
+    pub(crate) enum AsymScheme {
+        RSASSA = 0x0014,
+        RSAES = 0x0015,
+        RSAPSS = 0x0016,
+        OAEP = 0x0017,
+        ECDSA = 0x0018,
+        ECDH = 0x0019,
+        ECDAA = 0x001A,
+        SM2 = 0x001B,
+        ECSchnorr = 0x001C,
+        ECMQV = 0x001D,
+    }
+
+    // TPMI_ALG_RSA_SCHEME (v1.55, Part 2, Section 11.2.4.1, Table 166)
+    pub(crate) enum RsaScheme {
+        RSASSA = 0x0014,
+        RSAES = 0x0015,
+        RSAPSS = 0x0016,
+        OAEP = 0x0017,
+    }
+
+    // TPMI_ALG_RSA_DECRYPT (v1.55, Part 2, Section 11.2.4.4, Table 169)
+    pub(crate) enum RsaDecrypt {
+        RSAES = 0x0015,
+        OAEP = 0x0017,
+    }
+
+    // TPMI_ALG_ECC_SCHEME (v1.55, Part 2, Section 11.2.5.4, Table 176)
+    pub(crate) enum EccScheme {
+        ECDSA = 0x0018,
+        ECDH = 0x0019,
+        ECDAA = 0x001A,
+        SM2 = 0x001B,
+        ECSchnorr = 0x001C,
+        ECMQV = 0x001D,
+    }
+
+    // TPMI_ALG_PUBLIC (v1.55, Part 2, Section 12.2.2, Table 188)
+    pub(crate) enum Public {
+        RSA = 0x0001,
+        KeyedHash = 0x0008,
+        ECC = 0x0023,
+        SymCipher = 0x0025,
+    }
+}
+
+// TPM_ECC_CURVE (v1.55, Part 2, Section 6.4, Table 10)
+#[allow(non_camel_case_types)]
+pub(crate) enum EccCurve {
+    NIST_P192 = 0x0001,
+    NIST_P224 = 0x0002,
+    NIST_P256 = 0x0003,
+    NIST_P384 = 0x0004,
+    NIST_P521 = 0x0005,
+    BN_P256 = 0x0010, // curve to support ECDAA
+    BN_P638 = 0x0011, // curve to support ECDAA
+    SM2_P256 = 0x0020,
+}
+
+// TPM_CC (v1.55, Part 2, Section 6.5, Tables 11 and 12)
+#[allow(non_camel_case_types)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug)]
 #[repr(u32)]
-#[derive(Clone, Copy, Debug)]
-#[allow(non_camel_case_types, dead_code)]
 pub(crate) enum CommandCode {
     NV_UndefineSpaceSpecial = 0x0000011F,
     EvictControl = 0x00000120,
@@ -128,36 +262,85 @@ pub(crate) enum CommandCode {
     CertifyX509 = 0x00000197,
 }
 
-impl DataIn for CommandCode {
-    fn into_bytes<'a>(&self, bytes: &'a mut [u8]) -> Result<&'a mut [u8]> {
-        (*self as u32).into_bytes(bytes)
+pub(crate) type ResponseCode = u32;
+
+// TPM_ST (v1.55, Part 2, Section 6.9, Table 19)
+pub(crate) mod tag {
+    // TPMI_ST_COMMAND_TAG (v1.55, Part 2, Section 9.33, Table 71)
+    #[derive(PartialEq, Eq, Copy, Clone, Debug)]
+    #[repr(u16)]
+    pub(crate) enum Command {
+        NoSessions = 0x8001,
+        Sessions = 0x8002,
+    }
+
+    // TPMI_ST_ATTEST (v1.55, Part 2, Section 10.12.7, Table 126)
+    #[allow(non_camel_case_types)]
+    #[derive(PartialEq, Eq, Copy, Clone)]
+    #[repr(u16)]
+    pub(crate) enum Attest {
+        NV = 0x8014,
+        CommandAudit = 0x8015,
+        SessionAudit = 0x8016,
+        Certify = 0x8017,
+        Quote = 0x8018,
+        Time = 0x8019,
+        Creation = 0x801A,
+        // 0x801B skipped as it was perviously assigned to TPM_ST_ATTEST_NV.
+        NV_Digest = 0x801C,
+    }
+
+    // Ticket types (see v1.55, Part 2, Section 10.7)
+    #[derive(PartialEq, Eq, Copy, Clone)]
+    pub(crate) enum Ticket {
+        Creation = 0x8021,
+        Verified = 0x8022,
+        AuthSecret = 0x8023,
+        HashCheck = 0x8024,
+        AuthSigned = 0x8025,
     }
 }
 
-// TPMI_ALG_HASH
+// TPM_SU (v1.55, Part 2, Section 6.10, Table 20)
+#[derive(PartialEq, Eq, Copy, Clone)]
 #[repr(u16)]
-#[derive(Debug)]
-pub enum AlgHash {
-    SHA1 = 0x0004,
-    SHA256 = 0x000B,
-    SHA384 = 0x000C,
-    SHA512 = 0x000D,
-    SM3_256 = 0x0012,
-    SHA3_256 = 0x0027,
-    SHA3_384 = 0x0028,
-    SHA3_512 = 0x0029,
-}
-
-// TPM_SU
-#[repr(u16)]
-#[derive(Clone, Copy, Debug)]
 pub enum StartupType {
     Clear = 0x0000,
     State = 0x0001,
 }
 
-impl DataIn for StartupType {
-    fn into_bytes<'a>(&self, bytes: &'a mut [u8]) -> Result<&'a mut [u8]> {
-        (*self as u16).into_bytes(bytes)
+// GENERATED CODE BELOW
+
+impl WriteData for tag::Attest {
+    fn write_data(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()> {
+        (*self as u16).write_data(writer)
+    }
+}
+
+impl WriteData for StartupType {
+    fn write_data(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()> {
+        (*self as u16).write_data(writer)
+    }
+}
+
+impl WriteData for CommandCode {
+    fn write_data(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()> {
+        (*self as u32).write_data(writer)
+    }
+}
+
+impl WriteData for tag::Command {
+    fn write_data(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()> {
+        (*self as u16).write_data(writer)
+    }
+}
+
+impl ReadData for tag::Command {
+    fn read_data(reader: &mut (impl Tpm + ?Sized)) -> Result<Self> {
+        match u16::read_data(reader)? {
+            0x8001 => Ok(tag::Command::NoSessions),
+            0x8002 => Ok(tag::Command::Sessions),
+            _ => Err(Error::InvalidOutputValue),
+        }
     }
 }

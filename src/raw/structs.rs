@@ -3,75 +3,76 @@ use super::constants::*;
 use super::{ReadData, Tpm, WriteData};
 use crate::Result;
 
-// TPMS_CLOCK_INFO
-#[derive(Debug)]
-pub struct ClockInfo {
-    pub clock: u64,
-    pub reset_count: u32,
-    pub restart_count: u32,
-    pub safe: bool,
-}
-
-impl DataOut for ClockInfo {
-    fn from_bytes(bytes: &mut &[u8]) -> Result<Self> {
-        Ok(Self {
-            clock: DataOut::from_bytes(bytes)?,
-            reset_count: DataOut::from_bytes(bytes)?,
-            restart_count: DataOut::from_bytes(bytes)?,
-            safe: DataOut::from_bytes(bytes)?,
-        })
-    }
-}
-
-// TPMS_TIME_INFO
-#[derive(Debug)]
-pub struct TimeInfo {
-    pub time: u64,
-    pub clock: ClockInfo,
-}
-
-impl DataOut for TimeInfo {
-    fn from_bytes(bytes: &mut &[u8]) -> Result<Self> {
-        Ok(Self {
-            time: DataOut::from_bytes(bytes)?,
-            clock: DataOut::from_bytes(bytes)?,
-        })
-    }
-}
-
-// TPML_PCR_SELECTION
-#[derive(Debug)]
-pub struct PcrSelection {
-    hash: Option<AlgHash>,
-}
-
+// Header for all commands (see v1.55, Part 1, Section 18)
 pub(crate) struct CommandHeader {
-    pub tag: u16,
+    pub tag: tag::Command,
     pub size: u32,
-    pub cmd: CommandCode,
+    pub code: CommandCode,
 }
 
-impl DataIn for CommandHeader {
-    fn into_bytes<'a>(&self, mut bytes: &'a mut [u8]) -> Result<&'a mut [u8]> {
-        bytes = self.tag.into_bytes(bytes)?;
-        bytes = self.size.into_bytes(bytes)?;
-        bytes = self.cmd.into_bytes(bytes)?;
-        Ok(bytes)
+// Header for all respsonses (see v1.55, Part 1, Section 18)
+pub(crate) struct ResponseHeader {
+    pub tag: tag::Command,
+    pub size: u32,
+    pub code: ResponseCode,
+}
+
+// TPMS_CLOCK_INFO (v1.55, Part 2, Section 10.11.1, Table 116)
+#[derive(Clone, Copy, Debug)]
+pub(crate) struct ClockInfo {
+    clock: u64,
+    reset_count: u32,
+    restart_count: u32,
+    safe: bool,
+}
+
+// TPMS_TIME_INFO (v1.55, Part 2, Section 10.11.6, Table 117)
+#[derive(Clone, Copy, Debug)]
+pub struct TimeInfo {
+    time: u64,
+    clock: ClockInfo,
+}
+
+// GENERATED CODE BELOW
+
+impl ReadData for ClockInfo {
+    fn read_data(reader: &mut (impl Tpm + ?Sized)) -> Result<Self> {
+        Ok(Self {
+            clock: u64::read_data(reader)?,
+            reset_count: u32::read_data(reader)?,
+            restart_count: u32::read_data(reader)?,
+            safe: bool::read_data(reader)?,
+        })
     }
 }
 
-pub(crate) struct ResponseHeader {
-    pub tag: u16,
-    pub size: u32,
-    pub resp: u32,
+impl ReadData for TimeInfo {
+    fn read_data(reader: &mut (impl Tpm + ?Sized)) -> Result<Self> {
+        Ok(Self {
+            time: u64::read_data(reader)?,
+            clock: ClockInfo::read_data(reader)?,
+        })
+    }
 }
 
-impl DataOut for ResponseHeader {
-    fn from_bytes(bytes: &mut &[u8]) -> Result<Self> {
+impl WriteData for CommandHeader {
+    fn data_len(&self) -> usize {
+        0 + self.tag.data_len() + self.size.data_len() + self.code.data_len()
+    }
+    fn write_data(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()> {
+        self.tag.write_data(writer)?;
+        self.size.write_data(writer)?;
+        self.code.write_data(writer)?;
+        Ok(())
+    }
+}
+
+impl ReadData for ResponseHeader {
+    fn read_data(reader: &mut (impl Tpm + ?Sized)) -> Result<Self> {
         Ok(Self {
-            tag: DataOut::from_bytes(bytes)?,
-            size: DataOut::from_bytes(bytes)?,
-            resp: DataOut::from_bytes(bytes)?,
+            tag: tag::Command::read_data(reader)?,
+            size: u32::read_data(reader)?,
+            code: ResponseCode::read_data(reader)?,
         })
     }
 }
