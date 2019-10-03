@@ -12,7 +12,20 @@ use data::{Buffer, DataIn, DataOut};
 use structs::{CommandHeader, ResponseHeader, TimeInfo};
 
 pub trait Tpm {
-    fn exec(&mut self, command: &[u8], response: &mut [u8]) -> Result<usize>;
+    /// Attempts to write all of `buf` into the writer. This differs from
+    /// [`std::io::Write::write`] (which returns the number of bytes written),
+    /// and is more similar to [`std::io::Write::write_all`].
+    fn write(&mut self, buf: &[u8]) -> Result<()>;
+
+    /// Fills all of `buf` or fails. This differs from [`std::io::Read::read`]
+    /// (which returns the number of bytes read), and is more similar to
+    /// [`std::io::Read::read_exact`].
+    fn read(&mut self, buf: &mut [u8]) -> Result<()>;
+
+    /// Executes previously written command data.
+    fn run_command(&mut self) -> Result<()>;
+    /// Resets any date written by [`write`].
+    fn reset_command(&mut self) -> Result<()>;
 
     fn startup(&mut self, su: StartupType) -> Result<()> {
         self.run_command(CommandCode::Startup, &su)
