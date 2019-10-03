@@ -1,7 +1,9 @@
 #![no_std]
-use core::sync::atomic::{AtomicBool, Ordering::Relaxed};
-use tpm::raw::constants::StartupType;
-use tpm::{Error, Result, raw::Tpm};
+use core::ops::DerefMut;
+
+use tpm::buf::{BufTpm, Exec};
+use tpm::raw::{constants::StartupType, Tpm};
+use tpm::Result;
 
 // External Simulator API from Samples/Google/Platform.h
 extern "C" {
@@ -14,71 +16,93 @@ extern "C" {
     );
 }
 
-static IN_USE: AtomicBool = AtomicBool::new(false);
+struct SimulatorExec;
 
-pub struct Simulator(bool);
+impl Exec for SimulatorExec {
+    fn exec(&mut self, cmd_len: usize, cmd_resp: &mut [u8]) -> Result<usize> {
+        let mut resp_ptr = cmd_resp.as_mut_ptr();
+        let mut resp_size = cmd_resp.len() as u32;
 
-impl Simulator {
-    pub fn get() -> Result<Self> {
-        if IN_USE.swap(true, Relaxed) {
-            return Err(Error::TpmInUse);
+        unsafe { _plat__RunCommand(cmd_len as u32, resp_ptr, &mut resp_size, &mut resp_ptr) };
+        let resp_size = resp_size as usize;
+
+        if resp_ptr != cmd_resp.as_mut_ptr() {
+            use core::slice::from_raw_parts;
+            let resp_static = unsafe { from_raw_parts(resp_ptr, resp_size) };
+            cmd_resp[..resp_size].copy_from_slice(resp_static);
         }
-        let mut s = Self(false);
-        unsafe { _plat__Reset(true) };
-        s.on()?;
-        Ok(s)
-    }
-    pub fn reset(&mut self) -> Result<()> {
-        self.off()?;
-        unsafe { _plat__Reset(false) };
-        self.on()
-    }
-    pub fn manufacture_reset(&mut self) -> Result<()> {
-        self.off()?;
-        unsafe { _plat__Reset(true) };
-        self.on()
-    }
-    fn on(&mut self) -> Result<()> {
-        self.startup(StartupType::Clear)?;
-        self.0 = true;
-        Ok(())
-    }
-    fn off(&mut self) -> Result<()> {
-        self.shutdown(StartupType::Clear)?;
-        self.0 = false;
-        Ok(())
+        Ok(resp_size)
     }
 }
 
-impl Drop for Simulator {
-    fn drop(&mut self) {
-        if self.0 {
-            let _ = self.off();
+pub struct Simulator {
+    tpm: BufTpm<SimulatorExec>,
+    is_on: bool,
+}
+
+impl Simulator {
+    const fn new() -> Self {
+        Self {
+            tpm: BufTpm::new(SimulatorExec),
+            is_on: false,
         }
-        IN_USE.store(false, Relaxed);
+    }
+
+    #[cfg(feature = "std")]
+    pub fn get() -> Result<impl DerefMut<Target = Self>> {
+        extern crate std;
+        use std::sync::Mutex;
+
+        use once_cell::sync::Lazy;
+        static TPM: Lazy<Mutex<Simulator>> = Lazy::new(|| Mutex::new(Simulator::new()));
+
+        let mut tpm = TPM.lock().unwrap();
+        tpm.manufacture_reset()?;
+        Ok(tpm)
+    }
+    #[cfg(not(feature = "std"))]
+    pub unsafe fn get() -> Result<impl DerefMut<Target = Self>> {
+        static mut TPM: Simulator = Simulator::new();
+
+        TPM.manufacture_reset()?;
+        Ok(&mut TPM)
+    }
+
+    pub fn manufacture_reset(&mut self) -> Result<()> {
+        self.off();
+        unsafe { _plat__Reset(true) };
+        self.on()
+    }
+    pub fn reset(&mut self) -> Result<()> {
+        self.off();
+        unsafe { _plat__Reset(false) };
+        self.on()
+    }
+
+    fn on(&mut self) -> Result<()> {
+        self.tpm.startup(StartupType::Clear)?;
+        self.is_on = true;
+        Ok(())
+    }
+    fn off(&mut self) {
+        if self.is_on {
+            let _ = self.tpm.shutdown(StartupType::Clear);
+            self.is_on = false;
+        }
     }
 }
 
 impl Tpm for Simulator {
-    fn exec(&mut self, command: &[u8], response: &mut [u8]) -> Result<usize> {
-        let mut response_size = response.len() as u32;
-        let mut response_ptr = response.as_mut_ptr();
-        unsafe {
-            _plat__RunCommand(
-                command.len() as u32,
-                command.as_ptr(),
-                &mut response_size,
-                &mut response_ptr,
-            )
-        };
-        if response_ptr != response.as_mut_ptr() {
-            use core::slice::from_raw_parts;
-            let response_out = unsafe { from_raw_parts(response_ptr, response_size as usize) };
-            if response_out.len() > response.len() {
-                return Err(Error::ResponseBuffer);
-            }
-            response[..response_out.len()].copy_from_slice(response_out);
-        }
-        Ok(response_size as usize)
+    fn write(&mut self, buf: &[u8]) -> Result<()> {
+        self.tpm.write(buf)
+    }
+    fn read(&mut self, buf: &mut [u8]) -> Result<()> {
+        self.tpm.read(buf)
+    }
+    fn run_command(&mut self) -> Result<()> {
+        self.tpm.run_command()
+    }
+    fn reset_command(&mut self) -> Result<()> {
+        self.tpm.reset_command()
     }
 }
