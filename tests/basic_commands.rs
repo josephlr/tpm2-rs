@@ -7,17 +7,23 @@ type TestTpm = tpm_simulator::Simulator;
 
 #[test]
 fn get_random() -> Result<()> {
-    let mut tpm = get_tpm()?;
-    let output = tpm.get_random(100)?;
-    println!("{:?}", output.bytes());
+    let mut tpm = TestTpm::get()?;
+    let mut buf = [0u8; 100];
+
+    let output = tpm.get_random(&mut buf)?;
+    assert_ne!(output.len(), 100);
+
+    let output = tpm.get_random(&mut buf[..10])?;
+    assert_eq!(output.len(), 10);
+
+    println!("{:?}", output);
     Ok(())
 }
 
 #[test]
 fn stir_random() -> Result<()> {
-    let mut tpm = get_tpm()?;
+    let mut tpm = TestTpm::get()?;
     tpm.stir_random(&[0u8; 10])?;
-    tpm.get_random(100)?;
     Ok(())
 }
 
