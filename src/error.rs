@@ -3,15 +3,13 @@ use core::num::NonZeroU32;
 
 #[derive(Debug)]
 pub enum Error {
-    BufTooShort,
-    InvalidValue,
-    TagMismatch,
-    OutLenMismatch,
-    RemainingData,
-    WouldAllocate,
-    ResponseBuffer,
-    TpmInUse,
-    SimulatorOff,
+    TooBigInputBuffer,
+    TooSmallOutputBuffer,
+    InvalidInputValue,
+    InvalidOutputValue,
+    TooMuchInputData,
+    MissingOutputData,
+    RemainingOutputData,
     Tpm(NonZeroU32),
     #[cfg(feature = "std")]
     Io(std::io::Error),
