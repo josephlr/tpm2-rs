@@ -96,12 +96,4 @@ trait TpmImpl: Tpm {
 
 impl<T: Tpm + ?Sized> TpmImpl for T {}
 
-#[cfg(test)]
-mod tests {
-    use super::*;
 
-    #[test]
-    fn object_safety() {
-        let _: Option<&dyn Tpm> = None;
-    }
-}

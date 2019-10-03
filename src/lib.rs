@@ -20,4 +20,12 @@ pub use error::{Error, Result};
 pub mod buf;
 pub mod raw;
 
+#[cfg(test)]
+mod tests {
+    use super::*;
 
+    #[test]
+    fn object_safety() {
+        let _: Option<&dyn raw::Tpm> = None;
+    }
+}
