@@ -3,18 +3,21 @@
 // #![deny(missing_docs)]
 // #![deny(missing_debug_implementations)]
 // #![doc(test(attr(allow(unused_variables), deny(warnings))))]
+#![allow(dead_code)]
 #![no_std]
 
-pub mod raw;
-pub use raw::Tpm;
+cfg_if::cfg_if! {
+    if #[cfg(feature = "std")] {
+        extern crate std;
+        mod os;
+        pub use os::OsTpm;
+    }
+}
+
 mod error;
 pub use error::{Error, Result};
 
-#[cfg(feature = "alloc")]
-extern crate alloc;
-#[cfg(feature = "std")]
-extern crate std;
+pub mod buf;
+pub mod raw;
 
-// The os module will be empty depending on the platform/features.
-mod os;
-pub use os::*;
+
