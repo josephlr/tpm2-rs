@@ -1,20 +1,9 @@
-use core::ops::DerefMut;
-use std::sync::Mutex;
-
-use once_cell::sync::OnceCell;
-
-use tpm::{Result, Tpm};
+use tpm::{raw::Tpm, Result};
 
 #[cfg(feature = "test-hardware")]
 type TestTpm = tpm::OsTpm;
 #[cfg(not(feature = "test-hardware"))]
 type TestTpm = tpm_simulator::Simulator;
-
-fn get_tpm() -> Result<impl DerefMut<Target = TestTpm>> {
-    static TPM: OnceCell<Mutex<TestTpm>> = OnceCell::new();
-    let tpm = TPM.get_or_try_init(|| TestTpm::get().map(Mutex::new))?;
-    Ok(tpm.lock().unwrap())
-}
 
 #[test]
 fn get_random() -> Result<()> {
