@@ -1,7 +1,6 @@
 //! Structures defined in the TPM2 Spec
-
-use super::constants::{AlgHash, CommandCode};
-use super::data::{DataIn, DataOut};
+use super::constants::*;
+use super::{ReadData, Tpm, WriteData};
 use crate::Result;
 
 // TPMS_CLOCK_INFO

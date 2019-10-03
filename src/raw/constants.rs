@@ -1,4 +1,6 @@
 //! Constants (i.e. C-style enums) defined in the TPM2 Spec
+use super::{ReadData, Tpm, WriteData};
+use crate::{Error, Result};
 
 use super::data::DataIn;
 use crate::Result;
