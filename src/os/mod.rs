@@ -1,13 +1,31 @@
+use core::ops::DerefMut;
+use std::sync::Mutex;
+
+use crate::buf::BufTpm;
+use crate::Result;
+
 cfg_if::cfg_if! {
-    if #[cfg(not(feature = "std"))] {
-        // Freestanding targets don't have builtin Tpm bindings
-    } else if #[cfg(target_os = "linux")] {
-        mod linux;
-        pub use linux::OsTpm;
+    if #[cfg(target_os = "linux")] {
+        #[path = "linux.rs"] mod imp;
     } else if #[cfg(windows)] {
-        mod windows;
-        pub use windows::OsTpm;
+        #[path = "windows.rs"] mod imp;
     } else {
-        // Other targets are not yet supported
+        compile_error!("Only Linux and Windows have TPM support.");
+    }
+}
+
+/// OsTpm needs to be documented
+pub type OsTpm = BufTpm<imp::OsExec>;
+
+impl OsTpm {
+    pub fn get() -> Result<impl DerefMut<Target = Self>> {
+        use once_cell::sync::OnceCell;
+        static TPM: OnceCell<Mutex<OsTpm>> = OnceCell::new();
+
+        let tpm = TPM.get_or_try_init(|| -> Result<_> {
+            let exec = imp::OsExec::new()?;
+            Ok(Mutex::new(Self::new(exec)))
+        })?;
+        Ok(tpm.lock().unwrap())
     }
 }

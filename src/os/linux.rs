@@ -1,39 +1,23 @@
-use core::sync::atomic::{AtomicBool, Ordering::Relaxed};
 use std::fs::{File, OpenOptions};
-use std::io::{self, Read, Write};
-use std::path::Path;
+use std::io::{Read, Write};
 
-use crate::{Error, Result, raw::Tpm};
+use crate::buf::Exec;
+use crate::Result;
 
-pub struct OsTpm {
-    file: File,
-}
+pub struct OsExec(File);
 
-static IN_USE: AtomicBool = AtomicBool::new(false);
-
-fn open_rw(path: impl AsRef<Path>) -> io::Result<File> {
-    OpenOptions::new().read(true).write(true).open(path)
-}
-
-impl OsTpm {
-    pub fn get() -> Result<Self> {
+impl OsExec {
+    pub fn new() -> Result<Self> {
+        let open_rw = |path| OpenOptions::new().read(true).write(true).open(path);
         let file = open_rw("/dev/tpmrm0").or(open_rw("/dev/tpm0"))?;
-        if IN_USE.swap(true, Relaxed) {
-            return Err(Error::TpmInUse);
-        }
-        Ok(Self { file })
+        Ok(Self(file))
     }
 }
 
-impl Drop for OsTpm {
-    fn drop(&mut self) {
-        IN_USE.store(false, Relaxed);
-    }
-}
-
-impl Tpm for OsTpm {
-    fn exec(&mut self, command: &[u8], response: &mut [u8]) -> Result<usize> {
-        self.file.write_all(command)?;
-        Ok(self.file.read(response)?)
+impl Exec for OsExec {
+    fn exec(&mut self, cmd_len: usize, cmd_resp: &mut [u8]) -> Result<usize> {
+        self.0.write_all(&mut cmd_resp[..cmd_len])?;
+        let resp_len = self.0.read(cmd_resp)?;
+        Ok(resp_len)
     }
 }
