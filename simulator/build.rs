@@ -2,6 +2,12 @@ use cc::Build;
 use glob::glob;
 
 fn main() {
+    if std::fs::read_dir("ms-tpm-20-ref").unwrap().count() == 0 {
+        eprintln!("error: submodule \"ms-tpm-20-ref\" is not initialized");
+        eprintln!("error: try running: git submodule update --init");
+        std::process::abort();
+    }
+
     let tpm_files = glob("ms-tpm-20-ref/TPMCmd/tpm/src/**/*.c").unwrap();
     let google_files = glob("ms-tpm-20-ref/Samples/Google/*.c").unwrap();
 
