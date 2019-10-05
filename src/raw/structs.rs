@@ -12,7 +12,7 @@ pub(crate) struct CommandHeader {
 }
 
 // Header for all respsonses (see v1.55, Part 1, Section 18)
-#[derive(ResponseData)]
+#[derive(CommandData, ResponseData)]
 pub(crate) struct ResponseHeader {
     pub tag: tag::Command,
     pub size: u32,
@@ -33,4 +33,22 @@ pub(crate) struct ClockInfo {
 pub struct TimeInfo {
     time: u64,
     clock: ClockInfo,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn header_encoded_len() {
+        let tag = tag::Command::NoSessions;
+        let size = 0;
+        let code = CommandCode::Startup;
+
+        let ch = CommandHeader { tag, size, code };
+        assert_eq!(ch.encoded_len(), 10);
+
+        let rh = ResponseHeader { tag, size, code: 0 };
+        assert_eq!(rh.encoded_len(), 10);
+    }
 }
