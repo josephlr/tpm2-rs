@@ -25,4 +25,4 @@ once_cell = { version = "1.0.1", optional = true }
 tpm-simulator = { path = "simulator" }
 
 [workspace]
-members = ["simulator"]
+members = ["derive", "simulator"]
