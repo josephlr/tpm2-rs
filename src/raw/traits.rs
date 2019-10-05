@@ -3,6 +3,7 @@ use core::{convert::TryInto, mem};
 
 use super::Tpm;
 use crate::{Error, Result};
+pub use tpm_derive::*;
 
 /// A trait for objects that can be written to a TPM command buffer
 pub trait CommandData {
