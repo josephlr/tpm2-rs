@@ -11,9 +11,7 @@ pub fn derive_command_data(input: proc_macro::TokenStream) -> proc_macro::TokenS
     let name = input.ident;
 
     let fields = for_each_field(&input.data, |span, id, _ty| {
-        quote_spanned! { span =>
-            CommandData::encode(&self.#id, writer)
-        }
+        quote_spanned! { span=> CommandData::encode(&self.#id, writer) }
     });
 
     quote!(
@@ -33,9 +31,7 @@ pub fn derive_response_data(input: proc_macro::TokenStream) -> proc_macro::Token
     let name = input.ident;
 
     let fields = for_each_field(&input.data, |span, id, ty| {
-        quote_spanned! { span =>
-            #id: #ty::decode(reader)
-        }
+        quote_spanned! { span=> #id: #ty::decode(reader) }
     });
 
     quote!(
