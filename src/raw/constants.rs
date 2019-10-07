@@ -1,5 +1,7 @@
 //! Constants (i.e. C-style enums) defined in the TPM2 Spec
-use super::{CommandData, ResponseData, Tpm};
+use core::mem::size_of;
+
+use super::{CommandData, ResponseData, Tpm, TpmData};
 use crate::{Error, Result};
 
 // TPM_GENERATED_VALUE (v1.55, Part 2, Section 6.2, Table 7)
@@ -311,9 +313,21 @@ pub enum StartupType {
 
 // GENERATED CODE BELOW
 
+impl TpmData for tag::Attest {
+    fn data_len(&self) -> usize {
+        size_of::<Self>()
+    }
+}
+
 impl CommandData for tag::Attest {
     fn encode(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()> {
         (*self as u16).encode(writer)
+    }
+}
+
+impl TpmData for StartupType {
+    fn data_len(&self) -> usize {
+        size_of::<Self>()
     }
 }
 
@@ -323,9 +337,21 @@ impl CommandData for StartupType {
     }
 }
 
+impl TpmData for CommandCode {
+    fn data_len(&self) -> usize {
+        size_of::<Self>()
+    }
+}
+
 impl CommandData for CommandCode {
     fn encode(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()> {
         (*self as u32).encode(writer)
+    }
+}
+
+impl TpmData for tag::Command {
+    fn data_len(&self) -> usize {
+        size_of::<Self>()
     }
 }
 
