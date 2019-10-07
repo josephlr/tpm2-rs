@@ -50,28 +50,6 @@ pub fn derive_response_data(input: proc_macro::TokenStream) -> proc_macro::Token
     .into()
 }
 
-#[proc_macro_derive(ResponseDataRef)]
-pub fn derive_command_data_ref(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let input = parse_macro_input!(input as DeriveInput);
-    let name = input.ident;
-
-    let fields = for_each_field(&input.data, |span, id, _ty| {
-        quote_spanned! { span =>
-            ResponseDataRef::decode_ref(&mut self.#id, reader)
-        }
-    });
-
-    quote!(
-        impl ResponseDataRef for #name {
-            fn decode_ref(&mut self, reader: &mut (impl Tpm + ?Sized)) -> Result<()> {
-                #( #fields?; )*
-                Ok(())
-            }
-        }
-    )
-    .into()
-}
-
 fn for_each_field<'a>(
     data: &'a Data,
     field_fn: fn(Span, &Ident, &Type) -> TokenStream,
