@@ -81,18 +81,27 @@ fn run<'a, T: Tpm + ?Sized>(
     })
 }
 
-struct Response<'a, T: ?Sized> {
+struct CheckedReader<'a, T: ?Sized> {
     tpm: &'a mut T,
-    bytes_read: usize,
-    bytes_expected: usize,
+    len: usize,
 }
 
-impl<T: Tpm + ?Sized> Response<'_, T> {
-    fn parse<D: ResponseData>(&mut self) -> Result<D> {
-        D::decode(self.tpm)
+impl<T: Tpm + ?Sized> Tpm for CheckedReader<'_, T> {
+    fn read(&mut self, buf: &mut [u8]) -> Result<()> {
+        if buf.len() > self.len {
+            return Err(Error::MissingOutputData);
+        }
+        self.tpm.read(buf)?;
+        self.len -= buf.len();
+        Ok(())
     }
-    fn parse_ref<D: ResponseDataRef>(&mut self, mut output: D) -> Result<D> {
-        output.decode_ref(self.tpm)?;
-        Ok(output)
+    fn write(&mut self, _: &[u8]) -> Result<()> {
+        unimplemented!()
+    }
+    fn run_command(&mut self) -> Result<()> {
+        unimplemented!()
+    }
+    fn reset_command(&mut self) -> Result<()> {
+        unimplemented!()
     }
 }
