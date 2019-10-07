@@ -1,5 +1,6 @@
 //! Helper traits for implementing TPMs and TPM-compatible data structures
 use core::{convert::TryInto, mem};
+use alloc::vec::Vec;
 
 use super::Tpm;
 use crate::{Error, Result};
@@ -86,5 +87,14 @@ impl<T: Deref<[u8]>> CommandData for T {
         let size: u16 = self.len().try_into().or(Err(Error::TooBigInputBuffer))?;
         size.encode(writer)?;
         writer.write(&self)
+    }
+}
+
+impl ResponseData for Vec<u8> {
+    fn decode(reader: &mut (impl Tpm + ?Sized)) -> Result<Self> {
+        let size: usize = u16::decode(reader)?.into();
+        let mut data = vec![0u8; size];
+        reader.read(&mut data)?;
+        Ok(data)
     }
 }
