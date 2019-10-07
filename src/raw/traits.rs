@@ -1,6 +1,7 @@
 //! Helper traits for implementing TPMs and TPM-compatible data structures
 use core::{convert::TryInto, mem};
-use alloc::vec::Vec;
+
+use alloc::{vec, vec::Vec};
 
 use super::Tpm;
 use crate::{Error, Result};

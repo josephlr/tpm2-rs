@@ -1,5 +1,6 @@
-use core::convert::TryInto;
-use core::num::NonZeroU32;
+use core::{convert::TryInto, num::NonZeroU32};
+
+use alloc::vec::Vec;
 
 use crate::{Error, Result};
 

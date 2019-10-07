@@ -6,6 +6,7 @@
 #![allow(dead_code)]
 #![no_std]
 
+extern crate alloc;
 cfg_if::cfg_if! {
     if #[cfg(feature = "std")] {
         extern crate std;
