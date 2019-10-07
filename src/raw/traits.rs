@@ -77,19 +77,24 @@ impl ResponseData for bool {
     }
 }
 
-impl<T: Deref<[u8]>> TpmData for T {
-    fn data_len(&self) -> usize {
-        2 + self.len()
+// We can't just add a impl for Deref<Target=[u8]> as that would lead to
+// conflicting implmentations if (in an unlikly future) u64: Deref<Target=[u8]>.
+macro_rules! buf_impls { ($($T: ty)+) => { $(
+    impl TpmData for $T {
+        fn data_len(&self) -> usize {
+            2 + self.len()
+        }
     }
-}
+    impl CommandData for $T {
+        fn encode(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()> {
+            let size: u16 = self.len().try_into().or(Err(Error::TooBigInputBuffer))?;
+            size.encode(writer)?;
+            writer.write(&self)
+        }
+    }
+)+ } }
 
-impl<T: Deref<[u8]>> CommandData for T {
-    fn encode(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()> {
-        let size: u16 = self.len().try_into().or(Err(Error::TooBigInputBuffer))?;
-        size.encode(writer)?;
-        writer.write(&self)
-    }
-}
+buf_impls! { [u8] Vec<u8> }
 
 impl ResponseData for Vec<u8> {
     fn decode(reader: &mut (impl Tpm + ?Sized)) -> Result<Self> {
