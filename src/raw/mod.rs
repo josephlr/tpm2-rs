@@ -39,9 +39,8 @@ pub trait Tpm {
         run(self, CommandCode::Shutdown, &su)
     }
 
-    fn get_random<'a>(&mut self, buf: &'a mut [u8]) -> Result<&'a mut [u8]> {
-        let len = buf.len() as u16;
-        run(self, CommandCode::GetRandom, &len)?.parse_ref(buf)
+    fn get_random<'a>(&mut self, len: u16) -> Result<Vec<u8>> {
+        run(self, CommandCode::GetRandom, &len)
     }
 
     fn stir_random(&mut self, data: &[u8]) -> Result<()> {
