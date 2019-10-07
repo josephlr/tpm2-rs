@@ -28,12 +28,12 @@ pub(crate) mod alg {
         ECC = 0x0023,
     }
 
-    // TPMI_ALG_SYM (v1.55, Part 2, Section 9.27, Table 65)
     // TPMI_ALG_SYM_OBJECT (v1.55, Part 2, Section 9.28, Table 66)
+    // Right now we also use this object to represent TPMI_ALG_SYM
+    // (v1.55, Part 2, Section 9.27, Table 65). May change later.
     pub(crate) enum Sym {
         TDES = 0x0003,
         AES = 0x0006,
-        XOR = 0x000A, // Not in TPMI_ALG_SYM_OBJECT
         SM4 = 0x0013,
         Camellia = 0x0026,
     }
