@@ -32,11 +32,11 @@ pub trait Tpm {
     fn reset_command(&mut self) -> Result<()>;
 
     fn startup(&mut self, su: StartupType) -> Result<()> {
-        run(self, CommandCode::Startup, &su)?.parse()
+        run(self, CommandCode::Startup, &su)
     }
 
     fn shutdown(&mut self, su: StartupType) -> Result<()> {
-        run(self, CommandCode::Shutdown, &su)?.parse()
+        run(self, CommandCode::Shutdown, &su)
     }
 
     fn get_random<'a>(&mut self, buf: &'a mut [u8]) -> Result<&'a mut [u8]> {
@@ -45,40 +45,43 @@ pub trait Tpm {
     }
 
     fn stir_random(&mut self, data: &[u8]) -> Result<()> {
-        run(self, CommandCode::StirRandom, data)?.parse()
+        run(self, CommandCode::StirRandom, data)
     }
 
     fn read_clock(&mut self) -> Result<TimeInfo> {
-        run(self, CommandCode::ReadClock, &())?.parse()
+        run(self, CommandCode::ReadClock, &())
     }
 }
 
-fn run<'a, T: Tpm + ?Sized>(
-    tpm: &'a mut T,
+fn run<'a, Output: ResponseData>(
+    tpm: &'a mut (impl Tpm + ?Sized),
     code: CommandCode,
     input: &(impl CommandData + ?Sized),
-) -> Result<Response<'a, T>> {
+) -> Result<Output> {
     let tag = tag::Command::NoSessions;
-    let size = (10 + input.encoded_len()).try_into().unwrap();
-    let cmd_header = CommandHeader { tag, size, code };
+    let mut cmd_hdr = CommandHeader { tag, size: 0, code };
+    cmd_hdr.size = (cmd_hdr.data_len() + input.data_len()).try_into().unwrap();
 
     tpm.reset_command()?;
-    cmd_header.encode(tpm)?;
+    cmd_hdr.encode(tpm)?;
     input.encode(tpm)?;
 
     tpm.run_command()?;
 
-    let resp_header = ResponseHeader::decode(tpm)?;
-    if let Some(err) = NonZeroU32::new(resp_header.code) {
+    let resp_hdr = ResponseHeader::decode(tpm)?;
+    if let Some(err) = NonZeroU32::new(resp_hdr.code) {
         return Err(Error::Tpm(err));
     }
-    assert_eq!(resp_header.tag, tag);
+    assert_eq!(resp_hdr.tag, tag);
 
-    Ok(Response {
-        tpm,
-        bytes_read: 10,
-        bytes_expected: resp_header.size as usize,
-    })
+    let len = resp_hdr.size as usize - resp_hdr.data_len();
+    let mut reader = CheckedReader { tpm, len };
+    let output = Output::decode(&mut reader)?;
+
+    if reader.len != 0 {
+        return Err(Error::RemainingOutputData);
+    }
+    Ok(output)
 }
 
 struct CheckedReader<'a, T: ?Sized> {
