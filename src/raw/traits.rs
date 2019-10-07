@@ -30,7 +30,7 @@ macro_rules! data_impls { ($($T: ty)+) => { $(
 
 data_impls! { () bool u8 u16 u32 u64 }
 
-// Rust integral types don't have a command trait, so we have to use a macro.
+// Rust integral types don't have a common trait, so we have to use a macro.
 macro_rules! int_impls { ($($T: ty)+) => { $(
     impl CommandData for $T {
         fn encode(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()> {
