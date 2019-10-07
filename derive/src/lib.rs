@@ -5,6 +5,25 @@ use quote::{quote, quote_spanned};
 use syn::spanned::Spanned;
 use syn::{parse_macro_input, Data, DeriveInput, Fields, Ident, Type};
 
+#[proc_macro_derive(TpmData)]
+pub fn derive_tpm_data(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    let name = input.ident;
+
+    let fields = for_each_field(&input.data, |span, id, _ty| {
+        quote_spanned! { span=> TpmData::data_len(&self.#id) }
+    });
+
+    quote!(
+        impl TpmData for #name {
+            fn data_len(&self) -> usize {
+                0 #(+ #fields)*
+            }
+        }
+    )
+    .into()
+}
+
 #[proc_macro_derive(CommandData)]
 pub fn derive_command_data(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
