@@ -40,15 +40,15 @@ mod tests {
     use super::*;
 
     #[test]
-    fn header_encoded_len() {
+    fn header_data_len() {
         let tag = tag::Command::NoSessions;
         let size = 0;
         let code = CommandCode::Startup;
 
         let ch = CommandHeader { tag, size, code };
-        assert_eq!(ch.encoded_len(), 10);
+        assert_eq!(ch.data_len(), 10);
 
         let rh = ResponseHeader { tag, size, code: 0 };
-        assert_eq!(rh.encoded_len(), 10);
+        assert_eq!(rh.data_len(), 10);
     }
 }
