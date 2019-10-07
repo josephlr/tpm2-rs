@@ -5,33 +5,30 @@ use super::Tpm;
 use crate::{Error, Result};
 pub use tpm_derive::*;
 
+pub trait TpmData {
+    fn data_len(&self) -> usize;
+}
+
 /// A trait for objects that can be written to a TPM command buffer
-pub trait CommandData {
-    /// The number of bytes written with a call to [`CommandData::encode`].
-    fn encoded_len(&self) -> usize {
-        mem::size_of_val(self)
-    }
+pub trait CommandData: TpmData {
     /// Serialize this object and write it to `writer`.
     fn encode(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()>;
 }
 
-/// A trait for objects that can be read from a TPM response buffer
-pub trait ResponseDataRef {
-    /// Deserialize this object by reading bytes from `reader`.
-    fn decode_ref(&mut self, reader: &mut (impl Tpm + ?Sized)) -> Result<()>;
-}
-
 /// A trait for creating objects from a TPM response buffer;
-pub trait ResponseData: Sized {
+pub trait ResponseData: TpmData + Sized {
     fn decode(reader: &mut (impl Tpm + ?Sized)) -> Result<Self>;
 }
 
-impl<T: ResponseData> ResponseDataRef for T {
-    fn decode_ref(&mut self, reader: &mut (impl Tpm + ?Sized)) -> Result<()> {
-        *self = Self::decode(reader)?;
-        Ok(())
+macro_rules! data_impls { ($($T: ty)+) => { $(
+    impl TpmData for $T {
+        fn data_len(&self) -> usize {
+            mem::size_of::<Self>()
+        }
     }
-}
+)+ } }
+
+data_impls! { () bool u8 u16 u32 u64 }
 
 // Rust integral types don't have a command trait, so we have to use a macro.
 macro_rules! int_impls { ($($T: ty)+) => { $(
@@ -40,7 +37,6 @@ macro_rules! int_impls { ($($T: ty)+) => { $(
             writer.write(&self.to_be_bytes())
         }
     }
-
     impl ResponseData for $T {
         fn decode(reader: &mut (impl Tpm + ?Sized)) -> Result<Self> {
             let mut arr = [0u8; mem::size_of::<Self>()];
@@ -57,7 +53,6 @@ impl CommandData for () {
         Ok(())
     }
 }
-
 impl ResponseData for () {
     fn decode(_: &mut (impl Tpm + ?Sized)) -> Result<Self> {
         Ok(())
@@ -80,25 +75,16 @@ impl ResponseData for bool {
     }
 }
 
-impl CommandData for [u8] {
-    fn encoded_len(&self) -> usize {
+impl<T: Deref<[u8]>> TpmData for T {
+    fn data_len(&self) -> usize {
         2 + self.len()
     }
+}
+
+impl<T: Deref<[u8]>> CommandData for T {
     fn encode(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()> {
         let size: u16 = self.len().try_into().or(Err(Error::TooBigInputBuffer))?;
         size.encode(writer)?;
         writer.write(&self)
-    }
-}
-
-impl ResponseDataRef for &mut [u8] {
-    fn decode_ref(&mut self, reader: &mut (impl Tpm + ?Sized)) -> Result<()> {
-        let size: usize = u16::decode(reader)?.into();
-        // We have to resize the buffer without creating lifetime issues.
-        match mem::replace(self, &mut []).get_mut(..size) {
-            Some(buf) => *self = buf,
-            None => return Err(Error::TooSmallOutputBuffer),
-        };
-        reader.read(self)
     }
 }
