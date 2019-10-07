@@ -10,12 +10,7 @@ pub fn derive_command_data(input: proc_macro::TokenStream) -> proc_macro::TokenS
     let input = parse_macro_input!(input as DeriveInput);
     let name = input.ident;
 
-    let len_fields = for_each_field(&input.data, |span, id, _ty| {
-        quote_spanned! { span =>
-            CommandData::encoded_len(&self.#id)
-        }
-    });
-    let enc_fields = for_each_field(&input.data, |span, id, _ty| {
+    let fields = for_each_field(&input.data, |span, id, _ty| {
         quote_spanned! { span =>
             CommandData::encode(&self.#id, writer)
         }
@@ -23,11 +18,8 @@ pub fn derive_command_data(input: proc_macro::TokenStream) -> proc_macro::TokenS
 
     quote!(
         impl CommandData for #name {
-            fn encoded_len(&self) -> usize {
-                0 #(+ #len_fields)*
-            }
             fn encode(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()> {
-                #( #enc_fields?; )*
+                #( #fields?; )*
                 Ok(())
             }
         }
