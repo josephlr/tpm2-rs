@@ -1,4 +1,4 @@
-# Rust TSS for TPM2
+# Safe TSS for TPM2
 
 The main `tpm` crate is the TSS (and OS-specific bindings to the TPM).
 
