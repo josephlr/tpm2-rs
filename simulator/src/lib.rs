@@ -1,9 +1,14 @@
 #![no_std]
 use core::ops::DerefMut;
 
-use tpm::buf::{BufTpm, Exec};
-use tpm::raw::{StartupType, Tpm};
-use tpm::Result;
+#[cfg(feature = "std")]
+extern crate std;
+
+use tpm::{
+    driver::{BufDriver, Driver, Exec, Read, Write},
+    raw::{StartupType, Tpm},
+    Result,
+};
 
 // External Simulator API from Samples/Google/Platform.h
 extern "C" {
@@ -19,7 +24,7 @@ extern "C" {
 struct SimulatorExec;
 
 impl Exec for SimulatorExec {
-    fn exec(&mut self, cmd_len: usize, cmd_resp: &mut [u8]) -> Result<usize> {
+    fn exec(&mut self, cmd_resp: &mut [u8], cmd_len: usize) -> Result<usize> {
         let mut resp_ptr = cmd_resp.as_mut_ptr();
         let mut resp_size = cmd_resp.len() as u32;
 
@@ -36,36 +41,34 @@ impl Exec for SimulatorExec {
 }
 
 pub struct Simulator {
-    tpm: BufTpm<SimulatorExec>,
+    driver: BufDriver<SimulatorExec>,
     is_on: bool,
 }
 
 impl Simulator {
-    const fn new() -> Self {
+    const unsafe fn new() -> Self {
         Self {
-            tpm: BufTpm::new(SimulatorExec),
+            driver: BufDriver::new(SimulatorExec),
             is_on: false,
         }
     }
 
     #[cfg(feature = "std")]
     pub fn get() -> Result<impl DerefMut<Target = Self>> {
-        extern crate std;
         use std::sync::Mutex;
 
         use once_cell::sync::Lazy;
-        static TPM: Lazy<Mutex<Simulator>> = Lazy::new(|| Mutex::new(Simulator::new()));
+        static SIM: Lazy<Mutex<Simulator>> = Lazy::new(|| Mutex::new(unsafe { Simulator::new() }));
 
-        let mut tpm = TPM.lock().unwrap();
-        tpm.manufacture_reset()?;
-        Ok(tpm)
+        let mut sim = SIM.lock().unwrap();
+        sim.manufacture_reset()?;
+        Ok(sim)
     }
-    #[cfg(not(feature = "std"))]
-    pub unsafe fn get() -> Result<impl DerefMut<Target = Self>> {
-        static mut TPM: Simulator = Simulator::new();
 
-        TPM.manufacture_reset()?;
-        Ok(&mut TPM)
+    #[cfg(feature = "std")]
+    pub fn get_tpm() -> Result<Tpm> {
+        use std::boxed::Box;
+        Ok(Tpm::new(Box::new(Self::get()?)))
     }
 
     pub fn manufacture_reset(&mut self) -> Result<()> {
@@ -80,29 +83,35 @@ impl Simulator {
     }
 
     fn on(&mut self) -> Result<()> {
-        self.tpm.startup(StartupType::Clear)?;
+        Tpm::new(&mut self.driver).startup(StartupType::Clear)?;
         self.is_on = true;
         Ok(())
     }
     fn off(&mut self) {
         if self.is_on {
-            let _ = self.tpm.shutdown(StartupType::Clear);
+            let _ = Tpm::new(&mut self.driver).shutdown(StartupType::Clear);
             self.is_on = false;
         }
     }
 }
 
-impl Tpm for Simulator {
-    fn write(&mut self, buf: &[u8]) -> Result<()> {
-        self.tpm.write(buf)
-    }
+impl Read for Simulator {
     fn read(&mut self, buf: &mut [u8]) -> Result<()> {
-        self.tpm.read(buf)
+        self.driver.read(buf)
     }
+}
+
+impl Write for Simulator {
+    fn write(&mut self, buf: &[u8]) -> Result<()> {
+        self.driver.write(buf)
+    }
+}
+
+impl Driver for Simulator {
     fn run_command(&mut self) -> Result<()> {
-        self.tpm.run_command()
+        self.driver.run_command()
     }
     fn reset_command(&mut self) -> Result<()> {
-        self.tpm.reset_command()
+        self.driver.reset_command()
     }
 }

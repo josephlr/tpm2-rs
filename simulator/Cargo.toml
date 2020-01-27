@@ -18,7 +18,7 @@ once_cell = { version = "1.0.1", optional = true }
 
 [features]
 default = ["std"]
-std = ["once_cell"]
+std = ["once_cell", "tpm/std"]
 
 [build-dependencies]
 cc = { version = "1.0.42", features = ["parallel"] }
