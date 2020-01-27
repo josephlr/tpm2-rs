@@ -1,15 +1,18 @@
-use std::fs::{File, OpenOptions};
-use std::io::{Read, Write};
+use std::{
+    fs::{File, OpenOptions},
+    io::{Read, Write},
+};
 
-use crate::driver::Exec;
-use crate::Result;
+use crate::{driver::Exec, Result};
 
 pub struct OsExec(File);
 
 impl OsExec {
     pub fn new() -> Result<Self> {
-        let open_rw = |path| OpenOptions::new().read(true).write(true).open(path);
-        let file = open_rw("/dev/tpmrm0").or(open_rw("/dev/tpm0"))?;
+        let file = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .open("/dev/tpm0")?;
         Ok(Self(file))
     }
 }
