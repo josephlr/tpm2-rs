@@ -19,6 +19,7 @@ test-hardware = ["std"]
 
 [dependencies]
 cfg-if = "0.1.6"
+bitflags = "1.0"
 once_cell = { version = "1.0.1", optional = true }
 tpm-derive = { path = "derive" }
 

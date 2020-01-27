@@ -1,17 +1,22 @@
 //! Constants (i.e. C-style enums) defined in the TPM2 Spec
 use core::mem::size_of;
 
-use super::{CommandData, ResponseData, Tpm, TpmData};
-use crate::{Error, Result};
+use super::{CommandData, ResponseData, TpmData};
+use crate::{
+    driver::{Read, Write},
+    Error, Result,
+};
 
-// TPM_GENERATED_VALUE (v1.55, Part 2, Section 6.2, Table 7)
+/// TPM_GENERATED_VALUE (v1.55, Part 2, Section 6.2, Table 7)
 static TPM_MAGIC: &[u8; 4] = b"\xffTPM";
 
-// TPM_ALG_ID (v1.55, Part 2, Section 6.3, Tables 8 and 9)
+/// TPM_ALG_ID (v1.55, Part 2, Section 6.3, Tables 8 and 9)
 pub(crate) mod alg {
-    // TPMI_ALG_HASH (v1.55, Part 2, Section 9.25, Table 63)
-    // TPMI_ALG_MAC_SCHEME (v1.55, Part 2, Section 9.34, Table 72)
-    pub(crate) enum Hash {
+    /// TPMI_ALG_HASH (v1.55, Part 2, Section 9.25, Table 63)
+    /// TPMI_ALG_MAC_SCHEME (v1.55, Part 2, Section 9.34, Table 72)
+    #[derive(PartialEq, Eq, Clone, Copy)]
+    #[repr(u16)]
+    pub enum Hash {
         SHA1 = 0x0004,
         SHA256 = 0x000B,
         SHA384 = 0x000C,
@@ -22,8 +27,33 @@ pub(crate) mod alg {
         SHA3_512 = 0x0029,
     }
 
+    impl Hash {
+        /// The maximum hash size of the supported hashes
+        pub const MAX_SIZE: usize = Hash::SHA512.size();
+        /// The hash algorithm's digest size
+        pub const fn size(self) -> usize {
+            //
+            const fn eq(lhs: Hash, rhs: Hash) -> usize {
+                (lhs as u16 == rhs as u16) as usize
+            }
+            //
+            let s = 0
+                + eq(self, Hash::SHA1) * 20
+                + eq(self, Hash::SHA256) * 32
+                + eq(self, Hash::SHA384) * 48
+                + eq(self, Hash::SHA512) * 64
+                + eq(self, Hash::SM3_256) * 32
+                + eq(self, Hash::SHA3_256) * 32
+                + eq(self, Hash::SHA3_384) * 48
+                + eq(self, Hash::SHA3_512) * 64;
+            // This checks that a hash case was not ommitted.
+            let _ = 1 / s;
+            s
+        }
+    }
+
     // TPMI_ALG_ASYM (v1.55, Part 2, Section 9.26, Table 64)
-    pub(crate) enum Asym {
+    pub enum Asym {
         RSA = 0x0001,
         ECC = 0x0023,
     }
@@ -31,7 +61,7 @@ pub(crate) mod alg {
     // TPMI_ALG_SYM_OBJECT (v1.55, Part 2, Section 9.28, Table 66)
     // Right now we also use this object to represent TPMI_ALG_SYM
     // (v1.55, Part 2, Section 9.27, Table 65). May change later.
-    pub(crate) enum Sym {
+    pub enum Sym {
         TDES = 0x0003,
         AES = 0x0006,
         SM4 = 0x0013,
@@ -40,7 +70,7 @@ pub(crate) mod alg {
 
     // TPMI_ALG_SYM_MODE (v1.55, Part 2, Section 9.29, Table 67)
     // TPMI_ALG_CIPHER_MODE (v1.55, Part 2, Section 9.35, Table 73)
-    pub(crate) enum SymMode {
+    pub enum SymMode {
         CTR = 0x0040,
         OFB = 0x0041,
         CBC = 0x0042,
@@ -50,7 +80,7 @@ pub(crate) mod alg {
 
     // TPMI_ALG_KDF (v1.55, Part 2, Section 9.30, Table 68)
     #[allow(non_camel_case_types)]
-    pub(crate) enum Kdf {
+    pub enum Kdf {
         MGF1 = 0x0007,
         KDF1_SP800_56A = 0x0020,
         KDF2 = 0x0021,
@@ -58,7 +88,7 @@ pub(crate) mod alg {
     }
 
     // TPMI_ALG_KDF (v1.55, Part 2, Section 9.31, Table 69)
-    pub(crate) enum SigScheme {
+    pub enum SigScheme {
         HMAC = 0x0005,
         RSASSA = 0x0014,
         RSAPSS = 0x0016,
@@ -69,20 +99,20 @@ pub(crate) mod alg {
     }
 
     // TPMI_ALG_KDF (v1.55, Part 2, Section 9.32, Table 70)
-    pub(crate) enum KeyExchange {
+    pub enum KeyExchange {
         ECDH = 0x0019,
         SM2 = 0x001B,
         ECMQV = 0x001D,
     }
 
     // TPMI_ALG_KEYEDHASH_SCHEME (v1.55, Part 2, Section 11.1.19, Table 149)
-    pub(crate) enum KeyedHashScheme {
+    pub enum KeyedHashScheme {
         HMAC = 0x0005,
         XOR = 0x000A,
     }
 
     // TPMI_ALG_ASYM_SCHEME (v1.55, Part 2, Section 11.2.3.4, Table 163)
-    pub(crate) enum AsymScheme {
+    pub enum AsymScheme {
         RSASSA = 0x0014,
         RSAES = 0x0015,
         RSAPSS = 0x0016,
@@ -96,7 +126,7 @@ pub(crate) mod alg {
     }
 
     // TPMI_ALG_RSA_SCHEME (v1.55, Part 2, Section 11.2.4.1, Table 166)
-    pub(crate) enum RsaScheme {
+    pub enum RsaScheme {
         RSASSA = 0x0014,
         RSAES = 0x0015,
         RSAPSS = 0x0016,
@@ -104,13 +134,13 @@ pub(crate) mod alg {
     }
 
     // TPMI_ALG_RSA_DECRYPT (v1.55, Part 2, Section 11.2.4.4, Table 169)
-    pub(crate) enum RsaDecrypt {
+    pub enum RsaDecrypt {
         RSAES = 0x0015,
         OAEP = 0x0017,
     }
 
     // TPMI_ALG_ECC_SCHEME (v1.55, Part 2, Section 11.2.5.4, Table 176)
-    pub(crate) enum EccScheme {
+    pub enum EccScheme {
         ECDSA = 0x0018,
         ECDH = 0x0019,
         ECDAA = 0x001A,
@@ -120,7 +150,7 @@ pub(crate) mod alg {
     }
 
     // TPMI_ALG_PUBLIC (v1.55, Part 2, Section 12.2.2, Table 188)
-    pub(crate) enum Public {
+    pub enum Public {
         RSA = 0x0001,
         KeyedHash = 0x0008,
         ECC = 0x0023,
@@ -130,7 +160,7 @@ pub(crate) mod alg {
 
 // TPM_ECC_CURVE (v1.55, Part 2, Section 6.4, Table 10)
 #[allow(non_camel_case_types)]
-pub(crate) enum EccCurve {
+pub enum ECCCurve {
     NIST_P192 = 0x0001,
     NIST_P224 = 0x0002,
     NIST_P256 = 0x0003,
@@ -145,7 +175,7 @@ pub(crate) enum EccCurve {
 #[allow(non_camel_case_types)]
 #[derive(PartialEq, Eq, Copy, Clone, Debug)]
 #[repr(u32)]
-pub(crate) enum CommandCode {
+pub enum CommandCode {
     NV_UndefineSpaceSpecial = 0x0000011F,
     EvictControl = 0x00000120,
     HierarchyControl = 0x00000121,
@@ -264,7 +294,7 @@ pub(crate) enum CommandCode {
     CertifyX509 = 0x00000197,
 }
 
-pub(crate) type ResponseCode = u32;
+pub type ResponseCode = u32;
 
 // TPM_ST (v1.55, Part 2, Section 6.9, Table 19)
 pub(crate) mod tag {
@@ -311,19 +341,39 @@ pub enum StartupType {
     State = 0x0001,
 }
 
-// GENERATED CODE BELOW
+/// TPM_CAP
+pub enum Cap {}
 
-impl TpmData for tag::Attest {
-    fn data_len(&self) -> usize {
-        size_of::<Self>()
-    }
+/// TPM_HANDLE
+pub struct Handle(u32);
+
+/// TPM_RH
+impl Handle {
+    pub const OWNER: Self = Self(0x40000001);
+    pub const NULL: Self = Self(0x40000007);
+    pub const UNASSIGNED: Self = Self(0x40000008);
+    pub const PW: Self = Self(0x40000009);
+    pub const LOCKOUT: Self = Self(0x4000000A);
+    pub const ENDORSEMENT: Self = Self(0x4000000B);
+    pub const PLATFORM: Self = Self(0x4000000C);
+    pub const PLATFORM_NV: Self = Self(0x4000000D);
 }
 
-impl CommandData for tag::Attest {
-    fn encode(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()> {
-        (*self as u16).encode(writer)
-    }
-}
+//
+
+// // GENERATED CODE BELOW
+
+// impl TpmData for tag::Attest {
+//     fn data_len(&self) -> usize {
+//         size_of::<Self>()
+//     }
+// }
+
+// impl CommandData for tag::Attest {
+//     fn encode(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()> {
+//         (*self as u16).encode(writer)
+//     }
+// }
 
 impl TpmData for StartupType {
     fn data_len(&self) -> usize {
@@ -332,7 +382,7 @@ impl TpmData for StartupType {
 }
 
 impl CommandData for StartupType {
-    fn encode(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()> {
+    fn encode(&self, writer: &mut dyn Write) -> Result<()> {
         (*self as u16).encode(writer)
     }
 }
@@ -344,7 +394,7 @@ impl TpmData for CommandCode {
 }
 
 impl CommandData for CommandCode {
-    fn encode(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()> {
+    fn encode(&self, writer: &mut dyn Write) -> Result<()> {
         (*self as u32).encode(writer)
     }
 }
@@ -356,13 +406,13 @@ impl TpmData for tag::Command {
 }
 
 impl CommandData for tag::Command {
-    fn encode(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()> {
+    fn encode(&self, writer: &mut dyn Write) -> Result<()> {
         (*self as u16).encode(writer)
     }
 }
 
 impl ResponseData for tag::Command {
-    fn decode(reader: &mut (impl Tpm + ?Sized)) -> Result<Self> {
+    fn decode(reader: &mut dyn Read) -> Result<Self> {
         match u16::decode(reader)? {
             0x8001 => Ok(tag::Command::NoSessions),
             0x8002 => Ok(tag::Command::Sessions),

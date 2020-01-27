@@ -2,7 +2,7 @@
 use core::ops::DerefMut;
 
 use tpm::buf::{BufTpm, Exec};
-use tpm::raw::{constants::StartupType, Tpm};
+use tpm::raw::{StartupType, Tpm};
 use tpm::Result;
 
 // External Simulator API from Samples/Google/Platform.h

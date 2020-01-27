@@ -1,11 +1,10 @@
 //! Helper traits for implementing TPMs and TPM-compatible data structures
 use core::{convert::TryInto, mem};
 
-use alloc::{vec, vec::Vec};
-
-use super::Tpm;
-use crate::{Error, Result};
-pub use tpm_derive::*;
+use crate::{
+    driver::{Read, Write},
+    Error, Result,
+};
 
 pub trait TpmData {
     fn data_len(&self) -> usize;
@@ -14,12 +13,12 @@ pub trait TpmData {
 /// A trait for objects that can be written to a TPM command buffer
 pub trait CommandData: TpmData {
     /// Serialize this object and write it to `writer`.
-    fn encode(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()>;
+    fn encode(&self, writer: &mut dyn Write) -> Result<()>;
 }
 
 /// A trait for creating objects from a TPM response buffer;
 pub trait ResponseData: TpmData + Sized {
-    fn decode(reader: &mut (impl Tpm + ?Sized)) -> Result<Self>;
+    fn decode(reader: &mut dyn Read) -> Result<Self>;
 }
 
 macro_rules! data_impls { ($($T: ty)+) => { $(
@@ -35,12 +34,12 @@ data_impls! { () bool u8 u16 u32 u64 }
 // Rust integral types don't have a common trait, so we have to use a macro.
 macro_rules! int_impls { ($($T: ty)+) => { $(
     impl CommandData for $T {
-        fn encode(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()> {
+        fn encode(&self, writer: &mut dyn Write) -> Result<()> {
             writer.write(&self.to_be_bytes())
         }
     }
     impl ResponseData for $T {
-        fn decode(reader: &mut (impl Tpm + ?Sized)) -> Result<Self> {
+        fn decode(reader: &mut dyn Read) -> Result<Self> {
             let mut arr = [0u8; mem::size_of::<Self>()];
             reader.read(&mut arr)?;
             Ok(Self::from_be_bytes(arr))
@@ -51,24 +50,24 @@ macro_rules! int_impls { ($($T: ty)+) => { $(
 int_impls! { u8 u16 u32 u64 }
 
 impl CommandData for () {
-    fn encode(&self, _: &mut (impl Tpm + ?Sized)) -> Result<()> {
+    fn encode(&self, _: &mut dyn Write) -> Result<()> {
         Ok(())
     }
 }
 impl ResponseData for () {
-    fn decode(_: &mut (impl Tpm + ?Sized)) -> Result<Self> {
+    fn decode(_: &mut dyn Read) -> Result<Self> {
         Ok(())
     }
 }
 
 impl CommandData for bool {
-    fn encode(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()> {
+    fn encode(&self, writer: &mut dyn Write) -> Result<()> {
         (*self as u8).encode(writer)
     }
 }
 
 impl ResponseData for bool {
-    fn decode(reader: &mut (impl Tpm + ?Sized)) -> Result<Self> {
+    fn decode(reader: &mut dyn Read) -> Result<Self> {
         match u8::decode(reader)? {
             0 => Ok(false),
             1 => Ok(true),
@@ -86,7 +85,7 @@ macro_rules! buf_impls { ($($T: ty)+) => { $(
         }
     }
     impl CommandData for $T {
-        fn encode(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()> {
+        fn encode(&self, writer: &mut dyn Write) -> Result<()> {
             let size: u16 = self.len().try_into().or(Err(Error::TooBigInputBuffer))?;
             size.encode(writer)?;
             writer.write(&self)
@@ -94,13 +93,4 @@ macro_rules! buf_impls { ($($T: ty)+) => { $(
     }
 )+ } }
 
-buf_impls! { [u8] Vec<u8> }
-
-impl ResponseData for Vec<u8> {
-    fn decode(reader: &mut (impl Tpm + ?Sized)) -> Result<Self> {
-        let size: usize = u16::decode(reader)?.into();
-        let mut data = vec![0u8; size];
-        reader.read(&mut data)?;
-        Ok(data)
-    }
-}
+buf_impls! { [u8] }

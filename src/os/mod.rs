@@ -1,8 +1,11 @@
-use core::ops::DerefMut;
 use std::sync::Mutex;
 
-use crate::buf::BufTpm;
-use crate::Result;
+use once_cell::sync::OnceCell;
+
+use crate::{
+    driver::{BufDriver, Driver},
+    Result,
+};
 
 cfg_if::cfg_if! {
     if #[cfg(target_os = "linux")] {
@@ -14,18 +17,12 @@ cfg_if::cfg_if! {
     }
 }
 
-/// OsTpm needs to be documented
-pub type OsTpm = BufTpm<imp::OsExec>;
+pub fn get_driver() -> Result<impl Driver> {
+    static DRIVER: OnceCell<Mutex<BufDriver<imp::OsExec>>> = OnceCell::new();
 
-impl OsTpm {
-    pub fn get() -> Result<impl DerefMut<Target = Self>> {
-        use once_cell::sync::OnceCell;
-        static TPM: OnceCell<Mutex<OsTpm>> = OnceCell::new();
-
-        let tpm = TPM.get_or_try_init(|| -> Result<_> {
-            let exec = imp::OsExec::new()?;
-            Ok(Mutex::new(Self::new(exec)))
-        })?;
-        Ok(tpm.lock().unwrap())
-    }
+    let driver = DRIVER.get_or_try_init(|| -> Result<_> {
+        let exec = imp::OsExec::new()?;
+        Ok(Mutex::new(BufDriver::new(exec)))
+    })?;
+    Ok(driver.lock().unwrap())
 }

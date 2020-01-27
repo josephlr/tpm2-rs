@@ -1,109 +1,116 @@
 use core::{convert::TryInto, num::NonZeroU32};
 
-use alloc::vec::Vec;
+pub use tpm_derive::*;
 
+use crate::driver::{Driver, Read};
 use crate::{Error, Result};
 
-pub mod constants;
-use constants::*;
+mod attributes;
+pub use attributes::*;
 
-pub mod structs;
-use structs::*;
+mod constants;
+pub use constants::*;
 
-pub mod unions;
+mod structs;
+pub use structs::*;
+
+mod unions;
+pub use unions::*;
 
 mod traits;
 pub use traits::*;
 
-pub trait Tpm {
-    /// Attempts to write all of `buf` into the writer. This differs from
-    /// [`std::io::Write::write`] (which returns the number of bytes written),
-    /// and is more similar to [`std::io::Write::write_all`].
-    fn write(&mut self, buf: &[u8]) -> Result<()>;
+cfg_if::cfg_if! {
+    if #[cfg(feature = "std")] {
+        use std::boxed::Box;
 
-    /// Fills all of `buf` or fails. This differs from [`std::io::Read::read`]
-    /// (which returns the number of bytes read), and is more similar to
-    /// [`std::io::Read::read_exact`].
-    fn read(&mut self, buf: &mut [u8]) -> Result<()>;
+        pub struct Tpm<D = Box<dyn Driver>>(D);
 
-    /// Executes previously written command data.
-    fn run_command(&mut self) -> Result<()>;
-    /// Resets any date written by [`write`].
-    fn reset_command(&mut self) -> Result<()>;
+        impl Tpm {
+            pub fn get() -> Result<Self> {
+                Ok(Self(Box::new(crate::os::get_driver()?)))
+            }
+        }
+    } else {
+        pub struct Tpm<D>(D);
+    }
+}
+
+impl<D: Driver> Tpm<D> {
+    pub fn new(driver: D) -> Self {
+        Tpm(driver)
+    }
+
+    fn run<Output: ResponseData>(
+        &mut self,
+        code: CommandCode,
+        input: &(impl CommandData + ?Sized),
+    ) -> Result<Output> {
+        let tag = tag::Command::NoSessions;
+        let mut cmd_hdr = CommandHeader { tag, size: 0, code };
+        cmd_hdr.size = (cmd_hdr.data_len() + input.data_len()).try_into().unwrap();
+
+        self.0.reset_command()?;
+        cmd_hdr.encode(&mut self.0)?;
+        input.encode(&mut self.0)?;
+        self.0.run_command()?;
+
+        let resp_hdr = ResponseHeader::decode(&mut self.0)?;
+        if let Some(err) = NonZeroU32::new(resp_hdr.code) {
+            return Err(Error::Tpm(err));
+        }
+        assert_eq!(resp_hdr.tag, tag);
+
+        let len = resp_hdr.size as usize - resp_hdr.data_len();
+        let mut reader = CheckedReader {
+            r: &mut self.0,
+            len,
+        };
+        let output = Output::decode(&mut reader)?;
+
+        if reader.len != 0 {
+            return Err(Error::RemainingOutputData);
+        }
+        Ok(output)
+    }
 
     fn startup(&mut self, su: StartupType) -> Result<()> {
-        run(self, CommandCode::Startup, &su)
+        self.run(CommandCode::Startup, &su)
     }
 
     fn shutdown(&mut self, su: StartupType) -> Result<()> {
-        run(self, CommandCode::Shutdown, &su)
+        self.run(CommandCode::Shutdown, &su)
     }
 
-    fn get_random<'a>(&mut self, len: u16) -> Result<Vec<u8>> {
-        run(self, CommandCode::GetRandom, &len)
+    fn get_random(&mut self, _bytes: &mut [u8]) -> Result<u16> {
+        unimplemented!()
     }
 
-    fn stir_random(&mut self, data: &[u8]) -> Result<()> {
-        run(self, CommandCode::StirRandom, data)
+    fn stir_random(&mut self, bytes: &[u8]) -> Result<()> {
+        self.run(CommandCode::StirRandom, bytes)
     }
 
     fn read_clock(&mut self) -> Result<TimeInfo> {
-        run(self, CommandCode::ReadClock, &())
+        self.run(CommandCode::ReadClock, &())
     }
-}
 
-fn run<'a, Output: ResponseData>(
-    tpm: &'a mut (impl Tpm + ?Sized),
-    code: CommandCode,
-    input: &(impl CommandData + ?Sized),
-) -> Result<Output> {
-    let tag = tag::Command::NoSessions;
-    let mut cmd_hdr = CommandHeader { tag, size: 0, code };
-    cmd_hdr.size = (cmd_hdr.data_len() + input.data_len()).try_into().unwrap();
-
-    tpm.reset_command()?;
-    cmd_hdr.encode(tpm)?;
-    input.encode(tpm)?;
-
-    tpm.run_command()?;
-
-    let resp_hdr = ResponseHeader::decode(tpm)?;
-    if let Some(err) = NonZeroU32::new(resp_hdr.code) {
-        return Err(Error::Tpm(err));
+    fn get_capability<T>(&mut self, data: &mut Capabilities, property: u32) -> Result<bool> {
+        unimplemented!()
     }
-    assert_eq!(resp_hdr.tag, tag);
-
-    let len = resp_hdr.size as usize - resp_hdr.data_len();
-    let mut reader = CheckedReader { tpm, len };
-    let output = Output::decode(&mut reader)?;
-
-    if reader.len != 0 {
-        return Err(Error::RemainingOutputData);
-    }
-    Ok(output)
 }
 
 struct CheckedReader<'a, T: ?Sized> {
-    tpm: &'a mut T,
+    r: &'a mut T,
     len: usize,
 }
 
-impl<T: Tpm + ?Sized> Tpm for CheckedReader<'_, T> {
+impl<T: Read + ?Sized> Read for CheckedReader<'_, T> {
     fn read(&mut self, buf: &mut [u8]) -> Result<()> {
         if buf.len() > self.len {
             return Err(Error::MissingOutputData);
         }
-        self.tpm.read(buf)?;
+        self.r.read(buf)?;
         self.len -= buf.len();
         Ok(())
-    }
-    fn write(&mut self, _: &[u8]) -> Result<()> {
-        unimplemented!()
-    }
-    fn run_command(&mut self) -> Result<()> {
-        unimplemented!()
-    }
-    fn reset_command(&mut self) -> Result<()> {
-        unimplemented!()
     }
 }

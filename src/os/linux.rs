@@ -1,7 +1,7 @@
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
 
-use crate::buf::Exec;
+use crate::driver::Exec;
 use crate::Result;
 
 pub struct OsExec(File);
@@ -15,7 +15,7 @@ impl OsExec {
 }
 
 impl Exec for OsExec {
-    fn exec(&mut self, cmd_len: usize, cmd_resp: &mut [u8]) -> Result<usize> {
+    fn exec(&mut self, cmd_resp: &mut [u8], cmd_len: usize) -> Result<usize> {
         self.0.write_all(&mut cmd_resp[..cmd_len])?;
         let resp_len = self.0.read(cmd_resp)?;
         Ok(resp_len)

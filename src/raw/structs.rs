@@ -1,7 +1,5 @@
 //! Structures defined in the TPM2 Spec
-use super::constants::*;
-use super::{CommandData, ResponseData, Tpm, TpmData};
-use crate::Result;
+use super::*;
 
 // Header for all commands (see v1.55, Part 1, Section 18)
 #[derive(TpmData, CommandData)]
@@ -33,6 +31,40 @@ pub(crate) struct ClockInfo {
 pub struct TimeInfo {
     time: u64,
     clock: ClockInfo,
+}
+
+/// TPMS_ALGORITHM_DESCRIPTION
+/// TPMS_ALG_PROPERTY
+pub struct AlgProp {
+    alg: u16,
+    attr: AlgAttr,
+}
+
+/// TPMA_CC TPM_CC?
+pub struct CommandProp {
+    todo: u32,
+}
+
+/// TPMS_PCR_SELECTION
+pub struct PCRSelection {}
+
+/// TPMS_TAGGED_PROPERTY
+pub struct TPMProp {}
+
+/// TPMS_TAGGED_PCR_SELECT
+pub struct PCRProp {}
+
+/// TPMS_TAGGED_POLICY
+pub struct PolicyProp {
+    handle: Handle,
+    hash: Hash,
+}
+
+/// TPMS_ACT_DATA
+pub struct ACTData {
+    handle: Handle,
+    timeout: u32,
+    attr: ACTAttr,
 }
 
 #[cfg(test)]
