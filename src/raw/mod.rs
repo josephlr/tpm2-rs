@@ -74,27 +74,27 @@ impl<D: Driver> Tpm<D> {
         Ok(output)
     }
 
-    fn startup(&mut self, su: StartupType) -> Result<()> {
+    pub fn startup(&mut self, su: StartupType) -> Result<()> {
         self.run(CommandCode::Startup, &su)
     }
 
-    fn shutdown(&mut self, su: StartupType) -> Result<()> {
+    pub fn shutdown(&mut self, su: StartupType) -> Result<()> {
         self.run(CommandCode::Shutdown, &su)
     }
 
-    fn get_random(&mut self, _bytes: &mut [u8]) -> Result<u16> {
+    pub fn get_random(&mut self, _bytes: &mut [u8]) -> Result<u16> {
         unimplemented!()
     }
 
-    fn stir_random(&mut self, bytes: &[u8]) -> Result<()> {
+    pub fn stir_random(&mut self, bytes: &[u8]) -> Result<()> {
         self.run(CommandCode::StirRandom, bytes)
     }
 
-    fn read_clock(&mut self) -> Result<TimeInfo> {
+    pub fn read_clock(&mut self) -> Result<TimeInfo> {
         self.run(CommandCode::ReadClock, &())
     }
 
-    fn get_capability<T>(&mut self, data: &mut Capabilities, property: u32) -> Result<bool> {
+    pub fn get_capability<T>(&mut self, data: &mut Capabilities, property: u32) -> Result<bool> {
         unimplemented!()
     }
 }
