@@ -2,6 +2,7 @@ use core::fmt;
 use core::num::NonZeroU32;
 
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum Error {
     TooBigInputBuffer,
     TooSmallOutputBuffer,
@@ -13,8 +14,6 @@ pub enum Error {
     Tpm(NonZeroU32),
     #[cfg(feature = "std")]
     Io(std::io::Error),
-    #[doc(hidden)]
-    __Nonexhaustive, // TODO: replace with #[non_exhaustive]
 }
 
 impl fmt::Display for Error {
