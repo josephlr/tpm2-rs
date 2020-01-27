@@ -1,19 +1,26 @@
+use std::{thread::sleep, time::Duration};
+
 use tpm::{raw::Tpm, Result};
 
-#[cfg(feature = "test-hardware")]
-type TestTpm = tpm::OsTpm;
-#[cfg(not(feature = "test-hardware"))]
-type TestTpm = tpm_simulator::Simulator;
+fn get_tpm() -> Result<Tpm> {
+    #[cfg(feature = "test-hardware")]
+    return Tpm::get();
+
+    #[cfg(not(feature = "test-hardware"))]
+    return tpm_simulator::Simulator::get_tpm();
+}
 
 #[test]
 fn get_random() -> Result<()> {
-    let mut tpm = TestTpm::get()?;
+    let mut tpm = get_tpm()?;
 
-    let output = tpm.get_random(100)?;
-    assert_ne!(output.len(), 100);
+    let mut output = [0u8; 100];
+    let len = tpm.get_random(&mut output)?;
+    assert_ne!(len, 100);
 
-    let output = tpm.get_random(10)?;
-    assert_eq!(output.len(), 10);
+    let mut output = [0u8; 10];
+    let len = tpm.get_random(&mut output)?;
+    assert_eq!(len, 10);
 
     println!("{:?}", output);
     Ok(())
@@ -21,33 +28,45 @@ fn get_random() -> Result<()> {
 
 #[test]
 fn stir_random() -> Result<()> {
-    let mut tpm = TestTpm::get()?;
+    let mut tpm = get_tpm()?;
     tpm.stir_random(&[0u8; 10])?;
     Ok(())
 }
 
 #[test]
 fn read_clock() -> Result<()> {
-    use std::thread::sleep;
-    use std::time::Duration;
+    let mut tpm = get_tpm()?;
+    println!("{:?}", tpm.read_clock()?);
+
+    sleep(Duration::from_millis(10));
+    println!("{:?}", tpm.read_clock()?);
+    Ok(())
+}
+
+#[test]
+#[cfg(not(feature = "test-hardware"))]
+fn read_clock_reset() -> Result<()> {
+    let mut driver = tpm_simulator::Simulator::get()?;
     {
-        let mut tpm = TestTpm::get()?;
-        println!("{:?}", tpm.read_clock()?);
-
-        sleep(Duration::from_millis(10));
-        println!("{:?}", tpm.read_clock()?);
-
-        #[cfg(not(feature = "test-hardware"))]
-        tpm.reset()?;
-        println!("\nAfter reset:");
+        let mut tpm = Tpm::new(&mut driver);
         println!("{:?}", tpm.read_clock()?);
 
         sleep(Duration::from_millis(10));
         println!("{:?}", tpm.read_clock()?);
     }
+    driver.reset()?;
+    println!("\nAfter reset:");
     {
-        let mut tpm = TestTpm::get()?;
-        println!("\nAfter manufacturer reset:");
+        let mut tpm = Tpm::new(&mut driver);
+        println!("{:?}", tpm.read_clock()?);
+
+        sleep(Duration::from_millis(10));
+        println!("{:?}", tpm.read_clock()?);
+    }
+    driver.manufacture_reset()?;
+    println!("\nAfter manufacturer reset:");
+    {
+        let mut tpm = Tpm::new(&mut driver);
         println!("{:?}", tpm.read_clock()?);
 
         sleep(Duration::from_millis(10));
