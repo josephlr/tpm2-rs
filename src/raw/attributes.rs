@@ -2,7 +2,7 @@ use bitflags::bitflags;
 
 bitflags! {
     /// TPMA_ALGORITHM
-    pub struct AlgAttr: u32 {
+    pub struct AttrAlg: u32 {
         const ASYMMETRIC = 1 << 0;
         const SYMMETRIC =  1 << 1;
         const HASH =       1 << 2;
@@ -15,7 +15,7 @@ bitflags! {
 
 bitflags! {
     /// TPMA_OBJTECT
-    pub struct ObjectAttr: u32 {
+    pub struct AttrObject: u32 {
         const FIXED_TPM             = 1 << 1;
         const ST_CLEAR              = 1 << 2;
         const FIXED_PARENT          = 1 << 4;
@@ -34,7 +34,7 @@ bitflags! {
 
 bitflags! {
     /// TPMA_SESSION
-    pub struct SessionAttr: u8 {
+    pub struct AttrSession: u8 {
         const CONTINUE        = 1 << 0;
         const AUDIT_EXCLUSIVE = 1 << 1;
         const AUDIT_RESET     = 1 << 2;
@@ -46,7 +46,7 @@ bitflags! {
 
 bitflags! {
     /// TPMA_LOCALITY
-    pub struct LocalityAttr: u8 {
+    pub struct AttrLocality: u8 {
         const ZERO  = 1 << 0;
         const ONCE  = 1 << 1;
         const TWO   = 1 << 2;
@@ -57,7 +57,7 @@ bitflags! {
 
 bitflags! {
     /// TPMA_PERMANENT
-    pub struct PermanentAttr: u32 {
+    pub struct AttrPermanent: u32 {
         const OWNER_AUTH       = 1 << 0;
         const ENDORSEMENT_AUTH = 1 << 1;
         const LOCKOUT_AUTH     = 1 << 2;
@@ -69,7 +69,7 @@ bitflags! {
 
 bitflags! {
     /// TPMA_STARTUP_CLEAR
-    pub struct StartupClearAttr: u32 {
+    pub struct AttrStartupClear: u32 {
         const PH_ENABLE    = 1 << 0;
         const SH_ENABLE    = 1 << 1;
         const EH_ENABLE    = 1 << 2;
@@ -80,7 +80,7 @@ bitflags! {
 
 bitflags! {
     /// TPMA_MEMORY
-    pub struct MemoryAttr: u32 {
+    pub struct AttrMemory: u32 {
         const SHARED_RAM     = 1 << 0;
         const SHARED_NV      = 1 << 1;
         const COPIED_TO_RAM  = 1 << 2;
@@ -89,7 +89,7 @@ bitflags! {
 
 bitflags! {
     /// TPMA_ACT
-    pub struct ACTAttr: u32 {
+    pub struct AttrACT: u32 {
         const SIGNALED          = 1 << 0;
         const PRESERVE_SIGNALED = 1 << 1;
     }
@@ -97,7 +97,7 @@ bitflags! {
 
 bitflags! {
     /// TPMA_NV TPM_NT
-    pub struct NVAttr: u32 {
+    pub struct AttrNV: u32 {
         const PLATFORM_WRITE  = 1 << 0;
         const OWNER_WRITE     = 1 << 1;
         const AUTH_WRITE      = 1 << 2;

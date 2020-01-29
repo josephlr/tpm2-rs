@@ -37,7 +37,7 @@ pub struct TimeInfo {
 /// TPMS_ALG_PROPERTY
 pub struct AlgProp {
     alg: u16,
-    attr: AlgAttr,
+    attr: AttrAlg,
 }
 
 /// TPMA_CC TPM_CC?
@@ -64,7 +64,7 @@ pub struct PolicyProp {
 pub struct ACTData {
     handle: Handle,
     timeout: u32,
-    attr: ACTAttr,
+    attr: AttrACT,
 }
 
 #[cfg(test)]
