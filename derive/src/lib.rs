@@ -35,7 +35,7 @@ pub fn derive_command_data(input: proc_macro::TokenStream) -> proc_macro::TokenS
 
     quote!(
         impl CommandData for #name {
-            fn encode(&self, writer: &mut dyn crate::driver::Write) -> Result<()> {
+            fn encode(&self, writer: &mut dyn crate::raw::Write) -> Result<()> {
                 #( #fields?; )*
                 Ok(())
             }
@@ -55,7 +55,7 @@ pub fn derive_response_data(input: proc_macro::TokenStream) -> proc_macro::Token
 
     quote!(
         impl ResponseData for #name {
-            fn decode(reader: &mut dyn crate::driver::Read) -> Result<Self> {
+            fn decode(reader: &mut dyn crate::raw::Read) -> Result<Self> {
                 Ok(Self {
                     #( #fields? , )*
                 })

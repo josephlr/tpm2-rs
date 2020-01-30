@@ -1,10 +1,8 @@
 //! Helper traits for implementing TPMs and TPM-compatible data structures
 use core::{convert::TryInto, mem};
 
-use crate::{
-    driver::{Read, Write},
-    Error, Result,
-};
+use super::*;
+use crate::{Error, Result};
 
 pub trait TpmData {
     fn data_len(&self) -> usize;

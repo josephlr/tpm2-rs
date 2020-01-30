@@ -17,5 +17,4 @@ cfg_if::cfg_if! {
 mod error;
 pub use error::{Error, Result};
 
-pub mod driver;
 pub mod raw;

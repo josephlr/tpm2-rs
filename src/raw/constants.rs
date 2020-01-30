@@ -1,11 +1,8 @@
 //! Constants (i.e. C-style enums) defined in the TPM2 Spec
 use core::mem::size_of;
 
-use super::{CommandData, ResponseData, TpmData};
-use crate::{
-    driver::{Read, Write},
-    Error, Result,
-};
+use super::*;
+use crate::{Error, Result};
 
 /// TPM_GENERATED_VALUE (v1.55, Part 2, Section 6.2, Table 7)
 static TPM_MAGIC: &[u8; 4] = b"\xffTPM";

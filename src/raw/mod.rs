@@ -2,7 +2,6 @@ use core::{convert::TryInto, num::NonZeroU32};
 
 pub use tpm_derive::*;
 
-use crate::driver::{Driver, Read};
 use crate::{Error, Result};
 
 mod attributes;
@@ -19,6 +18,10 @@ pub use unions::*;
 
 mod traits;
 pub use traits::*;
+
+mod util;
+use util::*;
+pub use util::{Write, Read, Driver};
 
 cfg_if::cfg_if! {
     if #[cfg(feature = "std")] {
