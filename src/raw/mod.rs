@@ -21,29 +21,40 @@ pub use traits::*;
 
 mod util;
 use util::*;
-pub use util::{Write, Read, Driver};
+pub use util::{Driver, Read, Write, BUFFER_SIZE};
 
 cfg_if::cfg_if! {
     if #[cfg(feature = "std")] {
         use std::boxed::Box;
 
-        pub struct Tpm<D = Box<dyn Driver>>(D);
+        pub struct Tpm<D = Box<dyn Driver>> {
+            buf: Buf,
+            driver: D,
+        }
 
         impl Tpm {
             pub fn get() -> Result<Self> {
-                Ok(Self(Box::new(crate::os::get_driver()?)))
+                Ok(Self::new(Box::new(crate::os::get_driver()?)))
             }
         }
     } else {
-        pub struct Tpm<D>(D);
+        pub struct Tpm<D> {
+            buf: Buf,
+            driver: D,
+        }
+    }
+}
+
+impl<D> Tpm<D> {
+    pub fn new(driver: D) -> Self {
+        Self {
+            buf: Buf::new(),
+            driver,
+        }
     }
 }
 
 impl<D: Driver> Tpm<D> {
-    pub fn new(driver: D) -> Self {
-        Tpm(driver)
-    }
-
     fn run<Output: ResponseData>(
         &mut self,
         code: CommandCode,
@@ -53,12 +64,12 @@ impl<D: Driver> Tpm<D> {
         let mut cmd_hdr = CommandHeader { tag, size: 0, code };
         cmd_hdr.size = (cmd_hdr.data_len() + input.data_len()).try_into().unwrap();
 
-        self.0.reset_command()?;
-        cmd_hdr.encode(&mut self.0)?;
-        input.encode(&mut self.0)?;
-        self.0.run_command()?;
+        self.buf.reset();
+        cmd_hdr.encode(&mut self.buf)?;
+        input.encode(&mut self.buf)?;
+        self.buf.run_command(&mut self.driver)?;
 
-        let resp_hdr = ResponseHeader::decode(&mut self.0)?;
+        let resp_hdr = ResponseHeader::decode(&mut self.buf)?;
         if let Some(err) = NonZeroU32::new(resp_hdr.code) {
             return Err(Error::Tpm(err));
         }
@@ -66,7 +77,7 @@ impl<D: Driver> Tpm<D> {
 
         let len = resp_hdr.size as usize - resp_hdr.data_len();
         let mut reader = CheckedReader {
-            r: &mut self.0,
+            r: &mut self.buf,
             len,
         };
         let output = Output::decode(&mut reader)?;

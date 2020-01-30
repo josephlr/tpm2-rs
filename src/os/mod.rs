@@ -2,10 +2,7 @@ use std::sync::Mutex;
 
 use once_cell::sync::OnceCell;
 
-use crate::{
-    driver::{BufDriver, Driver},
-    Result,
-};
+use crate::{raw::Driver, Result};
 
 cfg_if::cfg_if! {
     if #[cfg(target_os = "linux")] {
@@ -18,11 +15,11 @@ cfg_if::cfg_if! {
 }
 
 pub fn get_driver() -> Result<impl Driver> {
-    static DRIVER: OnceCell<Mutex<BufDriver<imp::OsExec>>> = OnceCell::new();
+    static DRIVER: OnceCell<Mutex<imp::OsDriver>> = OnceCell::new();
 
-    let driver = DRIVER.get_or_try_init(|| -> Result<_> {
-        let exec = imp::OsExec::new()?;
-        Ok(Mutex::new(BufDriver::new(exec)))
+    let mutex = DRIVER.get_or_try_init(|| -> Result<_> {
+        let driver = imp::OsDriver::new()?;
+        Ok(Mutex::new(driver))
     })?;
-    Ok(driver.lock().unwrap())
+    Ok(mutex.lock().unwrap())
 }

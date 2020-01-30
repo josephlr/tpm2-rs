@@ -18,100 +18,70 @@ pub trait Read {
     fn read(&mut self, buf: &mut [u8]) -> Result<()>;
 }
 
-pub trait Driver: Read + Write {
-    /// Execute a command consisting of perviously written data.
-    /// Executes previously written command data.
-    fn run_command(&mut self) -> Result<()>;
-    /// Clear any currently pending writes or running commands.
-    /// Resets any data written by [`write`].
-    fn reset_command(&mut self) -> Result<()>;
-}
-
-pub trait Exec {
+pub trait Driver {
     /// Uses the same buffer for the command and the response.
-    fn exec(&mut self, cmd_resp: &mut [u8], cmd_len: usize) -> Result<usize>;
+    fn run_command(&mut self, cmd_resp: &mut [u8; BUFFER_SIZE], cmd_len: usize) -> Result<usize>;
 }
 
-// Maximum size of a command or response buffer.
-const BUFFER_SIZE: usize = 4096;
+/// Maximum size of a TPM command or response buffer.
+pub const BUFFER_SIZE: usize = 4096;
 
-pub struct BufDriver<E> {
-    buf: [u8; BUFFER_SIZE],
+pub(crate) struct Buf {
+    cmd_resp: [u8; BUFFER_SIZE],
     cmd_end: usize,
     resp_start: usize,
     resp_end: usize,
-    exec: E,
 }
 
-impl<E> BufDriver<E> {
-    pub const fn new(exec: E) -> Self {
+impl Buf {
+    pub const fn new() -> Self {
         Self {
-            buf: [0u8; BUFFER_SIZE],
+            cmd_resp: [0u8; BUFFER_SIZE],
             cmd_end: 0,
             resp_start: 0,
             resp_end: 0,
-            exec,
         }
+    }
+    pub fn reset(&mut self) {
+        self.cmd_end = 0;
+        self.resp_start = 0;
+        self.resp_end = 0;
+    }
+    pub fn run_command(&mut self, driver: &mut impl Driver) -> Result<()> {
+        self.resp_end = driver.run_command(&mut self.cmd_resp, self.cmd_end)?;
+        self.cmd_end = 0;
+        self.resp_start = 0;
+        Ok(())
     }
 }
 
-impl<E> Write for BufDriver<E> {
+impl Write for Buf {
     fn write(&mut self, buf: &[u8]) -> Result<()> {
         let next_end = self.cmd_end + buf.len();
-        if next_end > self.buf.len() {
+        if next_end > self.cmd_resp.len() {
             return Err(Error::TooMuchInputData);
         }
-        self.buf[self.cmd_end..next_end].copy_from_slice(buf);
+        self.cmd_resp[self.cmd_end..next_end].copy_from_slice(buf);
         self.cmd_end = next_end;
         Ok(())
     }
 }
 
-impl<E> Read for BufDriver<E> {
+impl Read for Buf {
     fn read(&mut self, buf: &mut [u8]) -> Result<()> {
         let next_start = self.resp_start + buf.len();
         if next_start > self.resp_end {
             return Err(Error::MissingOutputData);
         }
-        buf.copy_from_slice(&self.buf[self.resp_start..next_start]);
+        buf.copy_from_slice(&self.cmd_resp[self.resp_start..next_start]);
         self.resp_start = next_start;
         Ok(())
     }
 }
 
-impl<E: Exec> Driver for BufDriver<E> {
-    fn run_command(&mut self) -> Result<()> {
-        self.resp_end = self.exec.exec(&mut self.buf, self.cmd_end)?;
-        self.cmd_end = 0;
-        self.resp_start = 0;
-        Ok(())
-    }
-    fn reset_command(&mut self) -> Result<()> {
-        self.cmd_end = 0;
-        self.resp_start = 0;
-        self.resp_end = 0;
-        Ok(())
-    }
-}
-
-impl<D: Write + ?Sized, T: DerefMut<Target = D>> Write for T {
-    fn write(&mut self, buf: &[u8]) -> Result<()> {
-        (**self).write(buf)
-    }
-}
-
-impl<D: Read + ?Sized, T: DerefMut<Target = D>> Read for T {
-    fn read(&mut self, buf: &mut [u8]) -> Result<()> {
-        (**self).read(buf)
-    }
-}
-
 impl<D: Driver + ?Sized, T: DerefMut<Target = D>> Driver for T {
-    fn run_command(&mut self) -> Result<()> {
-        (**self).run_command()
-    }
-    fn reset_command(&mut self) -> Result<()> {
-        (**self).reset_command()
+    fn run_command(&mut self, cmd_resp: &mut [u8; BUFFER_SIZE], cmd_len: usize) -> Result<usize> {
+        (**self).run_command(cmd_resp, cmd_len)
     }
 }
 
@@ -124,6 +94,5 @@ mod tests {
         let _: Option<&dyn Write> = None;
         let _: Option<&dyn Read> = None;
         let _: Option<&dyn Driver> = None;
-        let _: Option<&dyn Exec> = None;
     }
 }

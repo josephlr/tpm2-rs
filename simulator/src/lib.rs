@@ -5,8 +5,7 @@ use core::ops::DerefMut;
 extern crate std;
 
 use tpm::{
-    driver::{BufDriver, Driver, Exec, Read, Write},
-    raw::{StartupType, Tpm},
+    raw::{Driver, StartupType, Tpm, BUFFER_SIZE},
     Result,
 };
 
@@ -21,10 +20,8 @@ extern "C" {
     );
 }
 
-struct SimulatorExec;
-
-impl Exec for SimulatorExec {
-    fn exec(&mut self, cmd_resp: &mut [u8], cmd_len: usize) -> Result<usize> {
+impl Driver for Simulator {
+    fn run_command(&mut self, cmd_resp: &mut [u8; BUFFER_SIZE], cmd_len: usize) -> Result<usize> {
         let mut resp_ptr = cmd_resp.as_mut_ptr();
         let mut resp_size = cmd_resp.len() as u32;
 
@@ -41,16 +38,12 @@ impl Exec for SimulatorExec {
 }
 
 pub struct Simulator {
-    driver: BufDriver<SimulatorExec>,
     is_on: bool,
 }
 
 impl Simulator {
     const unsafe fn new() -> Self {
-        Self {
-            driver: BufDriver::new(SimulatorExec),
-            is_on: false,
-        }
+        Self { is_on: false }
     }
 
     #[cfg(feature = "std")]
@@ -83,35 +76,16 @@ impl Simulator {
     }
 
     fn on(&mut self) -> Result<()> {
-        Tpm::new(&mut self.driver).startup(StartupType::Clear)?;
+        let mut tpm = Tpm::<&mut dyn Driver>::new(self);
+        tpm.startup(StartupType::Clear)?;
         self.is_on = true;
         Ok(())
     }
     fn off(&mut self) {
         if self.is_on {
-            let _ = Tpm::new(&mut self.driver).shutdown(StartupType::Clear);
+            let mut tpm = Tpm::<&mut dyn Driver>::new(self);
+            let _ = tpm.shutdown(StartupType::Clear);
             self.is_on = false;
         }
-    }
-}
-
-impl Read for Simulator {
-    fn read(&mut self, buf: &mut [u8]) -> Result<()> {
-        self.driver.read(buf)
-    }
-}
-
-impl Write for Simulator {
-    fn write(&mut self, buf: &[u8]) -> Result<()> {
-        self.driver.write(buf)
-    }
-}
-
-impl Driver for Simulator {
-    fn run_command(&mut self) -> Result<()> {
-        self.driver.run_command()
-    }
-    fn reset_command(&mut self) -> Result<()> {
-        self.driver.reset_command()
     }
 }
