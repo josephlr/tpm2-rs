@@ -19,8 +19,8 @@ pub use unions::*;
 mod traits;
 pub use traits::*;
 
-mod util;
-pub use util::{Driver, BUFFER_SIZE};
+mod tpm;
+pub use tpm::*;
 
 cfg_if::cfg_if! {
     if #[cfg(feature = "std")] {
