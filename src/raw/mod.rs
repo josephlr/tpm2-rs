@@ -22,37 +22,6 @@ pub use traits::*;
 mod tpm;
 pub use tpm::*;
 
-cfg_if::cfg_if! {
-    if #[cfg(feature = "std")] {
-        use std::boxed::Box;
-
-        pub struct Tpm<D = Box<dyn Driver>> {
-            buf: [u8; BUFFER_SIZE],
-            driver: D,
-        }
-
-        impl Tpm {
-            pub fn get() -> Result<Self> {
-                Ok(Self::new(Box::new(crate::os::get_driver()?)))
-            }
-        }
-    } else {
-        pub struct Tpm<D> {
-            buf: [u8; BUFFER_SIZE],
-            driver: D,
-        }
-    }
-}
-
-impl<D> Tpm<D> {
-    pub fn new(driver: D) -> Self {
-        Self {
-            buf: [0; BUFFER_SIZE],
-            driver,
-        }
-    }
-}
-
 impl<D: Driver> Tpm<D> {
     fn run<Output: ResponseData>(
         &mut self,
