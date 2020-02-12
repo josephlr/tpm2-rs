@@ -3,10 +3,7 @@ use std::{
     io::{Read, Write},
 };
 
-use crate::{
-    raw::{Driver, BUFFER_SIZE},
-    Result,
-};
+use crate::{raw::Driver, Result};
 
 pub struct OsDriver(File);
 
@@ -21,7 +18,7 @@ impl OsDriver {
 }
 
 impl Driver for OsDriver {
-    fn run_command(&mut self, cmd_resp: &mut [u8; BUFFER_SIZE], cmd_len: usize) -> Result<usize> {
+    fn run_command(&mut self, cmd_resp: &mut [u8], cmd_len: usize) -> Result<usize> {
         self.0.write_all(&mut cmd_resp[..cmd_len])?;
         let resp_len = self.0.read(cmd_resp)?;
         Ok(resp_len)

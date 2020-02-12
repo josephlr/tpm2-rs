@@ -5,7 +5,7 @@ use core::ops::DerefMut;
 extern crate std;
 
 use tpm::{
-    raw::{Driver, StartupType, Tpm, BUFFER_SIZE},
+    raw::{Driver, StartupType, Tpm},
     Result,
 };
 
@@ -21,7 +21,7 @@ extern "C" {
 }
 
 impl Driver for Simulator {
-    fn run_command(&mut self, cmd_resp: &mut [u8; BUFFER_SIZE], cmd_len: usize) -> Result<usize> {
+    fn run_command(&mut self, cmd_resp: &mut [u8], cmd_len: usize) -> Result<usize> {
         let mut resp_ptr = cmd_resp.as_mut_ptr();
         let mut resp_size = cmd_resp.len() as u32;
 
