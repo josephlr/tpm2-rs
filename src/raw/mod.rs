@@ -111,7 +111,15 @@ impl<D: Driver> Tpm<D> {
     }
 }
 
-struct CheckedReader<'a, T: ?Sized> {
-    r: &'a mut T,
-    len: usize,
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn object_safety() {
+        let _: dyn CommandData;
+        // let _: dyn ResponseData;
+        let _: dyn ResponseRef;
+        let _: dyn Driver;
+    }
 }

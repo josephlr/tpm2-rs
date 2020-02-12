@@ -15,13 +15,3 @@ impl<D: Driver + ?Sized, T: DerefMut<Target = D>> Driver for T {
         (**self).run_command(cmd_resp, cmd_len)
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn object_safety() {
-        let _: Option<&dyn Driver> = None;
-    }
-}
