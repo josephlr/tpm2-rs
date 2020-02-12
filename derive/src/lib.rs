@@ -30,12 +30,12 @@ pub fn derive_command_data(input: proc_macro::TokenStream) -> proc_macro::TokenS
     let name = input.ident;
 
     let fields = for_each_field(&input.data, |span, id, _ty| {
-        quote_spanned! { span=> CommandData::encode(&self.#id, writer) }
+        quote_spanned! { span=> CommandData::encode(&self.#id, cmd) }
     });
 
     quote!(
         impl CommandData for #name {
-            fn encode(&self, writer: &mut dyn crate::raw::Write) -> Result<()> {
+            fn encode(&self, cmd: &mut &mut [u8]) -> Result<()> {
                 #( #fields?; )*
                 Ok(())
             }
@@ -50,12 +50,12 @@ pub fn derive_response_data(input: proc_macro::TokenStream) -> proc_macro::Token
     let name = input.ident;
 
     let fields = for_each_field(&input.data, |span, id, ty| {
-        quote_spanned! { span=> #id: #ty::decode(reader) }
+        quote_spanned! { span=> #id: #ty::decode(resp) }
     });
 
     quote!(
         impl ResponseData for #name {
-            fn decode(reader: &mut dyn crate::raw::Read) -> Result<Self> {
+            fn decode(resp: &mut &[u8]) -> Result<Self> {
                 Ok(Self {
                     #( #fields? , )*
                 })

@@ -367,8 +367,8 @@ impl Handle {
 // }
 
 // impl CommandData for tag::Attest {
-//     fn encode(&self, writer: &mut (impl Tpm + ?Sized)) -> Result<()> {
-//         (*self as u16).encode(writer)
+//     fn encode(&self, cmd: &mut &mut [u8]) -> Result<()> {
+//         (*self as u16).encode(cmd)
 //     }
 // }
 
@@ -379,8 +379,8 @@ impl TpmData for StartupType {
 }
 
 impl CommandData for StartupType {
-    fn encode(&self, writer: &mut dyn Write) -> Result<()> {
-        (*self as u16).encode(writer)
+    fn encode(&self, cmd: &mut &mut [u8]) -> Result<()> {
+        (*self as u16).encode(cmd)
     }
 }
 
@@ -391,8 +391,8 @@ impl TpmData for CommandCode {
 }
 
 impl CommandData for CommandCode {
-    fn encode(&self, writer: &mut dyn Write) -> Result<()> {
-        (*self as u32).encode(writer)
+    fn encode(&self, cmd: &mut &mut [u8]) -> Result<()> {
+        (*self as u32).encode(cmd)
     }
 }
 
@@ -403,14 +403,14 @@ impl TpmData for tag::Command {
 }
 
 impl CommandData for tag::Command {
-    fn encode(&self, writer: &mut dyn Write) -> Result<()> {
-        (*self as u16).encode(writer)
+    fn encode(&self, cmd: &mut &mut [u8]) -> Result<()> {
+        (*self as u16).encode(cmd)
     }
 }
 
 impl ResponseData for tag::Command {
-    fn decode(reader: &mut dyn Read) -> Result<Self> {
-        match u16::decode(reader)? {
+    fn decode(resp: &mut &[u8]) -> Result<Self> {
+        match u16::decode(resp)? {
             0x8001 => Ok(tag::Command::NoSessions),
             0x8002 => Ok(tag::Command::Sessions),
             _ => Err(Error::InvalidOutputValue),

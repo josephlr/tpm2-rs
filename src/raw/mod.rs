@@ -20,15 +20,14 @@ mod traits;
 pub use traits::*;
 
 mod util;
-use util::*;
-pub use util::{Driver, Read, Write, BUFFER_SIZE};
+pub use util::{Driver, BUFFER_SIZE};
 
 cfg_if::cfg_if! {
     if #[cfg(feature = "std")] {
         use std::boxed::Box;
 
         pub struct Tpm<D = Box<dyn Driver>> {
-            buf: Buf,
+            buf: [u8; BUFFER_SIZE],
             driver: D,
         }
 
@@ -39,7 +38,7 @@ cfg_if::cfg_if! {
         }
     } else {
         pub struct Tpm<D> {
-            buf: Buf,
+            buf: [u8; BUFFER_SIZE],
             driver: D,
         }
     }
@@ -48,7 +47,7 @@ cfg_if::cfg_if! {
 impl<D> Tpm<D> {
     pub fn new(driver: D) -> Self {
         Self {
-            buf: Buf::new(),
+            buf: [0; BUFFER_SIZE],
             driver,
         }
     }
@@ -62,27 +61,26 @@ impl<D: Driver> Tpm<D> {
     ) -> Result<Output> {
         let tag = tag::Command::NoSessions;
         let mut cmd_hdr = CommandHeader { tag, size: 0, code };
-        cmd_hdr.size = (cmd_hdr.data_len() + input.data_len()).try_into().unwrap();
+        let cmd_len = cmd_hdr.data_len() + input.data_len();
+        cmd_hdr.size = cmd_len.try_into().unwrap();
 
-        self.buf.reset();
-        cmd_hdr.encode(&mut self.buf)?;
-        input.encode(&mut self.buf)?;
-        self.buf.run_command(&mut self.driver)?;
+        let mut cmd_buf: &mut [u8] = &mut self.buf;
+        cmd_hdr.encode(&mut cmd_buf)?;
+        input.encode(&mut cmd_buf)?;
+        assert_eq!(cmd_len + cmd_buf.len(), self.buf.len());
 
-        let resp_hdr = ResponseHeader::decode(&mut self.buf)?;
+        let resp_len = self.driver.run_command(&mut self.buf, cmd_len)?;
+        let mut resp: &[u8] = &self.buf[..resp_len];
+
+        let resp_hdr = ResponseHeader::decode(&mut resp)?;
         if let Some(err) = NonZeroU32::new(resp_hdr.code) {
             return Err(Error::Tpm(err));
         }
         assert_eq!(resp_hdr.tag, tag);
+        assert_eq!(resp_hdr.size as usize, resp_len);
 
-        let len = resp_hdr.size as usize - resp_hdr.data_len();
-        let mut reader = CheckedReader {
-            r: &mut self.buf,
-            len,
-        };
-        let output = Output::decode(&mut reader)?;
-
-        if reader.len != 0 {
+        let output = Output::decode(&mut resp)?;
+        if resp.len() > 0 {
             return Err(Error::RemainingOutputData);
         }
         Ok(output)
@@ -101,7 +99,7 @@ impl<D: Driver> Tpm<D> {
     }
 
     pub fn stir_random(&mut self, bytes: &[u8]) -> Result<()> {
-        self.run(CommandCode::StirRandom, bytes)
+        self.run(CommandCode::StirRandom, &InBuf(bytes))
     }
 
     pub fn read_clock(&mut self) -> Result<TimeInfo> {
@@ -116,15 +114,4 @@ impl<D: Driver> Tpm<D> {
 struct CheckedReader<'a, T: ?Sized> {
     r: &'a mut T,
     len: usize,
-}
-
-impl<T: Read + ?Sized> Read for CheckedReader<'_, T> {
-    fn read(&mut self, buf: &mut [u8]) -> Result<()> {
-        if buf.len() > self.len {
-            return Err(Error::MissingOutputData);
-        }
-        self.r.read(buf)?;
-        self.len -= buf.len();
-        Ok(())
-    }
 }
