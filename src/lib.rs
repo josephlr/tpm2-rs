@@ -7,14 +7,15 @@
 // #![feature(const_if_match)]
 #![no_std]
 
-cfg_if::cfg_if! {
-    if #[cfg(feature = "std")] {
-        extern crate std;
-        mod os;
-    }
-}
+#[cfg(feature = "alloc")]
+extern crate alloc;
+#[cfg(feature = "std")]
+extern crate std;
 
 mod error;
 pub use error::{Error, Result};
 
 pub mod raw;
+
+#[cfg(feature = "std")]
+mod os;

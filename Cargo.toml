@@ -14,7 +14,8 @@ categories = ["cryptography", "no-std"]
 
 [features]
 default = ["std"]
-std = ["once_cell"]
+std = ["once_cell", "alloc"]
+alloc = []
 test-hardware = ["std"]
 
 [dependencies]
