@@ -14,7 +14,7 @@ categories = ["cryptography", "no-std"]
 
 [features]
 default = ["std"]
-std = ["once_cell", "alloc"]
+std = ["once_cell", "alloc", "tpm-simulator/std"]
 alloc = []
 test-hardware = ["std"]
 
@@ -25,7 +25,7 @@ once_cell = { version = "1.0.1", optional = true }
 tpm-derive = { path = "derive" }
 
 [dev-dependencies]
-tpm-simulator = { path = "simulator" }
+tpm-simulator = { path = "simulator", default-features = false }
 
 [workspace]
 members = ["derive", "simulator"]
