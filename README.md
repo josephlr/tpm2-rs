@@ -1,9 +1,9 @@
 # Safe TSS for TPM2
 
-The main `tpm` crate is the TSS (and OS-specific bindings to the TPM).
+The main `tpm2` crate is the TSS (and OS-specific bindings to the TPM).
 
-The `simulator` crate contains an abstraction around Microsoft's
-[TPM2 simulator](https://sourceforge.net/projects/ibmswtpm2/).
+The `tpm2_simulator` crate contains an abstraction around Microsoft's
+[TPM2 simulator](https://github.com/microsoft/ms-tpm-20-ref).
 
 ## Legal
 

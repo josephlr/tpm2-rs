@@ -1,31 +1,38 @@
 [package]
-name = "tpm"
-version = "0.1.0"
-authors = ["Joe Richey <joerichey@google.com>"]
+name = "tpm2"
+version = "0.0.1"
+authors = ["Joe Richey <joerichey94@gmail.com>"]
 edition = "2018"
+resolver = "2"
 license = "Apache-2.0"
 readme = "README.md"
-repository = "https://github.com/josephlr/tpm"
-documentation = "https://docs.rs/tpm"
-homepage = "https://github.com/josephlr/tpm"
+repository = "https://github.com/josephlr/tpm-rs"
+documentation = "https://docs.rs/tpm2"
+homepage = "https://github.com/josephlr/tpm-rs"
 description = "Pure Rust TPM2 TSS"
 keywords = ["tpm", "tss", "tpm2"]
 categories = ["cryptography", "no-std"]
 
+[workspace]
+members = [
+    "simulator",
+]
+
 [features]
 default = ["std"]
-std = ["once_cell", "alloc", "tpm-simulator/std"]
+std = ["alloc", "once_cell"]
 alloc = []
-test-hardware = ["std"]
+# test-hardware = ["std"]
 
 [dependencies]
 cfg-if = "0.1.6"
 bitflags = "1.0"
 once_cell = { version = "1.0.1", optional = true }
-tpm-derive = { path = "derive" }
 
-[dev-dependencies]
-tpm-simulator = { path = "simulator", default-features = false }
+# tpm-derive = { path = "derive" }
 
-[workspace]
-members = ["derive", "simulator"]
+# [dev-dependencies]
+# tpm-simulator = { path = "simulator" }
+
+# [workspace]
+# members = ["derive", "simulator"]

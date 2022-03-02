@@ -1,0 +1,6 @@
+
+
+Events sent to device:
+  - _TPM_INIT Hardware Signal (TPM Device Reset)
+  - HASH_START / HASH_DATA / HASH_END
+  - 

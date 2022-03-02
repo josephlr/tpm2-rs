@@ -68,7 +68,7 @@ impl<D: Driver> Tpm<D> {
     }
 
     pub fn stir_random(&mut self, bytes: &[u8]) -> Result<()> {
-        self.run(CommandCode::StirRandom, &InBuf(bytes))
+        self.run(CommandCode::StirRandom, bytes)
     }
 
     pub fn read_clock(&mut self) -> Result<TimeInfo> {
