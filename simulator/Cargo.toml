@@ -1,0 +1,13 @@
+[package]
+name = "tpm2-simulator"
+version = "0.0.0"
+authors = ["Joe Richey <joerichey@google.com>"]
+edition = "2021"
+license = "Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/josephlr/tpm-rs"
+documentation = "https://docs.rs/tpm2"
+homepage = "https://github.com/josephlr/tpm-rs"
+description = "Bindings to the reference TPM2 simulator"
+keywords = ["tpm", "tpm2", "simulator"]
+categories = ["cryptography", "no-std"]
