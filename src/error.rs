@@ -12,6 +12,7 @@ pub enum Error {
     IndexOutOfBounds,
     PoisonError,
     #[cfg(feature = "std")]
+    #[doc(cfg(feature = "std"))]
     Io(std::io::Error),
 }
 
