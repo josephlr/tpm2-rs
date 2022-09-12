@@ -5,6 +5,7 @@
 use super::Marshal;
 
 /// TPM_CC values
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 #[repr(u32)]
 pub enum CC {
     NvUndefineSpaceSpecial = 0x0000011f,
@@ -127,7 +128,7 @@ pub enum CC {
 }
 
 // TPM_SU values
-#[derive(Default, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Default, Debug)]
 #[repr(u16)]
 pub enum SU {
     #[default]
