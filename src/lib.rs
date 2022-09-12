@@ -18,7 +18,6 @@ pub mod commands;
 pub mod os;
 pub mod types;
 
-use commands::{Command, Response};
 use polyfill::*;
 use types::*;
 
@@ -29,40 +28,6 @@ pub trait Tpm {
     fn command_buf(&mut self) -> &mut [u8];
     fn response_buf(&self) -> &[u8];
     fn execute_command(&mut self, cmd_size: u32) -> Result<u32>;
-}
-
-impl dyn Tpm + '_ {
-    #[inline]
-    pub fn run<'a, C: Command>(&'a mut self, cmd: C) -> Result<C::Response<&'a [u8]>>
-    where
-        C::Response<&'a [u8]>: Unmarshal<'a>,
-    {
-        self.run_with_auths(cmd, &[])
-    }
-
-    pub fn run_with_auths<'a, C: Command>(
-        &'a mut self,
-        cmd: C,
-        auths: &[&dyn Auth],
-    ) -> Result<C::Response<&'a [u8]>>
-    where
-        C::Response<&'a [u8]>: Unmarshal<'a>,
-    {
-        let mut rsp: C::Response<&'a [u8]> = Default::default();
-        let mut rsp_handles = <C::Response<&'a [u8]> as Response>::Handles::empty();
-        run_impl(
-            self,
-            C::CODE,
-            cmd.auth_handles().as_slice(),
-            cmd.handles().as_slice(),
-            auths,
-            &cmd,
-            rsp_handles.as_mut_slice(),
-            &mut rsp,
-        )?;
-        rsp.set_handles(rsp_handles);
-        Ok(rsp)
-    }
 }
 
 fn run_impl<'a>(
@@ -177,18 +142,21 @@ mod test {
     fn can_exec() {
         #[allow(dead_code)]
         fn take_tpm(tpm: &mut dyn Tpm) -> Result<Vec<u8>> {
-            tpm.run(Startup {
+            Startup {
                 startup_type: tpm::SU::Clear,
-            })?;
+            }
+            .run(tpm)?;
 
-            let rsp = tpm.run(GetRandom {
+            let rsp = GetRandom {
                 bytes_requested: 12,
-            })?;
+            }
+            .run(tpm)?;
             let b = Vec::from(rsp.random_bytes);
 
-            tpm.run(Shutdown {
+            Shutdown {
                 shutdown_type: tpm::SU::Clear,
-            })?;
+            }
+            .run(tpm)?;
             Ok(b)
         }
     }

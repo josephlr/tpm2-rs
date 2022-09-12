@@ -1,7 +1,8 @@
 use crate::{
     auth::{AuthHandle, AuthHandleSlice, HandleSlice},
+    run_impl,
     types::{tpm::CC, Buffer, Marshal, Unmarshal},
-    Handle, Result,
+    Auth, Handle, Result, Tpm,
 };
 use core::fmt::Debug;
 
@@ -16,6 +17,38 @@ pub trait Command: Marshal + Default + Debug {
     type Handles: HandleSlice;
     fn handles(&self) -> Self::Handles {
         Self::Handles::empty()
+    }
+
+    fn run<'a>(&self, tpm: &'a mut dyn Tpm) -> Result<Self::Response<&'a [u8]>>
+    where
+        Self::Response<&'a [u8]>: Unmarshal<'a>,
+    {
+        self.run_with_auths(tpm, &[])
+    }
+
+    #[inline]
+    fn run_with_auths<'a>(
+        &self,
+        tpm: &'a mut dyn Tpm,
+        auths: &[&dyn Auth],
+    ) -> Result<Self::Response<&'a [u8]>>
+    where
+        Self::Response<&'a [u8]>: Unmarshal<'a>,
+    {
+        let mut rsp: Self::Response<&'a [u8]> = Default::default();
+        let mut rsp_handles = <Self::Response<&'a [u8]> as Response>::Handles::empty();
+        run_impl(
+            tpm,
+            Self::CODE,
+            self.auth_handles().as_slice(),
+            self.handles().as_slice(),
+            auths,
+            self,
+            rsp_handles.as_mut_slice(),
+            &mut rsp,
+        )?;
+        rsp.set_handles(rsp_handles);
+        Ok(rsp)
     }
 }
 
