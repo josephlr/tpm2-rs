@@ -9,7 +9,10 @@
 //! TODO:
 //!   - Add additional notes about TPM2_HMAC and TPM2_StartHMAC
 use super::*;
-use crate::{types::tpm, Auth, Command, CommandData, Marshal, Unmarshal};
+use crate::{
+    types::{tpm, tpml},
+    Auth, Command, CommandData, Marshal, Unmarshal,
+};
 
 /// TPM2_Startup Command
 ///
@@ -832,21 +835,41 @@ impl<'a> ResponseData<'a> for GetRandomResponse<'a> {
 //     pub todo: (),
 // }
 
-// /// TPM2_PCR_Read Command
-// ///
-// /// This command (and its response) are defined in the
-// /// TPM2 Library Specification - v1.59 - Part 3 - Section 22.4
-// #[derive(CommandData, Command, Default, Debug)]
-// pub struct PcrRead {
-//     pub todo: (),
-// }
-// /// TPM2_PCR_Read Response
-// ///
-// /// See [PcrRead] for more information.
-// #[derive(ResponseData, Default, Debug)]
-// pub struct PcrReadResponse {
-//     pub todo: (),
-// }
+/// TPM2_PCR_Read Command
+///
+/// This command (and its response) are defined in the
+/// TPM2 Library Specification - v1.59 - Part 3 - Section 22.4
+#[derive(Default, Debug)]
+pub struct PcrRead<'a> {
+    pub pcr_selection: tpml::PcrSelection<'a>,
+}
+impl CommandData for PcrRead<'_> {
+    fn marshal_params(&self, buf: &mut &mut [u8]) -> Result<()> {
+        self.pcr_selection.marshal(buf)
+    }
+}
+impl Command for PcrRead<'_> {
+    const CODE: tpm::CC = tpm::CC::PcrRead;
+    type Response<'a> = PcrReadResponse<'a>;
+    type Auths = [&'static dyn Auth; 0];
+}
+
+/// TPM2_PCR_Read Response
+///
+/// See [PcrRead] for more information.
+#[derive(Default, Debug)]
+pub struct PcrReadResponse<'a> {
+    pub pcr_update_counter: u32,
+    pub pcr_selection: tpml::PcrSelection<'a>,
+    pub pcr_values: tpml::Digest<'a>,
+}
+impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
+    fn unmarshal_params(&mut self, buf: &mut &'a [u8]) -> Result<()> {
+        self.pcr_update_counter.unmarshal(buf)?;
+        self.pcr_selection.unmarshal(buf)?;
+        self.pcr_values.unmarshal(buf)
+    }
+}
 
 // /// TPM2_PCR_Allocate Command
 // ///
