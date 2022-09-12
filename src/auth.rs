@@ -2,7 +2,7 @@ use crate::{tpms, Handle, Result};
 
 pub trait Auth: core::fmt::Debug {
     fn get_auth(&self) -> tpms::AuthCommand;
-    fn set_auth(&self, auth: tpms::AuthResponse) -> Result<()>;
+    fn set_auth(&self, auth: &tpms::AuthResponse) -> Result<()>;
 }
 
 #[derive(Debug, Clone, Copy)]
