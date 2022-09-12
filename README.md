@@ -1,9 +1,8 @@
 # Safe Rust TSS for TPM2
 
-The main `tpm` crate is the TSS (and OS-specific bindings to the TPM).
-
-The `simulator` crate contains an abstraction around Microsoft's
-[TPM2 simulator](https://sourceforge.net/projects/ibmswtpm2/).
+This `tpm2` contains:
+  - A TPM2 TSS (similar to the `tss-esapi`)
+  - OS-specific bindings to TPM2s.
 
 ## Legal
 
