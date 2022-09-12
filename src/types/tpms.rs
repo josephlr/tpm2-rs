@@ -1,5 +1,5 @@
-use super::{tpma, FixedSize, Marshal, Unmarshal};
-use crate::{Handle, Result};
+use super::{marshal_array, unmarshal_slice, FixedSize, Marshal, Unmarshal};
+use crate::{tpm, tpma, Error, Handle, Result};
 
 // TPMS_TIME_INFO
 #[derive(Clone, Copy, Debug, Default)]
@@ -91,5 +91,72 @@ impl<'a> Unmarshal<'a> for AuthResponse<'a> {
         self.session_attributes.unmarshal(buf)?;
         self.hmac.unmarshal(buf)?;
         Ok(())
+    }
+}
+
+const SIZE_OF_SELECT: usize = 3;
+pub const NUM_PCRS: usize = 8 * SIZE_OF_SELECT;
+
+// TODO: Do we want to support anything other than 24 PCRs?
+pub type PcrSelect = [bool; NUM_PCRS];
+
+impl Marshal for PcrSelect {
+    fn marshal(&self, buf: &mut &mut [u8]) -> Result<()> {
+        (SIZE_OF_SELECT as u8).marshal(buf)?;
+        let sel = marshal_array::<SIZE_OF_SELECT>(buf)?;
+
+        *sel = [0; SIZE_OF_SELECT];
+        for (i, &bit) in self.iter().enumerate() {
+            if !bit {
+                continue;
+            }
+            let byte_idx = i / 8;
+            let bit_idx = i % 8;
+            sel[byte_idx] |= 1 << bit_idx;
+        }
+        Ok(())
+    }
+}
+
+impl Unmarshal<'_> for PcrSelect {
+    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<()> {
+        let size: usize = u8::unmarshal_val(buf)?.into();
+        let sel = unmarshal_slice(size, buf)?;
+
+        *self = [false; NUM_PCRS];
+        for (byte_idx, &byte) in sel.iter().enumerate() {
+            for bit_idx in 0..8 {
+                let pcr_num = 8 * byte_idx + bit_idx;
+                if byte & (1 << bit_idx) == 0 {
+                    continue;
+                }
+                if pcr_num > NUM_PCRS {
+                    return Err(Error::PcrTooLarge(pcr_num));
+                }
+                self[pcr_num] = true;
+            }
+        }
+
+        Ok(())
+    }
+}
+
+#[derive(Clone, Copy, Default, Debug)]
+pub struct PcrSelection {
+    pub hash: tpm::Alg,
+    pub select: PcrSelect,
+}
+
+impl Marshal for PcrSelection {
+    fn marshal(&self, buf: &mut &mut [u8]) -> Result<()> {
+        self.hash.marshal(buf)?;
+        self.select.marshal(buf)
+    }
+}
+
+impl Unmarshal<'_> for PcrSelection {
+    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<()> {
+        self.hash.unmarshal(buf)?;
+        self.select.unmarshal(buf)
     }
 }

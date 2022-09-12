@@ -13,6 +13,7 @@ pub enum Error {
     IntegerOverflow,
     IndexOutOfBounds,
     PoisonError,
+    PcrTooLarge(usize),
     #[cfg(feature = "std")]
     #[doc(cfg(feature = "std"))]
     Io(std::io::Error),
