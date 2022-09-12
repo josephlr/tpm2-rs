@@ -3,31 +3,24 @@
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
-
-#[cfg(feature = "alloc")]
-use alloc::boxed::Box;
-
-#[cfg(feature = "alloc")]
-use alloc::vec::Vec;
-
 #[cfg(feature = "std")]
 extern crate std;
 
+use core::num::NonZeroU32;
+
 mod auth;
-use auth::*;
-pub use auth::{Auth, AuthHandle};
-
 mod error;
+mod polyfill;
+
+pub use auth::*;
 pub use error::*;
-
-pub mod types;
-use types::{tpm, tpms, Marshal, Unmarshal};
-
 pub mod commands;
-use commands::{Command, Response};
+pub mod os;
+pub mod types;
 
-pub mod driver;
-use driver::Driver;
+use commands::{Command, Response};
+use polyfill::*;
+use types::*;
 
 pub type Handle = u32;
 
@@ -92,6 +85,7 @@ fn exec_impl(
 mod test {
     use super::*;
     use crate::commands::*;
+    use std::vec::Vec;
 
     #[test]
     fn can_exec() {
