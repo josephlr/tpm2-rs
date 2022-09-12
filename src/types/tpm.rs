@@ -4,6 +4,12 @@
 use super::{FixedSize, Marshal, Unmarshal};
 use crate::{Error, Result};
 
+/// TPM_RH constants
+pub mod rh {
+    use crate::Handle;
+    pub const PASSWORD: Handle = 0x40000009;
+}
+
 /// TPM_CC values
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 #[repr(u32)]
