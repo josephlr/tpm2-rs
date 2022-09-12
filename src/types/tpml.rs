@@ -1,63 +1,113 @@
-use super::{marshal_slice, unmarshal_slice, FixedSize, Marshal, Unmarshal};
-use crate::{Error, Result};
+use super::{marshal_slice, Marshal, Unmarshal};
+use crate::{tpms, Result, ToUsize};
+use core::{convert::TryInto, slice};
+
+pub type Digest<'a> = TpmL<'a, &'a [u8]>;
+pub type PcrSelection<'a> = TpmL<'a, tpms::PcrSelection>;
 
 #[derive(Clone, Copy, Debug)]
 pub enum TpmL<'a, T> {
-    Unparsed(&'a [u8]), // len is always a multiple of T::SIZE
+    Raw(u32, &'a [u8]), // This data has been validated, just not stored
     Parsed(&'a [T]),
 }
 
-impl<'a, T: Clone + Default + FixedSize + Unmarshal<'a>> TpmL<'a, T> {
-    pub fn get(&self, n: usize) -> Result<T> {
-        match *self {
-            TpmL::Unparsed(data) => {
-                let (start, overflow) = n.overflowing_mul(T::SIZE);
-                if overflow || start >= data.len() {
-                    Err(Error::IndexOutOfBounds)
-                } else {
-                    T::unmarshal_val(&mut &data[start..])
-                }
+impl<'a, T> TpmL<'a, T> {
+    #[inline]
+    pub fn len(self) -> usize {
+        match self {
+            TpmL::Raw(len, _) => len.to_usize(),
+            TpmL::Parsed(s) => s.len(),
+        }
+    }
+    #[inline]
+    pub fn is_empty(self) -> bool {
+        self.len() == 0
+    }
+    #[inline]
+    pub fn iter(self) -> Iter<'a, T> {
+        Iter(self)
+    }
+}
+
+impl<'a, T: Unmarshal<'a> + Default + Copy> IntoIterator for TpmL<'a, T> {
+    type Item = T;
+    type IntoIter = Iter<'a, T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        Iter(self)
+    }
+}
+
+impl<T> Default for TpmL<'_, T> {
+    fn default() -> Self {
+        Self::Parsed(&[])
+    }
+}
+
+pub struct Iter<'a, T>(TpmL<'a, T>);
+
+// TODO: Some of these can be more efficient
+impl<'a, T: Unmarshal<'a> + Default + Copy> Iterator for Iter<'a, T> {
+    type Item = T;
+    fn next(&mut self) -> Option<T> {
+        match &mut self.0 {
+            TpmL::Raw(count, data) => {
+                *count = count.checked_sub(1)?;
+                Some(T::unmarshal_val(data).unwrap())
             }
-            TpmL::Parsed(elms) => match elms.get(n) {
-                Some(elm) => Ok(elm.clone()),
-                None => Err(Error::IndexOutOfBounds),
-            },
+            TpmL::Parsed(s) => {
+                let v: &T;
+                (v, *s) = s.split_first()?;
+                Some(v.clone())
+            }
         }
+    }
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let len = self.0.len();
+        (len, Some(len))
+    }
+    fn count(self) -> usize
+    where
+        Self: Sized,
+    {
+        self.len()
     }
 }
 
-impl<'a, T: FixedSize> TpmL<'a, T> {
-    pub fn len(&self) -> usize {
-        match self {
-            TpmL::Unparsed(buf) => buf.len() / T::SIZE,
-            TpmL::Parsed(elms) => elms.len(),
-        }
-    }
-    pub fn is_empty(&self) -> bool {
-        match self {
-            TpmL::Unparsed(buf) => buf.is_empty(),
-            TpmL::Parsed(elms) => elms.is_empty(),
-        }
+impl<'a, T: Unmarshal<'a> + Default + Copy> ExactSizeIterator for Iter<'a, T> {
+    fn len(&self) -> usize {
+        self.0.len()
     }
 }
 
+impl<'a, T> From<&'a T> for TpmL<'a, T> {
+    fn from(v: &'a T) -> Self {
+        Self::Parsed(slice::from_ref(v))
+    }
+}
 impl<'a, T> From<&'a [T]> for TpmL<'a, T> {
     fn from(s: &'a [T]) -> Self {
         Self::Parsed(s)
     }
 }
+impl<'a, T, const N: usize> From<&'a [T; N]> for TpmL<'a, T> {
+    fn from(s: &'a [T; N]) -> Self {
+        Self::Parsed(s)
+    }
+}
 
-impl<T: FixedSize + Marshal> Marshal for TpmL<'_, T> {
+impl<T: Marshal> Marshal for TpmL<'_, T> {
     fn marshal(&self, buf: &mut &mut [u8]) -> Result<()> {
-        let len: u32 = self.len().try_into()?;
-        len.marshal(buf)?;
         match *self {
-            TpmL::Unparsed(data) => {
+            TpmL::Raw(count, data) => {
+                count.marshal(buf)?;
                 marshal_slice(data.len(), buf)?.copy_from_slice(data);
             }
-            TpmL::Parsed(elms) => {
-                for elm in elms {
-                    elm.marshal(buf)?;
+            TpmL::Parsed(s) => {
+                let count: u32 = s.len().try_into()?;
+                count.marshal(buf)?;
+                for v in s {
+                    v.marshal(buf)?;
                 }
             }
         }
@@ -65,11 +115,18 @@ impl<T: FixedSize + Marshal> Marshal for TpmL<'_, T> {
     }
 }
 
-impl<'a, T: FixedSize> Unmarshal<'a> for TpmL<'a, T> {
+impl<'a, T: Unmarshal<'a> + Default> Unmarshal<'a> for TpmL<'a, T> {
     fn unmarshal(&mut self, buf: &mut &'a [u8]) -> Result<()> {
-        let len: usize = u32::unmarshal_val(buf)?.try_into()?;
-        let byte_len = len.checked_mul(T::SIZE).ok_or(Error::IntegerOverflow)?;
-        *self = Self::Unparsed(unmarshal_slice(byte_len, buf)?);
+        let count = u32::unmarshal_val(buf)?;
+
+        let orig: &[u8] = *buf;
+        let mut tmp = T::default();
+        for _ in 0..count {
+            tmp.unmarshal(buf)?
+        }
+        let data_len = orig.len() - buf.len();
+
+        *self = Self::Raw(count, &orig[..data_len]);
         Ok(())
     }
 }
