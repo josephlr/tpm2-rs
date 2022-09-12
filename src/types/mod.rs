@@ -34,14 +34,6 @@ pub trait Unmarshal<'a> {
         val.unmarshal(buf)?;
         Ok(val)
     }
-    // Unmarshal a structure from a byte slice exactly
-    fn unmarshal_exact(&mut self, mut buf: &'a [u8]) -> Result<()> {
-        self.unmarshal(&mut buf)?;
-        if !buf.is_empty() {
-            return Err(Error::UnmarshalBufferRemaining);
-        }
-        Ok(())
-    }
 }
 
 pub trait FixedSize {

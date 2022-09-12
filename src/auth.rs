@@ -48,35 +48,16 @@ impl From<Handle> for AuthHandle<'_> {
     }
 }
 
-pub trait AuthHandleSlice {
+pub trait AuthSlice {
     fn empty() -> Self;
-    fn as_slice(&self) -> &[AuthHandle];
+    fn as_slice(&self) -> &[&dyn Auth];
 }
 
-impl<const N: usize> AuthHandleSlice for [AuthHandle<'_>; N] {
+impl<const N: usize> AuthSlice for [&dyn Auth; N] {
     fn empty() -> Self {
-        let ah: AuthHandle = (0 as Handle).into();
-        [ah; N]
+        [&PasswordAuth(&[]); N]
     }
-    fn as_slice(&self) -> &[AuthHandle] {
-        self
-    }
-}
-
-pub trait HandleSlice {
-    fn empty() -> Self;
-    fn as_slice(&self) -> &[Handle];
-    fn as_mut_slice(&mut self) -> &mut [Handle];
-}
-
-impl<const N: usize> HandleSlice for [Handle; N] {
-    fn empty() -> Self {
-        [0; N]
-    }
-    fn as_slice(&self) -> &[Handle] {
-        self
-    }
-    fn as_mut_slice(&mut self) -> &mut [Handle] {
+    fn as_slice(&self) -> &[&dyn Auth] {
         self
     }
 }

@@ -19,16 +19,15 @@ use crate::types::tpm;
 pub struct Startup {
     pub startup_type: tpm::SU,
 }
-impl Marshal for Startup {
-    fn marshal(&self, buf: &mut &mut [u8]) -> Result<()> {
+impl CommandData for Startup {
+    fn marshal_params(&self, buf: &mut &mut [u8]) -> Result<()> {
         self.startup_type.marshal(buf)
     }
 }
 impl Command for Startup {
     const CODE: CC = CC::Startup;
-    type Response<B: Buffer> = ();
-    type AuthHandles = [AuthHandle<'static>; 0];
-    type Handles = [Handle; 0];
+    type Response<'a> = ();
+    type Auths = [&'static dyn Auth; 0];
 }
 
 /// TPM2_Shutdown Command
@@ -39,16 +38,15 @@ impl Command for Startup {
 pub struct Shutdown {
     pub shutdown_type: tpm::SU,
 }
-impl Marshal for Shutdown {
-    fn marshal(&self, buf: &mut &mut [u8]) -> Result<()> {
+impl CommandData for Shutdown {
+    fn marshal_params(&self, buf: &mut &mut [u8]) -> Result<()> {
         self.shutdown_type.marshal(buf)
     }
 }
 impl Command for Shutdown {
     const CODE: CC = CC::Shutdown;
-    type Response<B: Buffer> = ();
-    type AuthHandles = [AuthHandle<'static>; 0];
-    type Handles = [Handle; 0];
+    type Response<'a> = ();
+    type Auths = [&'static dyn Auth; 0];
 }
 
 // /// TPM2_SelfTest Command
@@ -495,27 +493,23 @@ pub struct GetRandom {
 ///
 /// See [GetRandom] for more information.
 #[derive(Default, Debug)]
-pub struct GetRandomResponse<B: Buffer> {
-    pub random_bytes: B,
+pub struct GetRandomResponse<'a> {
+    pub random_bytes: &'a [u8],
 }
-impl Marshal for GetRandom {
-    fn marshal(&self, buf: &mut &mut [u8]) -> Result<()> {
+impl CommandData for GetRandom {
+    fn marshal_params(&self, buf: &mut &mut [u8]) -> Result<()> {
         self.bytes_requested.marshal(buf)
     }
 }
 impl Command for GetRandom {
     const CODE: CC = CC::GetRandom;
-    type Response<B: Buffer> = GetRandomResponse<B>;
-    type AuthHandles = [AuthHandle<'static>; 0];
-    type Handles = [Handle; 0];
+    type Response<'a> = GetRandomResponse<'a>;
+    type Auths = [&'static dyn Auth; 0];
 }
-impl<'a, B: Buffer + Unmarshal<'a>> Unmarshal<'a> for GetRandomResponse<B> {
-    fn unmarshal(&mut self, buf: &mut &'a [u8]) -> Result<()> {
+impl<'a> ResponseData<'a> for GetRandomResponse<'a> {
+    fn unmarshal_params(&mut self, buf: &mut &'a [u8]) -> Result<()> {
         self.random_bytes.unmarshal(buf)
     }
-}
-impl<B: Buffer> Response for GetRandomResponse<B> {
-    type Handles = [Handle; 0];
 }
 
 // /// TPM2_StirRandom Command

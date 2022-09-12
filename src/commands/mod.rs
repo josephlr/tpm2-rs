@@ -1,28 +1,41 @@
 use crate::{
-    auth::{AuthHandle, AuthHandleSlice, HandleSlice},
+    auth::AuthSlice,
     run_impl,
-    types::{tpm::CC, Buffer, Marshal, Unmarshal},
-    Auth, Handle, Result, Tpm,
+    types::{tpm::CC, Marshal, Unmarshal},
+    Auth, Result, Tpm,
 };
 use core::fmt::Debug;
 
-pub trait Command: Marshal + Default + Debug {
+pub trait CommandData {
+    fn marshal_handles(&self, _: &mut &mut [u8]) -> Result<()> {
+        Ok(())
+    }
+    fn marshal_params(&self, _: &mut &mut [u8]) -> Result<()>;
+}
+
+pub trait ResponseData<'a> {
+    fn unmarshal_handles(&mut self, _: &mut &[u8]) -> Result<()> {
+        Ok(())
+    }
+    fn unmarshal_params(&mut self, _: &mut &'a [u8]) -> Result<()>;
+}
+
+impl ResponseData<'_> for () {
+    fn unmarshal_params(&mut self, _: &mut &[u8]) -> Result<()> {
+        Ok(())
+    }
+}
+
+pub trait Command: CommandData + Default + Debug {
     const CODE: CC;
-    type Response<B: Buffer>: Response;
+    type Response<'a>: ResponseData<'a> + Default + Debug;
 
-    type AuthHandles: AuthHandleSlice;
-    fn auth_handles(&self) -> Self::AuthHandles {
-        Self::AuthHandles::empty()
-    }
-    type Handles: HandleSlice;
-    fn handles(&self) -> Self::Handles {
-        Self::Handles::empty()
+    type Auths: AuthSlice;
+    fn auths(&self) -> Self::Auths {
+        Self::Auths::empty()
     }
 
-    fn run<'a>(&self, tpm: &'a mut dyn Tpm) -> Result<Self::Response<&'a [u8]>>
-    where
-        Self::Response<&'a [u8]>: Unmarshal<'a>,
-    {
+    fn run<'a>(&self, tpm: &'a mut dyn Tpm) -> Result<Self::Response<'a>> {
         self.run_with_auths(tpm, &[])
     }
 
@@ -31,34 +44,18 @@ pub trait Command: Marshal + Default + Debug {
         &self,
         tpm: &'a mut dyn Tpm,
         auths: &[&dyn Auth],
-    ) -> Result<Self::Response<&'a [u8]>>
-    where
-        Self::Response<&'a [u8]>: Unmarshal<'a>,
-    {
-        let mut rsp: Self::Response<&'a [u8]> = Default::default();
-        let mut rsp_handles = <Self::Response<&'a [u8]> as Response>::Handles::empty();
+    ) -> Result<Self::Response<'a>> {
+        let mut rsp: Self::Response<'a> = Default::default();
         run_impl(
             tpm,
             Self::CODE,
-            self.auth_handles().as_slice(),
-            self.handles().as_slice(),
+            self.auths().as_slice(),
             auths,
             self,
-            rsp_handles.as_mut_slice(),
             &mut rsp,
         )?;
-        rsp.set_handles(rsp_handles);
         Ok(rsp)
     }
-}
-
-pub trait Response: Default + Debug {
-    type Handles: HandleSlice;
-    fn set_handles(&mut self, _: Self::Handles) {}
-}
-
-impl Response for () {
-    type Handles = [Handle; 0];
 }
 
 mod structs;

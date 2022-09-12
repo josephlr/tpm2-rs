@@ -18,6 +18,7 @@ pub mod commands;
 pub mod os;
 pub mod types;
 
+use commands::{CommandData, ResponseData};
 use polyfill::*;
 use types::*;
 
@@ -33,14 +34,12 @@ pub trait Tpm {
 fn run_impl<'a>(
     tpm: &'a mut dyn Tpm,
     code: tpm::CC,
-    auth_handles: &[AuthHandle],
-    cmd_handles: &[Handle],
+    cmd_auths: &[&dyn Auth],
     extra_auths: &[&dyn Auth],
-    cmd_params: &dyn Marshal,
-    rsp_handles: &mut [Handle],
-    rsp_params: &mut dyn Unmarshal<'a>,
+    cmd: &dyn CommandData,
+    rsp: &mut dyn ResponseData<'a>,
 ) -> Result<()> {
-    let has_auths = !auth_handles.is_empty() || !extra_auths.is_empty();
+    let has_auths = !cmd_auths.is_empty() || !extra_auths.is_empty();
 
     //// Marshal Command
     let mut cmd_buf = tpm.command_buf();
@@ -50,23 +49,18 @@ fn run_impl<'a>(
     (header_buf, cmd_buf) = cmd_buf.split_at_mut(CommandHeader::SIZE);
 
     // Marshal Handles
-    for auth_handle in auth_handles {
-        auth_handle.handle.marshal(&mut cmd_buf)?;
-    }
-    for handle in cmd_handles {
-        handle.marshal(&mut cmd_buf)?;
-    }
+    cmd.marshal_handles(&mut cmd_buf)?;
 
     // Marshal Authorization Area
     if has_auths {
-        assert!(auth_handles.len() + extra_auths.len() <= 3);
+        assert!(cmd_auths.len() + extra_auths.len() <= 3);
         // Marshal auth size at the end
         let auth_size_buf: &mut [u8];
         (auth_size_buf, cmd_buf) = cmd_buf.split_at_mut(u32::SIZE);
         let cmd_buf_len = cmd_buf.len();
 
-        for auth_handle in auth_handles {
-            auth_handle.auth.get_auth().marshal(&mut cmd_buf)?;
+        for auth in cmd_auths {
+            auth.get_auth().marshal(&mut cmd_buf)?;
         }
         for auth in extra_auths {
             auth.get_auth().marshal(&mut cmd_buf)?;
@@ -77,7 +71,7 @@ fn run_impl<'a>(
     }
 
     // Marshal Parameters
-    cmd_params.marshal(&mut cmd_buf)?;
+    cmd.marshal_params(&mut cmd_buf)?;
 
     // Marshal Header
     let cmd_header = CommandHeader {
@@ -106,9 +100,7 @@ fn run_impl<'a>(
     assert!(rsp_header.tag == cmd_header.tag);
 
     // Unmarshal Handles
-    for handle in rsp_handles {
-        handle.unmarshal(&mut rsp_buf)?;
-    }
+    rsp.unmarshal_handles(&mut rsp_buf)?;
 
     // Unmarshal Authorization Area
     if has_auths {
@@ -117,9 +109,9 @@ fn run_impl<'a>(
         (rsp_buf, auth_buf) = rsp_buf.split_at(param_size.try_into().unwrap());
 
         let mut auth_rsp = tpms::AuthResponse::default();
-        for auth_handle in auth_handles {
+        for auth in cmd_auths {
             auth_rsp.unmarshal(&mut auth_buf)?;
-            auth_handle.auth.set_auth(&auth_rsp)?;
+            auth.set_auth(&auth_rsp)?;
         }
         for auth in extra_auths {
             auth_rsp.unmarshal(&mut auth_buf)?;
@@ -129,7 +121,11 @@ fn run_impl<'a>(
     }
 
     // Unmarshal Parameters
-    rsp_params.unmarshal_exact(rsp_buf)
+    rsp.unmarshal_params(&mut rsp_buf)?;
+    if !rsp_buf.is_empty() {
+        return Err(Error::UnmarshalBufferRemaining);
+    }
+    Ok(())
 }
 
 #[cfg(test)]
