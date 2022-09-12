@@ -26,7 +26,7 @@ impl<A: Attribute> FixedSize for A {
     const SIZE: usize = A::Raw::SIZE;
 }
 
-#[derive(Clone, Copy, Default)]
+#[derive(PartialEq, Eq, Clone, Copy, Default, Debug)]
 pub struct Session {
     reserved: u8,
     pub continue_session: bool,
@@ -35,6 +35,20 @@ pub struct Session {
     pub decrypt: bool,
     pub encrypt: bool,
     pub audit: bool,
+}
+
+impl Session {
+    pub const fn empty() -> Self {
+        Self {
+            reserved: 0,
+            continue_session: false,
+            audit_exclusive: false,
+            audit_reset: false,
+            decrypt: false,
+            encrypt: false,
+            audit: false,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Default)]
