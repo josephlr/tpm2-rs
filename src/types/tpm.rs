@@ -1,8 +1,8 @@
 //! Constants (TPM_* types)
 //!
 //! This module ... TODO
-
-use super::Marshal;
+use super::{FixedSize, Marshal, Unmarshal};
+use crate::{Error, Result};
 
 /// TPM_CC values
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -127,6 +127,15 @@ pub enum CC {
     ActSetTimeout = 0x00000198,
 }
 
+impl Marshal for CC {
+    fn marshal(&self, buf: &mut &mut [u8]) -> Result<()> {
+        (*self as u32).marshal(buf)
+    }
+}
+impl FixedSize for CC {
+    const SIZE: usize = <u32 as FixedSize>::SIZE;
+}
+
 // TPM_SU values
 #[derive(Clone, Copy, PartialEq, Eq, Default, Debug)]
 #[repr(u16)]
@@ -136,7 +145,7 @@ pub enum SU {
     State = 0x0001,
 }
 impl Marshal for SU {
-    fn marshal(&self, buf: &mut &mut [u8]) -> crate::Result<()> {
+    fn marshal(&self, buf: &mut &mut [u8]) -> Result<()> {
         (*self as u16).marshal(buf)
     }
 }
