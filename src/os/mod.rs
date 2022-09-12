@@ -4,7 +4,8 @@
 
 use crate::{Error, Result, ToUsize, Tpm};
 use alloc::{boxed::Box, vec, vec::Vec};
-use std::io::{self, ErrorKind};
+use core::ops::DerefMut;
+use std::io::{self, ErrorKind, Read, Write};
 
 cfg_if::cfg_if! {
     if #[cfg(target_os = "linux")] {
@@ -26,7 +27,7 @@ struct RwTpm<RW: ?Sized> {
     rw: RW,
 }
 
-impl<RW: io::Read + io::Write + ?Sized> Tpm for RwTpm<RW> {
+impl<T: Read + Write + ?Sized, RW: DerefMut<Target = T> + ?Sized> Tpm for RwTpm<RW> {
     fn command_buf(&mut self) -> &mut [u8] {
         &mut self.cmd
     }
@@ -45,7 +46,7 @@ impl<RW: io::Read + io::Write + ?Sized> Tpm for RwTpm<RW> {
 }
 
 // TODO: explain why you would want this
-pub fn tpm_from_read_write(rw: impl io::Read + io::Write) -> impl Tpm {
+pub fn tpm_from_read_write(rw: impl DerefMut<Target = impl Read + Write>) -> impl Tpm {
     RwTpm {
         cmd: vec![0; 4096].into_boxed_slice(),
         rsp: vec![],
