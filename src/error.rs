@@ -6,7 +6,9 @@ use core::num::{NonZeroU32, TryFromIntError};
 pub enum Error {
     Tpm(NonZeroU32),
     MarshalBufferOverflow,
+    MarshalBufferRemaining,
     UnmarshalBufferOverflow,
+    UnmarshalBufferRemaining,
     UnmarshalInvalidValue,
     IntegerOverflow,
     IndexOutOfBounds,

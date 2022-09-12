@@ -14,6 +14,14 @@ pub mod tpmu;
 
 pub trait Marshal {
     fn marshal(&self, buf: &mut &mut [u8]) -> Result<()>;
+    // Marshal a structure into a byte slice exactly
+    fn marshal_exact(&self, mut buf: &mut [u8]) -> Result<()> {
+        self.marshal(&mut buf)?;
+        if !buf.is_empty() {
+            return Err(Error::MarshalBufferRemaining);
+        }
+        Ok(())
+    }
 }
 
 pub trait Unmarshal<'a> {
@@ -25,6 +33,14 @@ pub trait Unmarshal<'a> {
         let mut val = Self::default();
         val.unmarshal(buf)?;
         Ok(val)
+    }
+    // Unmarshal a structure from a byte slice exactly
+    fn unmarshal_exact(&mut self, mut buf: &'a [u8]) -> Result<()> {
+        self.unmarshal(&mut buf)?;
+        if !buf.is_empty() {
+            return Err(Error::UnmarshalBufferRemaining);
+        }
+        Ok(())
     }
 }
 
