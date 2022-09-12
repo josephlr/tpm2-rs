@@ -7,7 +7,7 @@ pub enum TpmL<'a, T> {
     Parsed(&'a [T]),
 }
 
-impl<'a, T: Copy + FixedSize> TpmL<'a, T> {
+impl<'a, T: Clone + Default + FixedSize + Unmarshal<'a>> TpmL<'a, T> {
     pub fn get(&self, n: usize) -> Result<T> {
         match *self {
             TpmL::Unparsed(data) => {
@@ -19,7 +19,7 @@ impl<'a, T: Copy + FixedSize> TpmL<'a, T> {
                 }
             }
             TpmL::Parsed(elms) => match elms.get(n) {
-                Some(elm) => Ok(*elm),
+                Some(elm) => Ok(elm.clone()),
                 None => Err(Error::IndexOutOfBounds),
             },
         }
@@ -47,7 +47,7 @@ impl<'a, T> From<&'a [T]> for TpmL<'a, T> {
     }
 }
 
-impl<T: FixedSize> Marshal for TpmL<'_, T> {
+impl<T: FixedSize + Marshal> Marshal for TpmL<'_, T> {
     fn marshal(&self, buf: &mut &mut [u8]) -> Result<()> {
         let len: u32 = self.len().try_into()?;
         len.marshal(buf)?;

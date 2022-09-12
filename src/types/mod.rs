@@ -28,7 +28,7 @@ pub trait Unmarshal<'a> {
     }
 }
 
-pub trait FixedSize: Default + Marshal + for<'a> Unmarshal<'a> {
+pub trait FixedSize {
     const SIZE: usize;
 }
 

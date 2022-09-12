@@ -1,7 +1,7 @@
 use super::{FixedSize, Marshal, Result, Unmarshal};
 
 trait Attribute: Default + Copy {
-    type Raw: FixedSize;
+    type Raw: Default + FixedSize + Marshal + for<'a> Unmarshal<'a>;
 
     fn from_raw(raw: Self::Raw) -> Self;
     fn to_raw(self) -> Self::Raw;
