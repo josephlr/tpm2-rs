@@ -6,7 +6,7 @@ extern crate alloc;
 #[cfg(feature = "std")]
 extern crate std;
 
-use core::num::NonZeroU32;
+use core::{fmt::Debug, num::NonZeroU32};
 
 mod auth;
 mod error;
@@ -24,11 +24,44 @@ use types::*;
 
 pub type Handle = u32;
 
-/// The main interface to a TPM2 device.
+/// A TPM2 Device
 pub trait Tpm {
     fn command_buf(&mut self) -> &mut [u8];
     fn response_buf(&self) -> &[u8];
     fn execute_command(&mut self, cmd_size: u32) -> Result<u32>;
+}
+
+/// A TPM2 Command
+pub trait Command: CommandData + Default + Debug {
+    const CODE: tpm::CC;
+    type Response<'a>: ResponseData<'a> + Default + Debug;
+
+    type Auths: AuthSlice;
+    fn auths(&self) -> Self::Auths {
+        Self::Auths::empty()
+    }
+
+    fn run<'a>(&self, tpm: &'a mut dyn Tpm) -> Result<Self::Response<'a>> {
+        self.run_with_auths(tpm, &[])
+    }
+
+    #[inline]
+    fn run_with_auths<'a>(
+        &self,
+        tpm: &'a mut dyn Tpm,
+        auths: &[&dyn Auth],
+    ) -> Result<Self::Response<'a>> {
+        let mut rsp: Self::Response<'a> = Default::default();
+        run_impl(
+            tpm,
+            Self::CODE,
+            self.auths().as_slice(),
+            auths,
+            self,
+            &mut rsp,
+        )?;
+        Ok(rsp)
+    }
 }
 
 fn run_impl<'a>(

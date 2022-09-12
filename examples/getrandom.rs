@@ -1,7 +1,4 @@
-use tpm2::{
-    commands::{Command, GetRandom},
-    os::get_default_tpm,
-};
+use tpm2::{commands::GetRandom, os::get_default_tpm, Command};
 
 const NUM_BYTES: u16 = 100;
 

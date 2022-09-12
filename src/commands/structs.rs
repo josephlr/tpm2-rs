@@ -9,7 +9,7 @@
 //! TODO:
 //!   - Add additional notes about TPM2_HMAC and TPM2_StartHMAC
 use super::*;
-use crate::types::tpm;
+use crate::{types::tpm, Auth, Command, CommandData, Marshal, Unmarshal};
 
 /// TPM2_Startup Command
 ///
@@ -25,7 +25,7 @@ impl CommandData for Startup {
     }
 }
 impl Command for Startup {
-    const CODE: CC = CC::Startup;
+    const CODE: tpm::CC = tpm::CC::Startup;
     type Response<'a> = ();
     type Auths = [&'static dyn Auth; 0];
 }
@@ -44,7 +44,7 @@ impl CommandData for Shutdown {
     }
 }
 impl Command for Shutdown {
-    const CODE: CC = CC::Shutdown;
+    const CODE: tpm::CC = tpm::CC::Shutdown;
     type Response<'a> = ();
     type Auths = [&'static dyn Auth; 0];
 }
@@ -502,7 +502,7 @@ impl CommandData for GetRandom {
     }
 }
 impl Command for GetRandom {
-    const CODE: CC = CC::GetRandom;
+    const CODE: tpm::CC = tpm::CC::GetRandom;
     type Response<'a> = GetRandomResponse<'a>;
     type Auths = [&'static dyn Auth; 0];
 }
