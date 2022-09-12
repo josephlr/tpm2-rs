@@ -203,3 +203,35 @@ impl Unmarshal<'_> for ST {
 impl FixedSize for ST {
     const SIZE: usize = <u16 as FixedSize>::SIZE;
 }
+
+/// TPM_ALG_ID
+///
+/// TODO: This isn't all the ALG_IDs
+#[derive(Clone, Copy, Default, Debug)]
+#[repr(u16)]
+pub enum Alg {
+    #[default]
+    Error = 0x0000,
+    SHA1 = 0x0004,
+    SHA256 = 0x000B,
+    SHA385 = 0x000C,
+    SHA512 = 0x000D,
+}
+impl Marshal for Alg {
+    fn marshal(&self, buf: &mut &mut [u8]) -> Result<()> {
+        (*self as u16).marshal(buf)
+    }
+}
+impl Unmarshal<'_> for Alg {
+    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<()> {
+        *self = match u16::unmarshal_val(buf)? {
+            0x0000 => Self::Error,
+            0x0004 => Self::SHA1,
+            0x000B => Self::SHA256,
+            0x000C => Self::SHA385,
+            0x000D => Self::SHA512,
+            _ => return Err(Error::UnmarshalInvalidValue),
+        };
+        Ok(())
+    }
+}
