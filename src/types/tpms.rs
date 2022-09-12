@@ -1,5 +1,5 @@
 use super::{tpma, FixedSize, Marshal, Unmarshal};
-use crate::Handle;
+use crate::{Handle, Result};
 
 // TPMS_TIME_INFO
 #[derive(Clone, Copy, Debug, Default)]
@@ -18,13 +18,13 @@ pub struct ClockInfo {
 }
 
 impl Marshal for TimeInfo {
-    fn marshal(&self, buf: &mut &mut [u8]) -> crate::Result<()> {
+    fn marshal(&self, buf: &mut &mut [u8]) -> Result<()> {
         self.time.marshal(buf)?;
         self.clock_info.marshal(buf)
     }
 }
 impl Unmarshal<'_> for TimeInfo {
-    fn unmarshal(&mut self, buf: &mut &[u8]) -> crate::Result<()> {
+    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<()> {
         self.time.unmarshal(buf)?;
         self.clock_info.unmarshal(buf)
     }
@@ -35,7 +35,7 @@ impl FixedSize for TimeInfo {
 }
 
 impl Marshal for ClockInfo {
-    fn marshal(&self, buf: &mut &mut [u8]) -> crate::Result<()> {
+    fn marshal(&self, buf: &mut &mut [u8]) -> Result<()> {
         self.clock.marshal(buf)?;
         self.reset_count.marshal(buf)?;
         self.restart_count.marshal(buf)?;
@@ -43,7 +43,7 @@ impl Marshal for ClockInfo {
     }
 }
 impl Unmarshal<'_> for ClockInfo {
-    fn unmarshal(&mut self, buf: &mut &[u8]) -> crate::Result<()> {
+    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<()> {
         self.clock.unmarshal(buf)?;
         self.reset_count.unmarshal(buf)?;
         self.restart_count.unmarshal(buf)?;
