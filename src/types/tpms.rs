@@ -67,10 +67,29 @@ pub struct AuthCommand<'a> {
     pub hmac: &'a [u8],
 }
 
+impl Marshal for AuthCommand<'_> {
+    fn marshal(&self, buf: &mut &mut [u8]) -> Result<()> {
+        self.session_handle.marshal(buf)?;
+        self.nonce.marshal(buf)?;
+        self.session_attributes.marshal(buf)?;
+        self.hmac.marshal(buf)?;
+        Ok(())
+    }
+}
+
 // TPMS_AUTH_RESPONSE
 #[derive(Clone, Copy, Default)]
 pub struct AuthResponse<'a> {
     pub nonce: &'a [u8],
     pub session_attributes: tpma::Session,
     pub hmac: &'a [u8],
+}
+
+impl<'a> Unmarshal<'a> for AuthResponse<'a> {
+    fn unmarshal(&mut self, buf: &mut &'a [u8]) -> Result<()> {
+        self.nonce.unmarshal(buf)?;
+        self.session_attributes.unmarshal(buf)?;
+        self.hmac.unmarshal(buf)?;
+        Ok(())
+    }
 }
