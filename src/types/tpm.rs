@@ -149,3 +149,51 @@ impl Marshal for SU {
         (*self as u16).marshal(buf)
     }
 }
+
+// TPM_RC values
+// TODO: Add a better Debug/Display impl
+#[derive(Clone, Copy, PartialEq, Eq, Default, Debug)]
+pub struct RC(pub u32);
+
+impl RC {
+    // TPM_RC_SUCCESS
+    pub const SUCCESS: RC = RC(0);
+}
+
+impl Unmarshal<'_> for RC {
+    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<()> {
+        self.0.unmarshal(buf)
+    }
+}
+impl FixedSize for RC {
+    const SIZE: usize = <u32 as FixedSize>::SIZE;
+}
+
+// TPM_ST values
+#[derive(Clone, Copy, PartialEq, Eq, Default, Debug)]
+#[repr(u16)]
+pub enum ST {
+    #[default]
+    Null = 0x8000,
+    NoSessions = 0x8001,
+    Sessions = 0x8002,
+}
+impl Marshal for ST {
+    fn marshal(&self, buf: &mut &mut [u8]) -> Result<()> {
+        (*self as u16).marshal(buf)
+    }
+}
+impl Unmarshal<'_> for ST {
+    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<()> {
+        *self = match u16::unmarshal_val(buf)? {
+            0x8000 => Self::Null,
+            0x8001 => Self::NoSessions,
+            0x8002 => Self::Sessions,
+            _ => return Err(Error::UnmarshalInvalidValue),
+        };
+        Ok(())
+    }
+}
+impl FixedSize for ST {
+    const SIZE: usize = <u16 as FixedSize>::SIZE;
+}
