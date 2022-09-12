@@ -146,6 +146,43 @@ impl FixedSize for bool {
     const SIZE: usize = 1;
 }
 
+#[derive(Debug)]
+pub(crate) struct CommandHeader {
+    pub tag: tpm::ST,
+    pub size: u32,
+    pub code: tpm::CC,
+}
+
+impl Marshal for CommandHeader {
+    fn marshal(&self, buf: &mut &mut [u8]) -> Result<()> {
+        self.tag.marshal(buf)?;
+        self.size.marshal(buf)?;
+        self.code.marshal(buf)?;
+        Ok(())
+    }
+}
+impl FixedSize for CommandHeader {
+    const SIZE: usize = tpm::ST::SIZE + u32::SIZE + tpm::CC::SIZE;
+}
+
+#[derive(Debug, Default)]
+pub(crate) struct ResponseHeader {
+    pub tag: tpm::ST,
+    pub size: u32,
+    pub code: tpm::RC,
+}
+impl Unmarshal<'_> for ResponseHeader {
+    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<()> {
+        self.tag.unmarshal(buf)?;
+        self.size.unmarshal(buf)?;
+        self.code.unmarshal(buf)?;
+        Ok(())
+    }
+}
+impl FixedSize for ResponseHeader {
+    const SIZE: usize = tpm::ST::SIZE + u32::SIZE + tpm::RC::SIZE;
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -159,5 +196,11 @@ mod test {
         let _: &dyn Foo;
 
         // let _: &dyn FixedSize;
+    }
+
+    #[test]
+    fn header_size() {
+        assert_eq!(CommandHeader::SIZE, 10);
+        assert_eq!(ResponseHeader::SIZE, 10);
     }
 }
