@@ -10,7 +10,7 @@
 //!   - Add additional notes about TPM2_HMAC and TPM2_StartHMAC
 use super::*;
 use crate::{
-    types::{tpm, tpml},
+    types::{tpm, tpml, tpms},
     Auth, Command, CommandData, Marshal, Unmarshal,
 };
 
@@ -1559,21 +1559,36 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 //     pub todo: (),
 // }
 
-// /// TPM2_ReadClock Command
-// ///
-// /// This command (and its response) are defined in the
-// /// TPM2 Library Specification - v1.59 - Part 3 - Section 29.1
-// #[derive(CommandData, Command, Default, Debug)]
-// pub struct ReadClock {
-//     pub todo: (),
-// }
-// /// TPM2_ReadClock Response
-// ///
-// /// See [ReadClock] for more information.
-// #[derive(ResponseData, Default, Debug)]
-// pub struct ReadClockResponse {
-//     pub todo: (),
-// }
+/// TPM2_ReadClock Command
+///
+/// This command (and its response) are defined in the
+/// TPM2 Library Specification - v1.59 - Part 3 - Section 29.1
+#[derive(Default, Debug)]
+pub struct ReadClock {}
+
+impl CommandData for ReadClock {
+    fn marshal_params(&self, _: &mut &mut [u8]) -> Result<(), MarshalError> {
+        Ok(())
+    }
+}
+impl Command for ReadClock {
+    const CODE: tpm::CC = tpm::CC::ReadClock;
+    type Response<'a> = ReadClockResponse;
+    type Auths = [&'static dyn Auth; 0];
+}
+
+/// TPM2_ReadClock Response
+///
+/// See [ReadClock] for more information.
+#[derive(Default, Debug)]
+pub struct ReadClockResponse {
+    pub current_time: tpms::TimeInfo,
+}
+impl ResponseData<'_> for ReadClockResponse {
+    fn unmarshal_params(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
+        self.current_time.unmarshal(buf)
+    }
+}
 
 // /// TPM2_ClockSet Command
 // ///
