@@ -2,7 +2,7 @@
 #![cfg(feature = "std")]
 #![doc(cfg(feature = "std"))]
 
-use crate::{Error, Result, ToUsize, Tpm};
+use crate::{error::DriverError, polyfill::ToUsize, Tpm};
 use alloc::{boxed::Box, vec, vec::Vec};
 use core::ops::DerefMut;
 use std::io::{self, ErrorKind, Read, Write};
@@ -36,12 +36,10 @@ impl<T: Read + Write + ?Sized, RW: DerefMut<Target = T> + ?Sized> Tpm for RwTpm<
         &self.rsp
     }
 
-    fn execute_command(&mut self, cmd_size: u32) -> Result<u32> {
+    fn execute_command(&mut self, cmd_size: u32) -> Result<u32, DriverError> {
         self.rw.write_all(&self.cmd[..cmd_size.to_usize()])?;
-        let rsp_len = self.rw.read_to_end(&mut self.rsp)?;
-        rsp_len
-            .try_into()
-            .map_err(|e| Error::Io(io::Error::new(ErrorKind::InvalidData, e)))
+        let rsp_len: u32 = self.rw.read_to_end(&mut self.rsp)?.try_into()?;
+        Ok(rsp_len)
     }
 }
 

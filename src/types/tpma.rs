@@ -1,7 +1,7 @@
-use super::{FixedSize, Marshal, Result, Unmarshal};
+use super::{Fixed, Infallible};
 
-trait Attribute: Default + Copy {
-    type Raw: Default + FixedSize + Marshal + for<'a> Unmarshal<'a>;
+pub trait Attribute: Default + Copy {
+    type Raw: Infallible;
 
     fn from_raw(raw: Self::Raw) -> Self;
     fn to_raw(self) -> Self::Raw;
@@ -9,21 +9,21 @@ trait Attribute: Default + Copy {
     fn set_bit(&mut self, n: usize, b: bool);
 }
 
-impl<A: Attribute> Marshal for A {
-    fn marshal(&self, buf: &mut &mut [u8]) -> Result<()> {
-        self.to_raw().marshal(buf)
+impl<A: Attribute> Fixed for A {
+    const SIZE: usize = <A::Raw as Fixed>::SIZE;
+    type ARRAY = <A::Raw as Fixed>::ARRAY;
+    fn marshal_fixed(&self, arr: &mut Self::ARRAY) {
+        self.to_raw().marshal_fixed(arr)
     }
 }
 
-impl<A: Attribute> Unmarshal<'_> for A {
-    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<()> {
-        *self = Self::from_raw(A::Raw::unmarshal_val(buf)?);
-        Ok(())
+impl<A: Attribute> Infallible for A {
+    fn unmarshal_fixed(&mut self, arr: &Self::ARRAY) {
+        *self = Self::unmarshal_fixed_val(arr);
     }
-}
-
-impl<A: Attribute> FixedSize for A {
-    const SIZE: usize = A::Raw::SIZE;
+    fn unmarshal_fixed_val(arr: &Self::ARRAY) -> Self {
+        Self::from_raw(<A::Raw as Infallible>::unmarshal_fixed_val(arr))
+    }
 }
 
 #[derive(PartialEq, Eq, Clone, Copy, Default, Debug)]

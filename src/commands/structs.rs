@@ -23,7 +23,7 @@ pub struct Startup {
     pub startup_type: tpm::SU,
 }
 impl CommandData for Startup {
-    fn marshal_params(&self, buf: &mut &mut [u8]) -> Result<()> {
+    fn marshal_params(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
         self.startup_type.marshal(buf)
     }
 }
@@ -42,7 +42,7 @@ pub struct Shutdown {
     pub shutdown_type: tpm::SU,
 }
 impl CommandData for Shutdown {
-    fn marshal_params(&self, buf: &mut &mut [u8]) -> Result<()> {
+    fn marshal_params(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
         self.shutdown_type.marshal(buf)
     }
 }
@@ -500,7 +500,7 @@ pub struct GetRandomResponse<'a> {
     pub random_bytes: &'a [u8],
 }
 impl CommandData for GetRandom {
-    fn marshal_params(&self, buf: &mut &mut [u8]) -> Result<()> {
+    fn marshal_params(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
         self.bytes_requested.marshal(buf)
     }
 }
@@ -510,7 +510,7 @@ impl Command for GetRandom {
     type Auths = [&'static dyn Auth; 0];
 }
 impl<'a> ResponseData<'a> for GetRandomResponse<'a> {
-    fn unmarshal_params(&mut self, buf: &mut &'a [u8]) -> Result<()> {
+    fn unmarshal_params(&mut self, buf: &mut &'a [u8]) -> Result<(), UnmarshalError> {
         self.random_bytes.unmarshal(buf)
     }
 }
@@ -844,7 +844,7 @@ pub struct PcrRead<'a> {
     pub pcr_selection: tpml::PcrSelection<'a>,
 }
 impl CommandData for PcrRead<'_> {
-    fn marshal_params(&self, buf: &mut &mut [u8]) -> Result<()> {
+    fn marshal_params(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
         self.pcr_selection.marshal(buf)
     }
 }
@@ -864,7 +864,7 @@ pub struct PcrReadResponse<'a> {
     pub pcr_values: tpml::Digest<'a>,
 }
 impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
-    fn unmarshal_params(&mut self, buf: &mut &'a [u8]) -> Result<()> {
+    fn unmarshal_params(&mut self, buf: &mut &'a [u8]) -> Result<(), UnmarshalError> {
         self.pcr_update_counter.unmarshal(buf)?;
         self.pcr_selection.unmarshal(buf)?;
         self.pcr_values.unmarshal(buf)

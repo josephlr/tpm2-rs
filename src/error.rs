@@ -1,56 +1,108 @@
-use core::fmt;
 use core::num::{NonZeroU32, TryFromIntError};
 
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum Error {
-    Tpm(NonZeroU32),
-    MarshalBufferOverflow,
-    MarshalBufferRemaining,
-    UnmarshalBufferOverflow,
-    UnmarshalBufferRemaining,
-    UnmarshalInvalidValue,
+    Tpm(TpmError),
+    Marshal(MarshalError),
+    Unmarshal(UnmarshalError),
+    Auth(AuthError),
+    Driver(DriverError),
+}
+
+#[derive(Debug)]
+#[repr(transparent)]
+pub struct TpmError(pub NonZeroU32);
+
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum MarshalError {
+    BufferOverflow,
+    BufferRemaining,
     IntegerOverflow,
-    IndexOutOfBounds,
-    PoisonError,
+}
+
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum UnmarshalError {
+    BufferOverflow,
+    BufferRemaining,
+    InvalidValue,
     PcrTooLarge(usize),
+}
+
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum AuthError {}
+
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum DriverError {
+    IntegerOverflow,
+    PoisonError,
     #[cfg(feature = "std")]
     #[doc(cfg(feature = "std"))]
     Io(std::io::Error),
 }
 
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Error::Tpm(code) => code.fmt(f),
-            #[cfg(feature = "std")]
-            Error::Io(err) => err.fmt(f),
-            _ => fmt::Debug::fmt(self, f),
+impl From<TpmError> for Error {
+    fn from(e: TpmError) -> Self {
+        Self::Tpm(e)
+    }
+}
+impl From<MarshalError> for Error {
+    fn from(e: MarshalError) -> Self {
+        Self::Marshal(e)
+    }
+}
+impl From<UnmarshalError> for Error {
+    fn from(e: UnmarshalError) -> Self {
+        Self::Unmarshal(e)
+    }
+}
+impl From<AuthError> for Error {
+    fn from(e: AuthError) -> Self {
+        Self::Auth(e)
+    }
+}
+impl From<DriverError> for Error {
+    fn from(e: DriverError) -> Self {
+        Self::Driver(e)
+    }
+}
+
+impl From<TryFromIntError> for MarshalError {
+    fn from(_: TryFromIntError) -> Self {
+        Self::IntegerOverflow
+    }
+}
+impl From<TryFromIntError> for DriverError {
+    fn from(_: TryFromIntError) -> Self {
+        Self::IntegerOverflow
+    }
+}
+
+#[cfg(feature = "std")]
+#[doc(cfg(feature = "std"))]
+mod std_impl {
+    use super::*;
+
+    // impl std::error::Error for Error {}
+    // impl std::error::Error for TpmError {}
+    // impl std::error::Error for MarshalError {}
+    // impl std::error::Error for UnmarshalError {}
+    // impl std::error::Error for AuthError {}
+    // impl std::error::Error for DriverError {}
+
+    impl From<std::io::Error> for DriverError {
+        fn from(err: std::io::Error) -> Self {
+            Self::Io(err)
+        }
+    }
+
+    impl<T> From<std::sync::PoisonError<T>> for DriverError {
+        fn from(_: std::sync::PoisonError<T>) -> Self {
+            Self::PoisonError
         }
     }
 }
-
-impl From<TryFromIntError> for Error {
-    fn from(_: TryFromIntError) -> Self {
-        Error::IntegerOverflow
-    }
-}
-
-#[cfg(feature = "std")]
-impl std::error::Error for Error {}
-
-#[cfg(feature = "std")]
-impl From<std::io::Error> for Error {
-    fn from(err: std::io::Error) -> Self {
-        Error::Io(err)
-    }
-}
-
-#[cfg(feature = "std")]
-impl<T> From<std::sync::PoisonError<T>> for Error {
-    fn from(_: std::sync::PoisonError<T>) -> Self {
-        Self::PoisonError
-    }
-}
-
-pub type Result<T> = core::result::Result<T, Error>;

@@ -11,3 +11,14 @@ impl ToUsize for u32 {
         self as usize
     }
 }
+
+pub(crate) trait ToArr<const N: usize> {
+    fn to_arr(&mut self) -> &mut [u8; N];
+}
+
+impl<const N: usize> ToArr<N> for [u8] {
+    #[inline(always)]
+    fn to_arr(&mut self) -> &mut [u8; N] {
+        self.try_into().unwrap()
+    }
+}

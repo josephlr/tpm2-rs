@@ -6,20 +6,20 @@ extern crate alloc;
 #[cfg(feature = "std")]
 extern crate std;
 
-use core::{fmt::Debug, num::NonZeroU32};
+use core::fmt::Debug;
 
 mod auth;
-mod error;
-mod polyfill;
-
 pub use auth::*;
-pub use error::*;
 pub mod commands;
+pub use error::Error;
+pub mod error;
 pub mod os;
+mod polyfill;
 pub mod types;
 
 use commands::{CommandData, ResponseData};
-use polyfill::*;
+use error::{DriverError, UnmarshalError};
+use polyfill::ToUsize;
 use types::*;
 
 pub type Handle = u32;
@@ -28,7 +28,7 @@ pub type Handle = u32;
 pub trait Tpm {
     fn command_buf(&mut self) -> &mut [u8];
     fn response_buf(&self) -> &[u8];
-    fn execute_command(&mut self, cmd_size: u32) -> Result<u32>;
+    fn execute_command(&mut self, cmd_size: u32) -> Result<u32, DriverError>;
 }
 
 /// A TPM2 Command
@@ -41,7 +41,7 @@ pub trait Command: CommandData + Default + Debug {
         Self::Auths::empty()
     }
 
-    fn run<'a>(&self, tpm: &'a mut dyn Tpm) -> Result<Self::Response<'a>> {
+    fn run<'a>(&self, tpm: &'a mut dyn Tpm) -> Result<Self::Response<'a>, Error> {
         self.run_with_auths(tpm, &[])
     }
 
@@ -50,7 +50,7 @@ pub trait Command: CommandData + Default + Debug {
         &self,
         tpm: &'a mut dyn Tpm,
         auths: &[&dyn Auth],
-    ) -> Result<Self::Response<'a>> {
+    ) -> Result<Self::Response<'a>, Error> {
         let mut rsp: Self::Response<'a> = Default::default();
         run_impl(
             tpm,
@@ -71,15 +71,14 @@ fn run_impl<'a>(
     extra_auths: &[&dyn Auth],
     cmd: &dyn CommandData,
     rsp: &mut dyn ResponseData<'a>,
-) -> Result<()> {
+) -> Result<(), Error> {
     let has_auths = !cmd_auths.is_empty() || !extra_auths.is_empty();
 
     //// Marshal Command
     let mut cmd_buf = tpm.command_buf();
     let buf_len = cmd_buf.len();
     // Marshal the header at the end
-    let header_buf: &mut [u8];
-    (header_buf, cmd_buf) = cmd_buf.split_at_mut(CommandHeader::SIZE);
+    let header_buf: &mut [u8; CommandHeader::SIZE] = pop_array_mut(&mut cmd_buf)?;
 
     // Marshal Handles
     cmd.marshal_handles(&mut cmd_buf)?;
@@ -88,8 +87,7 @@ fn run_impl<'a>(
     if has_auths {
         assert!(cmd_auths.len() + extra_auths.len() <= 3);
         // Marshal auth size at the end
-        let auth_size_buf: &mut [u8];
-        (auth_size_buf, cmd_buf) = cmd_buf.split_at_mut(u32::SIZE);
+        let auth_size_buf: &mut [u8; 4] = pop_array_mut(&mut cmd_buf)?;
         let cmd_buf_len = cmd_buf.len();
 
         for auth in cmd_auths {
@@ -100,7 +98,7 @@ fn run_impl<'a>(
         }
 
         let auth_size: u32 = (cmd_buf_len - cmd_buf.len()).try_into().unwrap();
-        auth_size.marshal_exact(auth_size_buf)?;
+        auth_size.marshal_fixed(auth_size_buf);
     }
 
     // Marshal Parameters
@@ -116,7 +114,7 @@ fn run_impl<'a>(
         size: (buf_len - cmd_buf.len()).try_into().unwrap(),
         code,
     };
-    cmd_header.marshal_exact(header_buf)?;
+    cmd_header.marshal_fixed(header_buf);
 
     //// Execute the command
     let rsp_len = tpm.execute_command(cmd_header.size)?;
@@ -127,8 +125,8 @@ fn run_impl<'a>(
 
     // Check for errors
     assert!(rsp_header.size == rsp_len);
-    if let Some(err_code) = NonZeroU32::new(rsp_header.code.0) {
-        return Err(Error::Tpm(err_code));
+    if let Some(tpm_err) = rsp_header.code {
+        return Err(Error::Tpm(tpm_err));
     }
     assert!(rsp_header.tag == cmd_header.tag);
 
@@ -156,7 +154,7 @@ fn run_impl<'a>(
     // Unmarshal Parameters
     rsp.unmarshal_params(&mut rsp_buf)?;
     if !rsp_buf.is_empty() {
-        return Err(Error::UnmarshalBufferRemaining);
+        return Err(Error::Unmarshal(UnmarshalError::BufferRemaining));
     }
     Ok(())
 }
@@ -170,7 +168,7 @@ mod test {
     #[test]
     fn can_exec() {
         #[allow(dead_code)]
-        fn take_tpm(tpm: &mut dyn Tpm) -> Result<Vec<u8>> {
+        fn take_tpm(tpm: &mut dyn Tpm) -> Result<Vec<u8>, Error> {
             Startup {
                 startup_type: tpm::SU::Clear,
             }

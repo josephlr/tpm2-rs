@@ -1,8 +1,8 @@
-use crate::{tpm, tpma, tpms, Handle, Result};
+use crate::{error::AuthError, tpm, tpma, tpms, Handle};
 
 pub trait Auth: core::fmt::Debug {
     fn get_auth(&self) -> tpms::AuthCommand;
-    fn set_auth(&self, auth: &tpms::AuthResponse) -> Result<()>;
+    fn set_auth(&self, auth: &tpms::AuthResponse) -> Result<(), AuthError>;
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -30,7 +30,7 @@ impl Auth for PasswordAuth<'_> {
         }
     }
 
-    fn set_auth(&self, auth: &tpms::AuthResponse) -> Result<()> {
+    fn set_auth(&self, auth: &tpms::AuthResponse) -> Result<(), AuthError> {
         assert!(auth.nonce.is_empty());
         assert_eq!(auth.session_attributes, CONTINUE_SESSION);
         assert!(auth.hmac.is_empty());

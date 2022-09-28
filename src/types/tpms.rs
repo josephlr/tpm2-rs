@@ -1,11 +1,29 @@
-use super::{marshal_array, unmarshal_slice, FixedSize, Marshal, Unmarshal};
-use crate::{tpm, tpma, Error, Handle, Result};
+use super::{pop_array_mut, pop_slice, tpm, tpma, Fixed, Marshal, Unmarshal};
+use crate::{
+    error::{MarshalError, UnmarshalError},
+    polyfill::ToArr,
+    Handle,
+};
 
 // TPMS_TIME_INFO
 #[derive(Clone, Copy, Debug, Default)]
 pub struct TimeInfo {
     time: u64,
     clock_info: ClockInfo,
+}
+impl Fixed for TimeInfo {
+    const SIZE: usize = <u64 as Fixed>::SIZE + <ClockInfo as Fixed>::SIZE;
+    type ARRAY = [u8; Self::SIZE];
+    fn marshal_fixed(&self, arr: &mut Self::ARRAY) {
+        self.time.marshal_fixed(arr[0..8].to_arr());
+        self.clock_info.marshal_fixed(arr[8..].to_arr());
+    }
+}
+impl Unmarshal<'_> for TimeInfo {
+    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
+        self.time.unmarshal(buf)?;
+        self.clock_info.unmarshal(buf)
+    }
 }
 
 // TPMS_CLOCK_INFO
@@ -17,45 +35,25 @@ pub struct ClockInfo {
     safe: bool,
 }
 
-impl Marshal for TimeInfo {
-    fn marshal(&self, buf: &mut &mut [u8]) -> Result<()> {
-        self.time.marshal(buf)?;
-        self.clock_info.marshal(buf)
-    }
-}
-impl Unmarshal<'_> for TimeInfo {
-    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<()> {
-        self.time.unmarshal(buf)?;
-        self.clock_info.unmarshal(buf)
-    }
-}
+impl Fixed for ClockInfo {
+    const SIZE: usize =
+        <u64 as Fixed>::SIZE + <u32 as Fixed>::SIZE + <u32 as Fixed>::SIZE + <bool as Fixed>::SIZE;
+    type ARRAY = [u8; Self::SIZE];
 
-impl FixedSize for TimeInfo {
-    const SIZE: usize = <u64 as FixedSize>::SIZE + <ClockInfo as FixedSize>::SIZE;
-}
-
-impl Marshal for ClockInfo {
-    fn marshal(&self, buf: &mut &mut [u8]) -> Result<()> {
-        self.clock.marshal(buf)?;
-        self.reset_count.marshal(buf)?;
-        self.restart_count.marshal(buf)?;
-        self.safe.marshal(buf)
+    fn marshal_fixed(&self, arr: &mut Self::ARRAY) {
+        self.clock.marshal_fixed(arr[0..8].to_arr());
+        self.reset_count.marshal_fixed(arr[8..12].to_arr());
+        self.restart_count.marshal_fixed(arr[12..16].to_arr());
+        self.safe.marshal_fixed(arr[16..].to_arr());
     }
 }
 impl Unmarshal<'_> for ClockInfo {
-    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<()> {
+    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
         self.clock.unmarshal(buf)?;
         self.reset_count.unmarshal(buf)?;
         self.restart_count.unmarshal(buf)?;
         self.safe.unmarshal(buf)
     }
-}
-
-impl FixedSize for ClockInfo {
-    const SIZE: usize = <u64 as FixedSize>::SIZE
-        + <u32 as FixedSize>::SIZE
-        + <u32 as FixedSize>::SIZE
-        + <bool as FixedSize>::SIZE;
 }
 
 // TPMS_AUTH_COMMAND
@@ -68,7 +66,7 @@ pub struct AuthCommand<'a> {
 }
 
 impl Marshal for AuthCommand<'_> {
-    fn marshal(&self, buf: &mut &mut [u8]) -> Result<()> {
+    fn marshal(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
         self.session_handle.marshal(buf)?;
         self.nonce.marshal(buf)?;
         self.session_attributes.marshal(buf)?;
@@ -86,7 +84,7 @@ pub struct AuthResponse<'a> {
 }
 
 impl<'a> Unmarshal<'a> for AuthResponse<'a> {
-    fn unmarshal(&mut self, buf: &mut &'a [u8]) -> Result<()> {
+    fn unmarshal(&mut self, buf: &mut &'a [u8]) -> Result<(), UnmarshalError> {
         self.nonce.unmarshal(buf)?;
         self.session_attributes.unmarshal(buf)?;
         self.hmac.unmarshal(buf)?;
@@ -101,9 +99,9 @@ pub const NUM_PCRS: usize = 8 * SIZE_OF_SELECT;
 pub type PcrSelect = [bool; NUM_PCRS];
 
 impl Marshal for PcrSelect {
-    fn marshal(&self, buf: &mut &mut [u8]) -> Result<()> {
+    fn marshal(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
         (SIZE_OF_SELECT as u8).marshal(buf)?;
-        let sel = marshal_array::<SIZE_OF_SELECT>(buf)?;
+        let sel = pop_array_mut(buf)?;
 
         *sel = [0; SIZE_OF_SELECT];
         for (i, &bit) in self.iter().enumerate() {
@@ -119,9 +117,9 @@ impl Marshal for PcrSelect {
 }
 
 impl Unmarshal<'_> for PcrSelect {
-    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<()> {
+    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
         let size: usize = u8::unmarshal_val(buf)?.into();
-        let sel = unmarshal_slice(size, buf)?;
+        let sel = pop_slice(size, buf)?;
 
         *self = [false; NUM_PCRS];
         for (byte_idx, &byte) in sel.iter().enumerate() {
@@ -131,7 +129,7 @@ impl Unmarshal<'_> for PcrSelect {
                     continue;
                 }
                 if pcr_num > NUM_PCRS {
-                    return Err(Error::PcrTooLarge(pcr_num));
+                    return Err(UnmarshalError::PcrTooLarge(pcr_num));
                 }
                 self[pcr_num] = true;
             }
@@ -148,14 +146,14 @@ pub struct PcrSelection {
 }
 
 impl Marshal for PcrSelection {
-    fn marshal(&self, buf: &mut &mut [u8]) -> Result<()> {
+    fn marshal(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
         self.hash.marshal(buf)?;
         self.select.marshal(buf)
     }
 }
 
 impl Unmarshal<'_> for PcrSelection {
-    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<()> {
+    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
         self.hash.unmarshal(buf)?;
         self.select.unmarshal(buf)
     }

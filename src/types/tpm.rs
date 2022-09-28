@@ -1,8 +1,10 @@
 //! Constants (TPM_* types)
 //!
 //! This module ... TODO
-use super::{FixedSize, Marshal, Unmarshal};
-use crate::{Error, Result};
+use core::num::NonZeroU32;
+
+use super::{Fixed, Infallible, Unmarshal};
+use crate::error::{TpmError, UnmarshalError};
 
 /// TPM_RH constants
 pub mod rh {
@@ -133,13 +135,12 @@ pub enum CC {
     ActSetTimeout = 0x00000198,
 }
 
-impl Marshal for CC {
-    fn marshal(&self, buf: &mut &mut [u8]) -> Result<()> {
-        (*self as u32).marshal(buf)
+impl Fixed for CC {
+    const SIZE: usize = <u32 as Fixed>::SIZE;
+    type ARRAY = [u8; Self::SIZE];
+    fn marshal_fixed(&self, arr: &mut Self::ARRAY) {
+        (*self as u32).marshal_fixed(arr)
     }
-}
-impl FixedSize for CC {
-    const SIZE: usize = <u32 as FixedSize>::SIZE;
 }
 
 // TPM_SU values
@@ -150,29 +151,35 @@ pub enum SU {
     Clear = 0x0000,
     State = 0x0001,
 }
-impl Marshal for SU {
-    fn marshal(&self, buf: &mut &mut [u8]) -> Result<()> {
-        (*self as u16).marshal(buf)
+impl Fixed for SU {
+    const SIZE: usize = <u16 as Fixed>::SIZE;
+    type ARRAY = [u8; Self::SIZE];
+    fn marshal_fixed(&self, arr: &mut Self::ARRAY) {
+        (*self as u16).marshal_fixed(arr)
     }
 }
 
-// TPM_RC values
-// TODO: Add a better Debug/Display impl
-#[derive(Clone, Copy, PartialEq, Eq, Default, Debug)]
-pub struct RC(pub u32);
+pub type RC = Option<TpmError>;
 
-impl RC {
-    // TPM_RC_SUCCESS
-    pub const SUCCESS: RC = RC(0);
-}
-
-impl Unmarshal<'_> for RC {
-    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<()> {
-        self.0.unmarshal(buf)
+impl Fixed for RC {
+    const SIZE: usize = <u32 as Fixed>::SIZE;
+    type ARRAY = [u8; Self::SIZE];
+    fn marshal_fixed(&self, arr: &mut Self::ARRAY) {
+        let v = match self {
+            Some(TpmError(n)) => n.get(),
+            None => 0,
+        };
+        v.marshal_fixed(arr)
     }
 }
-impl FixedSize for RC {
-    const SIZE: usize = <u32 as FixedSize>::SIZE;
+
+impl Infallible for RC {
+    fn unmarshal_fixed(&mut self, arr: &Self::ARRAY) {
+        *self = match NonZeroU32::new(u32::unmarshal_fixed_val(arr)) {
+            Some(n) => Some(TpmError(n)),
+            None => None,
+        };
+    }
 }
 
 // TPM_ST values
@@ -184,24 +191,23 @@ pub enum ST {
     NoSessions = 0x8001,
     Sessions = 0x8002,
 }
-impl Marshal for ST {
-    fn marshal(&self, buf: &mut &mut [u8]) -> Result<()> {
-        (*self as u16).marshal(buf)
+impl Fixed for ST {
+    const SIZE: usize = <u16 as Fixed>::SIZE;
+    type ARRAY = [u8; Self::SIZE];
+    fn marshal_fixed(&self, arr: &mut Self::ARRAY) {
+        (*self as u16).marshal_fixed(arr)
     }
 }
 impl Unmarshal<'_> for ST {
-    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<()> {
+    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
         *self = match u16::unmarshal_val(buf)? {
             0x8000 => Self::Null,
             0x8001 => Self::NoSessions,
             0x8002 => Self::Sessions,
-            _ => return Err(Error::UnmarshalInvalidValue),
+            _ => return Err(UnmarshalError::InvalidValue),
         };
         Ok(())
     }
-}
-impl FixedSize for ST {
-    const SIZE: usize = <u16 as FixedSize>::SIZE;
 }
 
 /// TPM_ALG_ID
@@ -217,20 +223,22 @@ pub enum Alg {
     SHA385 = 0x000C,
     SHA512 = 0x000D,
 }
-impl Marshal for Alg {
-    fn marshal(&self, buf: &mut &mut [u8]) -> Result<()> {
-        (*self as u16).marshal(buf)
+impl Fixed for Alg {
+    const SIZE: usize = <u16 as Fixed>::SIZE;
+    type ARRAY = [u8; Self::SIZE];
+    fn marshal_fixed(&self, arr: &mut Self::ARRAY) {
+        (*self as u16).marshal_fixed(arr)
     }
 }
 impl Unmarshal<'_> for Alg {
-    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<()> {
+    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
         *self = match u16::unmarshal_val(buf)? {
             0x0000 => Self::Error,
             0x0004 => Self::SHA1,
             0x000B => Self::SHA256,
             0x000C => Self::SHA385,
             0x000D => Self::SHA512,
-            _ => return Err(Error::UnmarshalInvalidValue),
+            _ => return Err(UnmarshalError::InvalidValue),
         };
         Ok(())
     }

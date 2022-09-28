@@ -1,5 +1,8 @@
-use super::{marshal_slice, Marshal, Unmarshal};
-use crate::{tpms, Result, ToUsize};
+use super::{pop_slice_mut, tpms, Marshal, Unmarshal};
+use crate::{
+    error::{MarshalError, UnmarshalError},
+    polyfill::ToUsize,
+};
 use core::{convert::TryInto, slice};
 
 pub type Digest<'a> = TpmL<'a, &'a [u8]>;
@@ -97,11 +100,11 @@ impl<'a, T, const N: usize> From<&'a [T; N]> for TpmL<'a, T> {
 }
 
 impl<T: Marshal> Marshal for TpmL<'_, T> {
-    fn marshal(&self, buf: &mut &mut [u8]) -> Result<()> {
+    fn marshal(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
         match *self {
             TpmL::Raw(count, data) => {
                 count.marshal(buf)?;
-                marshal_slice(data.len(), buf)?.copy_from_slice(data);
+                pop_slice_mut(data.len(), buf)?.copy_from_slice(data);
             }
             TpmL::Parsed(s) => {
                 let count: u32 = s.len().try_into()?;
@@ -116,7 +119,7 @@ impl<T: Marshal> Marshal for TpmL<'_, T> {
 }
 
 impl<'a, T: Unmarshal<'a> + Default> Unmarshal<'a> for TpmL<'a, T> {
-    fn unmarshal(&mut self, buf: &mut &'a [u8]) -> Result<()> {
+    fn unmarshal(&mut self, buf: &mut &'a [u8]) -> Result<(), UnmarshalError> {
         let count = u32::unmarshal_val(buf)?;
 
         let orig: &[u8] = *buf;
