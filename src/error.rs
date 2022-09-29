@@ -40,7 +40,6 @@ pub enum AuthError {}
 #[non_exhaustive]
 pub enum DriverError {
     IntegerOverflow,
-    PoisonError,
     #[cfg(feature = "std")]
     #[doc(cfg(feature = "std"))]
     Io(std::io::Error),
@@ -98,12 +97,6 @@ mod std_impl {
     impl From<std::io::Error> for DriverError {
         fn from(err: std::io::Error) -> Self {
             Self::Io(err)
-        }
-    }
-
-    impl<T> From<std::sync::PoisonError<T>> for DriverError {
-        fn from(_: std::sync::PoisonError<T>) -> Self {
-            Self::PoisonError
         }
     }
 }
