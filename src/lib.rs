@@ -37,11 +37,6 @@ pub trait Tpm {
 pub trait Command: CommandData + Default + Debug {
     const CODE: tpm::CC;
     type Response<'a>: ResponseData<'a> + Default + Debug;
-
-    type Auths: AuthSlice;
-    fn auths(&self) -> Self::Auths {
-        Self::Auths::empty()
-    }
 }
 
 // Helper trait for running raw commands directly
@@ -58,14 +53,7 @@ pub trait Run: Tpm {
         auths: &[&dyn Auth],
     ) -> Result<C::Response<'a>, Error> {
         let mut rsp: C::Response<'a> = Default::default();
-        run_impl(
-            self.as_dyn(),
-            C::CODE,
-            cmd.auths().as_slice(),
-            auths,
-            cmd,
-            &mut rsp,
-        )?;
+        run_impl(self.as_dyn(), C::CODE, auths, cmd, &mut rsp)?;
         Ok(rsp)
     }
 
@@ -88,12 +76,19 @@ impl Run for dyn Tpm + '_ {
 fn run_impl<'a>(
     tpm: &'a mut dyn Tpm,
     code: tpm::CC,
-    cmd_auths: &[&dyn Auth],
     extra_auths: &[&dyn Auth],
     cmd: &dyn CommandData,
     rsp: &mut dyn ResponseData<'a>,
 ) -> Result<(), Error> {
-    let has_auths = !cmd_auths.is_empty() || !extra_auths.is_empty();
+    // Merge Auths into a single slice
+    let mut auths: [&dyn Auth; 3] = Default::default();
+    let num_cmd_auths = cmd.get_auths(&mut auths);
+    let num_auths = num_cmd_auths + extra_auths.len();
+    if num_auths > 3 {
+        return Err(Error::TooManyAuths(num_auths));
+    }
+    auths[num_cmd_auths..num_auths].copy_from_slice(extra_auths);
+    let auths = &auths[..num_auths];
 
     //// Marshal Command
     let mut cmd_buf = tpm.command_buf();
@@ -105,16 +100,12 @@ fn run_impl<'a>(
     cmd.marshal_handles(&mut cmd_buf)?;
 
     // Marshal Authorization Area
-    if has_auths {
-        assert!(cmd_auths.len() + extra_auths.len() <= 3);
+    if !auths.is_empty() {
         // Marshal auth size at the end
         let auth_size_buf: &mut [u8; 4] = pop_array_mut(&mut cmd_buf)?;
         let cmd_buf_len = cmd_buf.len();
 
-        for auth in cmd_auths {
-            auth.get_auth().marshal(&mut cmd_buf)?;
-        }
-        for auth in extra_auths {
+        for auth in auths {
             auth.get_auth().marshal(&mut cmd_buf)?;
         }
 
@@ -127,10 +118,10 @@ fn run_impl<'a>(
 
     // Marshal Header
     let cmd_header = CommandHeader {
-        tag: if has_auths {
-            tpm::ST::Sessions
-        } else {
+        tag: if auths.is_empty() {
             tpm::ST::NoSessions
+        } else {
+            tpm::ST::Sessions
         },
         size: (buf_len - cmd_buf.len()).try_into().unwrap(),
         code,
@@ -156,17 +147,13 @@ fn run_impl<'a>(
     rsp.unmarshal_handles(&mut rsp_buf)?;
 
     // Unmarshal Authorization Area
-    if has_auths {
+    if !auths.is_empty() {
         let param_size = u32::unmarshal_val(&mut rsp_buf)?;
         let mut auth_buf: &[u8];
         (rsp_buf, auth_buf) = rsp_buf.split_at(param_size.try_into().unwrap());
 
         let mut auth_rsp = tpms::AuthResponse::default();
-        for auth in cmd_auths {
-            auth_rsp.unmarshal(&mut auth_buf)?;
-            auth.set_auth(&auth_rsp)?;
-        }
-        for auth in extra_auths {
+        for auth in auths {
             auth_rsp.unmarshal(&mut auth_buf)?;
             auth.set_auth(&auth_rsp)?;
         }

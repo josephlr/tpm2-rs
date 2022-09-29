@@ -11,7 +11,7 @@
 use super::*;
 use crate::{
     types::{tpm, tpml, tpms},
-    Auth, Command, CommandData, Marshal, Unmarshal,
+    Command, CommandData, Marshal, Unmarshal,
 };
 
 /// TPM2_Startup Command
@@ -30,7 +30,6 @@ impl CommandData for Startup {
 impl Command for Startup {
     const CODE: tpm::CC = tpm::CC::Startup;
     type Response<'a> = ();
-    type Auths = [&'static dyn Auth; 0];
 }
 
 /// TPM2_Shutdown Command
@@ -49,7 +48,6 @@ impl CommandData for Shutdown {
 impl Command for Shutdown {
     const CODE: tpm::CC = tpm::CC::Shutdown;
     type Response<'a> = ();
-    type Auths = [&'static dyn Auth; 0];
 }
 
 // /// TPM2_SelfTest Command
@@ -507,7 +505,6 @@ impl CommandData for GetRandom {
 impl Command for GetRandom {
     const CODE: tpm::CC = tpm::CC::GetRandom;
     type Response<'a> = GetRandomResponse<'a>;
-    type Auths = [&'static dyn Auth; 0];
 }
 impl<'a> ResponseData<'a> for GetRandomResponse<'a> {
     fn unmarshal_params(&mut self, buf: &mut &'a [u8]) -> Result<(), UnmarshalError> {
@@ -851,7 +848,6 @@ impl CommandData for PcrRead<'_> {
 impl Command for PcrRead<'_> {
     const CODE: tpm::CC = tpm::CC::PcrRead;
     type Response<'a> = PcrReadResponse<'a>;
-    type Auths = [&'static dyn Auth; 0];
 }
 
 /// TPM2_PCR_Read Response
@@ -1570,7 +1566,6 @@ impl CommandData for ReadClock {}
 impl Command for ReadClock {
     const CODE: tpm::CC = tpm::CC::ReadClock;
     type Response<'a> = ReadClockResponse;
-    type Auths = [&'static dyn Auth; 0];
 }
 
 /// TPM2_ReadClock Response

@@ -1,5 +1,8 @@
 use crate::{error::AuthError, tpm, tpma, tpms, Handle};
 
+/// The maximum number of authorizations for a Command
+pub(crate) const MAX_NUM_AUTHS: usize = 3;
+
 pub trait Auth: core::fmt::Debug {
     fn get_auth(&self) -> tpms::AuthCommand;
     fn set_auth(&self, auth: &tpms::AuthResponse) -> Result<(), AuthError>;
@@ -38,26 +41,19 @@ impl Auth for PasswordAuth<'_> {
     }
 }
 
+/// The default Auth (i.e. no Auth) is an empty Password Auth.
+impl Default for &dyn Auth {
+    fn default() -> Self {
+        &PasswordAuth(&[])
+    }
+}
+
 /// Convert a handle to an AuthHandle with Password Authorization
 impl From<Handle> for AuthHandle<'_> {
     fn from(handle: Handle) -> Self {
         AuthHandle {
             handle,
-            auth: &PasswordAuth(&[]),
+            auth: Default::default(),
         }
-    }
-}
-
-pub trait AuthSlice {
-    fn empty() -> Self;
-    fn as_slice(&self) -> &[&dyn Auth];
-}
-
-impl<const N: usize> AuthSlice for [&dyn Auth; N] {
-    fn empty() -> Self {
-        [&PasswordAuth(&[]); N]
-    }
-    fn as_slice(&self) -> &[&dyn Auth] {
-        self
     }
 }

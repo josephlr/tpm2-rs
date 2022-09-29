@@ -8,6 +8,7 @@ pub enum Error {
     Unmarshal(UnmarshalError),
     Auth(AuthError),
     Driver(DriverError),
+    TooManyAuths(usize),
 }
 
 #[derive(Debug)]
