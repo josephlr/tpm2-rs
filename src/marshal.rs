@@ -18,14 +18,14 @@ pub trait Unmarshal<'a> {
     }
 }
 
-pub trait Fixed {
+pub trait MarshalFixed {
     const SIZE: usize;
     // Ideally this would just be [u8; Self::SIZE], but that's not stable yet.
     type ARRAY: AsMut<[u8]> + AsRef<[u8]> + Default;
     fn marshal_fixed(&self, arr: &mut Self::ARRAY);
 }
 
-pub trait Infallible: Fixed + Default {
+pub trait UnmarshalAny: MarshalFixed + Default {
     fn unmarshal_fixed(&mut self, arr: &Self::ARRAY);
     fn unmarshal_fixed_val(arr: &Self::ARRAY) -> Self {
         let mut v = Self::default();
@@ -84,7 +84,7 @@ pub(crate) fn pop_slice_mut<'a>(
     Ok(prefix)
 }
 
-impl<const N: usize, T: Fixed<ARRAY = [u8; N]>> Marshal for T {
+impl<const N: usize, T: MarshalFixed<ARRAY = [u8; N]>> Marshal for T {
     fn marshal(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
         let arr = pop_array_mut(buf)?;
         self.marshal_fixed(arr);
@@ -92,7 +92,7 @@ impl<const N: usize, T: Fixed<ARRAY = [u8; N]>> Marshal for T {
     }
 }
 
-impl<const N: usize, T: Infallible<ARRAY = [u8; N]>> Unmarshal<'_> for T {
+impl<const N: usize, T: UnmarshalAny<ARRAY = [u8; N]>> Unmarshal<'_> for T {
     fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
         let arr = pop_array(buf)?;
         self.unmarshal_fixed(arr);
@@ -104,25 +104,25 @@ impl<const N: usize, T: Infallible<ARRAY = [u8; N]>> Unmarshal<'_> for T {
     }
 }
 
-impl Fixed for () {
+impl MarshalFixed for () {
     const SIZE: usize = 0;
     type ARRAY = [u8; 0];
     fn marshal_fixed(&self, _: &mut Self::ARRAY) {}
 }
-impl Infallible for () {
+impl UnmarshalAny for () {
     fn unmarshal_fixed(&mut self, _: &Self::ARRAY) {}
     fn unmarshal_fixed_val(_: &Self::ARRAY) {}
 }
 
 macro_rules! impl_ints { ($($T: ty)+) => { $(
-    impl Fixed for $T {
+    impl MarshalFixed for $T {
         const SIZE: usize = mem::size_of::<Self>();
         type ARRAY = [u8; Self::SIZE];
         fn marshal_fixed(&self, arr: &mut Self::ARRAY) {
             *arr = self.to_be_bytes();
         }
     }
-    impl Infallible for $T {
+    impl UnmarshalAny for $T {
         fn unmarshal_fixed(&mut self, arr: &Self::ARRAY) {
             *self = Self::from_be_bytes(*arr);
         }
@@ -134,8 +134,8 @@ macro_rules! impl_ints { ($($T: ty)+) => { $(
 
 impl_ints!(u8 u16 u32 u64);
 
-impl Fixed for bool {
-    const SIZE: usize = <u8 as Fixed>::SIZE;
+impl MarshalFixed for bool {
+    const SIZE: usize = <u8 as MarshalFixed>::SIZE;
     type ARRAY = [u8; Self::SIZE];
     fn marshal_fixed(&self, arr: &mut Self::ARRAY) {
         u8::from(*self).marshal_fixed(arr)

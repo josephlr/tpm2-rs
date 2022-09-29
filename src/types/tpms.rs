@@ -3,7 +3,7 @@ use crate::{
     error::{MarshalError, UnmarshalError},
     marshal::{pop_array_mut, pop_slice},
     polyfill::ToArr,
-    Fixed, Marshal, Unmarshal,
+    MarshalFixed, Marshal, Unmarshal,
 };
 
 // TPMS_TIME_INFO
@@ -12,8 +12,8 @@ pub struct TimeInfo {
     time: u64,
     clock_info: ClockInfo,
 }
-impl Fixed for TimeInfo {
-    const SIZE: usize = <u64 as Fixed>::SIZE + <ClockInfo as Fixed>::SIZE;
+impl MarshalFixed for TimeInfo {
+    const SIZE: usize = <u64 as MarshalFixed>::SIZE + <ClockInfo as MarshalFixed>::SIZE;
     type ARRAY = [u8; Self::SIZE];
     fn marshal_fixed(&self, arr: &mut Self::ARRAY) {
         self.time.marshal_fixed(arr[0..8].to_arr());
@@ -36,9 +36,9 @@ pub struct ClockInfo {
     safe: bool,
 }
 
-impl Fixed for ClockInfo {
+impl MarshalFixed for ClockInfo {
     const SIZE: usize =
-        <u64 as Fixed>::SIZE + <u32 as Fixed>::SIZE + <u32 as Fixed>::SIZE + <bool as Fixed>::SIZE;
+        <u64 as MarshalFixed>::SIZE + <u32 as MarshalFixed>::SIZE + <u32 as MarshalFixed>::SIZE + <bool as MarshalFixed>::SIZE;
     type ARRAY = [u8; Self::SIZE];
 
     fn marshal_fixed(&self, arr: &mut Self::ARRAY) {

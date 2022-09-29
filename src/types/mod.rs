@@ -1,4 +1,4 @@
-use crate::{error::UnmarshalError, polyfill::ToArr, Fixed, Infallible, Unmarshal};
+use crate::{error::UnmarshalError, polyfill::ToArr, MarshalFixed, UnmarshalAny, Unmarshal};
 
 mod auth;
 pub use auth::*;
@@ -21,7 +21,7 @@ pub(crate) struct CommandHeader {
     pub code: tpm::CC,
 }
 
-impl Fixed for CommandHeader {
+impl MarshalFixed for CommandHeader {
     const SIZE: usize = 10;
     type ARRAY = [u8; Self::SIZE];
 

@@ -1,4 +1,4 @@
-use super::{Fixed, Infallible};
+use super::{MarshalFixed, UnmarshalAny};
 use bitflags::bitflags;
 use core::mem;
 
@@ -30,7 +30,7 @@ bitflags! {
 }
 
 macro_rules! impl_bitflags { ($($T: ty)+) => { $(
-    impl Fixed for $T {
+    impl MarshalFixed for $T {
         const SIZE: usize = mem::size_of::<Self>();
         type ARRAY = [u8; Self::SIZE];
         fn marshal_fixed(&self, arr: &mut Self::ARRAY) {
@@ -38,12 +38,12 @@ macro_rules! impl_bitflags { ($($T: ty)+) => { $(
         }
     }
 
-    impl Infallible for $T {
+    impl UnmarshalAny for $T {
         fn unmarshal_fixed(&mut self, arr: &Self::ARRAY) {
             *self = Self::unmarshal_fixed_val(arr);
         }
         fn unmarshal_fixed_val(arr: &Self::ARRAY) -> Self {
-            Self::from_bits_truncate(<_ as Infallible>::unmarshal_fixed_val(arr))
+            Self::from_bits_truncate(<_ as UnmarshalAny>::unmarshal_fixed_val(arr))
         }
     }
 )+ } }

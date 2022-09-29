@@ -3,7 +3,7 @@
 //! This module ... TODO
 use crate::{
     error::{TpmError, UnmarshalError},
-    Fixed, Infallible, Unmarshal,
+    MarshalFixed, UnmarshalAny, Unmarshal,
 };
 use core::num::NonZeroU32;
 
@@ -136,8 +136,8 @@ pub enum CC {
     ActSetTimeout = 0x00000198,
 }
 
-impl Fixed for CC {
-    const SIZE: usize = <u32 as Fixed>::SIZE;
+impl MarshalFixed for CC {
+    const SIZE: usize = <u32 as MarshalFixed>::SIZE;
     type ARRAY = [u8; Self::SIZE];
     fn marshal_fixed(&self, arr: &mut Self::ARRAY) {
         (*self as u32).marshal_fixed(arr)
@@ -152,8 +152,8 @@ pub enum SU {
     Clear = 0x0000,
     State = 0x0001,
 }
-impl Fixed for SU {
-    const SIZE: usize = <u16 as Fixed>::SIZE;
+impl MarshalFixed for SU {
+    const SIZE: usize = <u16 as MarshalFixed>::SIZE;
     type ARRAY = [u8; Self::SIZE];
     fn marshal_fixed(&self, arr: &mut Self::ARRAY) {
         (*self as u16).marshal_fixed(arr)
@@ -162,8 +162,8 @@ impl Fixed for SU {
 
 pub type RC = Option<TpmError>;
 
-impl Fixed for RC {
-    const SIZE: usize = <u32 as Fixed>::SIZE;
+impl MarshalFixed for RC {
+    const SIZE: usize = <u32 as MarshalFixed>::SIZE;
     type ARRAY = [u8; Self::SIZE];
     fn marshal_fixed(&self, arr: &mut Self::ARRAY) {
         let v = match self {
@@ -174,7 +174,7 @@ impl Fixed for RC {
     }
 }
 
-impl Infallible for RC {
+impl UnmarshalAny for RC {
     fn unmarshal_fixed(&mut self, arr: &Self::ARRAY) {
         *self = NonZeroU32::new(u32::unmarshal_fixed_val(arr)).map(TpmError);
     }
@@ -189,8 +189,8 @@ pub enum ST {
     NoSessions = 0x8001,
     Sessions = 0x8002,
 }
-impl Fixed for ST {
-    const SIZE: usize = <u16 as Fixed>::SIZE;
+impl MarshalFixed for ST {
+    const SIZE: usize = <u16 as MarshalFixed>::SIZE;
     type ARRAY = [u8; Self::SIZE];
     fn marshal_fixed(&self, arr: &mut Self::ARRAY) {
         (*self as u16).marshal_fixed(arr)
@@ -221,8 +221,8 @@ pub enum Alg {
     SHA385 = 0x000C,
     SHA512 = 0x000D,
 }
-impl Fixed for Alg {
-    const SIZE: usize = <u16 as Fixed>::SIZE;
+impl MarshalFixed for Alg {
+    const SIZE: usize = <u16 as MarshalFixed>::SIZE;
     type ARRAY = [u8; Self::SIZE];
     fn marshal_fixed(&self, arr: &mut Self::ARRAY) {
         (*self as u16).marshal_fixed(arr)

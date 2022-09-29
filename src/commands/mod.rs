@@ -3,7 +3,7 @@ use crate::{
     marshal::pop_array_mut,
     polyfill::ToUsize,
     types::{tpm, tpms, Auth, CommandHeader, ResponseHeader},
-    Error, Fixed, Marshal, Tpm, Unmarshal,
+    Error, MarshalFixed, Marshal, Tpm, Unmarshal,
 };
 use core::fmt::Debug;
 
