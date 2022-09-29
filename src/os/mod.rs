@@ -4,30 +4,26 @@
 
 use crate::{error::DriverError, polyfill::ToUsize, Tpm};
 use alloc::{boxed::Box, vec, vec::Vec};
-use core::ops::DerefMut;
 use std::io::{self, ErrorKind, Read, Write};
 
+// Keep in sync with default_tpm cfg
 cfg_if::cfg_if! {
     if #[cfg(target_os = "linux")] {
         mod linux;
-        #[doc(cfg(target_os = "linux"))]
-        pub use linux::*;
+        use linux::*;
     } else if #[cfg(windows)] {
         mod windows;
-        #[doc(cfg(windows))]
-        pub use windows::*;
-    } else {
-
+        use windows::*;
     }
 }
 
-struct RwTpm<RW: ?Sized> {
+struct RwTpm<RW> {
     cmd: Box<[u8]>,
     rsp: Vec<u8>,
     rw: RW,
 }
 
-impl<T: Read + Write + ?Sized, RW: DerefMut<Target = T> + ?Sized> Tpm for RwTpm<RW> {
+impl<RW: Read + Write> Tpm for RwTpm<RW> {
     fn command_buf(&mut self) -> &mut [u8] {
         &mut self.cmd
     }
@@ -45,7 +41,7 @@ impl<T: Read + Write + ?Sized, RW: DerefMut<Target = T> + ?Sized> Tpm for RwTpm<
 }
 
 // TODO: explain why you would want this
-pub fn tpm_from_read_write(rw: impl DerefMut<Target = impl Read + Write>) -> impl Tpm {
+pub fn tpm_from_read_write(rw: impl Read + Write) -> impl Tpm {
     RwTpm {
         cmd: vec![0; 4096].into_boxed_slice(),
         rsp: vec![],
@@ -53,7 +49,10 @@ pub fn tpm_from_read_write(rw: impl DerefMut<Target = impl Read + Write>) -> imp
     }
 }
 
-// TODO: Document that this blocks
+/// TODO: Document this for Linux and Windows
+// Keep in sync with cfg_if
+#[cfg(any(target_os = "linux", windows))]
+#[doc(cfg(any(target_os = "linux", windows)))]
 pub fn get_default_tpm() -> io::Result<impl Tpm> {
     default_impl()
 }

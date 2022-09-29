@@ -1,5 +1,5 @@
 #![no_std]
-#![feature(split_array, doc_cfg, once_cell)]
+#![feature(split_array, doc_cfg)]
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
