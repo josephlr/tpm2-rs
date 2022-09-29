@@ -1,3 +1,5 @@
+//! `TPMS_*` Structure Types
+
 use super::{tpm, tpma, Handle};
 use crate::{
     error::{MarshalError, UnmarshalError},

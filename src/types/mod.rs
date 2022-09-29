@@ -8,11 +8,12 @@ mod buffer;
 pub use buffer::*;
 
 pub mod tpm;
+pub mod tpm2b;
 pub mod tpma;
+pub mod tpmi;
 pub mod tpml;
 pub mod tpms;
 pub mod tpmt;
-pub mod tpmu;
 
 pub type Handle = u32;
 

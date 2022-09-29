@@ -1,3 +1,7 @@
+//! `TPMA_*` Attribute Types
+//!
+//! Most of these types are found int Part 2, Section 8 (Attributes Structures).
+
 use core::mem;
 
 use bitflags::bitflags;

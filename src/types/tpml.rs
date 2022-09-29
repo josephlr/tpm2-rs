@@ -1,3 +1,7 @@
+//! `TPML_*` List Types
+//!
+//! Most of these types are found in Part 2, Section 10.9 (Lists).
+
 use core::mem;
 
 use super::tpms;

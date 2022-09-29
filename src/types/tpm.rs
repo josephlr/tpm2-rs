@@ -1,3 +1,9 @@
+//! `TPM_*` Constants and Enumerated Types
+//!
+//! TODO explain submodule vs Enum
+//! TODO explain sections (6, 7, 13, 16)
+//! TODO Move Handle here?
+
 use core::num::NonZeroU32;
 
 use crate::{
