@@ -1,9 +1,9 @@
-use tpm2::{commands::GetRandom, os::get_default_tpm, Tpm};
+use tpm2::{commands::GetRandom, os::default_tpm, Tpm};
 
 const NUM_BYTES: u16 = 100;
 
 fn main() {
-    let mut tpm = get_default_tpm().expect("Unable to open TPM");
+    let mut tpm = default_tpm().expect("Unable to open TPM");
 
     run_example(&mut tpm);
     ext_example(&mut tpm);

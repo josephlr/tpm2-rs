@@ -53,6 +53,6 @@ pub fn tpm_from_read_write(rw: impl Read + Write) -> impl Tpm {
 // Keep in sync with cfg_if
 #[cfg(any(target_os = "linux", windows))]
 #[doc(cfg(any(target_os = "linux", windows)))]
-pub fn get_default_tpm() -> io::Result<impl Tpm> {
+pub fn default_tpm() -> io::Result<impl Tpm> {
     default_impl()
 }

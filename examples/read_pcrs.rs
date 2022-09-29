@@ -1,12 +1,12 @@
 use tpm2::{
     commands::PcrRead,
-    os::get_default_tpm,
+    os::default_tpm,
     types::{tpm, tpml, tpms},
     Run,
 };
 
 fn main() {
-    let mut tpm = get_default_tpm().expect("Unable to open TPM");
+    let mut tpm = default_tpm().expect("Unable to open TPM");
 
     // TODO: Query the available banks and read _all_ the PCRs.
 
