@@ -44,12 +44,13 @@ pub trait Command: CommandData + Default + Debug {
     type Response<'a>: ResponseData<'a> + Default + Debug;
 }
 
+// This functions is intentionally non-generic to reduce code size.
 pub(crate) fn run_command<'a>(
     tpm: &'a mut dyn Tpm,
-    code: tpm::CC,
-    extra_auths: &[&dyn Auth],
     cmd: &dyn CommandData,
     rsp: &mut dyn ResponseData<'a>,
+    code: tpm::CC,
+    extra_auths: &[&dyn Auth],
 ) -> Result<(), Error> {
     // Merge Auths into a single slice
     let mut auths: [&dyn Auth; 3] = Default::default();
