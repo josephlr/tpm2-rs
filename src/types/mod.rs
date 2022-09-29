@@ -1,4 +1,4 @@
-use crate::{error::UnmarshalError, polyfill::ToArr, MarshalFixed, UnmarshalAny, Unmarshal};
+use crate::{error::UnmarshalError, polyfill::ToArr, MarshalFixed, Unmarshal};
 
 mod auth;
 pub use auth::*;

@@ -1,4 +1,4 @@
-use super::{MarshalFixed, UnmarshalAny};
+use crate::{MarshalFixed, UnmarshalAny};
 use bitflags::bitflags;
 use core::mem;
 

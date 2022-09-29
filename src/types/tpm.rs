@@ -3,7 +3,7 @@
 //! This module ... TODO
 use crate::{
     error::{TpmError, UnmarshalError},
-    MarshalFixed, UnmarshalAny, Unmarshal,
+    MarshalFixed, Unmarshal, UnmarshalAny,
 };
 use core::num::NonZeroU32;
 

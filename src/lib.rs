@@ -17,7 +17,7 @@ pub mod types;
 
 pub use commands::Command;
 pub use error::Error;
-pub use marshal::{MarshalFixed, UnmarshalAny, Marshal, Unmarshal};
+pub use marshal::{Marshal, MarshalFixed, Unmarshal, UnmarshalAny};
 pub use traits::{Tpm, TpmExt, TpmRaw};
 
 #[cfg(test)]
