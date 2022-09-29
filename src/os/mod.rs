@@ -36,10 +36,11 @@ impl<T: Read + Write + ?Sized, RW: DerefMut<Target = T> + ?Sized> Tpm for RwTpm<
         &self.rsp
     }
 
-    fn execute_command(&mut self, cmd_size: u32) -> Result<u32, DriverError> {
+    fn execute_command(&mut self, cmd_size: u32) -> Result<(), DriverError> {
         self.rw.write_all(&self.cmd[..cmd_size.to_usize()])?;
-        let rsp_len: u32 = self.rw.read_to_end(&mut self.rsp)?.try_into()?;
-        Ok(rsp_len)
+        self.rsp.clear();
+        self.rw.read_to_end(&mut self.rsp)?;
+        Ok(())
     }
 }
 

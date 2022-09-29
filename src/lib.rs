@@ -28,7 +28,7 @@ pub type Handle = u32;
 pub trait Tpm {
     fn command_buf(&mut self) -> &mut [u8];
     fn response_buf(&self) -> &[u8];
-    fn execute_command(&mut self, cmd_size: u32) -> Result<u32, DriverError>;
+    fn execute_command(&mut self, cmd_size: u32) -> Result<(), DriverError>;
 }
 
 /// A TPM2 Command
@@ -136,14 +136,15 @@ fn run_impl<'a>(
     cmd_header.marshal_fixed(header_buf);
 
     //// Execute the command
-    let rsp_len = tpm.execute_command(cmd_header.size)?;
+    tpm.execute_command(cmd_header.size)?;
 
     //// Unmarshal Response
-    let mut rsp_buf: &'a [u8] = &tpm.response_buf()[..rsp_len.to_usize()];
+    let mut rsp_buf: &'a [u8] = tpm.response_buf();
+    let rsp_len = rsp_buf.len();
     let rsp_header = ResponseHeader::unmarshal_val(&mut rsp_buf)?;
 
     // Check for errors
-    assert!(rsp_header.size == rsp_len);
+    assert!(rsp_header.size.to_usize() == rsp_len);
     if let Some(tpm_err) = rsp_header.code {
         return Err(Error::Tpm(tpm_err));
     }
