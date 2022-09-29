@@ -13,6 +13,8 @@ pub use auth::*;
 pub mod commands;
 pub use error::Error;
 pub mod error;
+mod ext;
+pub use ext::*;
 pub mod os;
 mod polyfill;
 pub mod types;
