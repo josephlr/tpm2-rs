@@ -2,7 +2,7 @@ use tpm2::{
     commands::PcrRead,
     os::get_default_tpm,
     types::{tpm, tpml, tpms},
-    Command,
+    Run,
 };
 
 fn main() {
@@ -25,7 +25,7 @@ fn main() {
         pcr_selection: tpml::PcrSelection::from(&sel),
     };
     println!("Reading from {:?} PCR banks", cmd.pcr_selection.len());
-    let rsp = cmd.run(&mut tpm).expect("Unable to read PCRS");
+    let rsp = tpm.run(&cmd).expect("Unable to read PCRS");
 
     for sel in rsp.pcr_selection {
         print!("{:?} selection:", sel.hash);
