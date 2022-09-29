@@ -27,22 +27,23 @@ pub trait TpmRaw: Tpm {
         auths: &[&dyn Auth],
     ) -> Result<C::Response<'a>, Error> {
         let mut rsp: C::Response<'a> = Default::default();
-        run_command(self.as_dyn(), C::CODE, auths, cmd, &mut rsp)?;
+        run_command(self.as_tpm(), C::CODE, auths, cmd, &mut rsp)?;
         Ok(rsp)
     }
 
-    fn as_dyn(&mut self) -> &mut dyn Tpm;
+    #[doc(hidden)]
+    fn as_tpm(&mut self) -> &mut dyn Tpm;
 }
 
 impl<T: Tpm> TpmRaw for T {
     #[inline]
-    fn as_dyn(&mut self) -> &mut dyn Tpm {
+    fn as_tpm(&mut self) -> &mut dyn Tpm {
         self
     }
 }
 impl TpmRaw for dyn Tpm + '_ {
     #[inline]
-    fn as_dyn(&mut self) -> &mut dyn Tpm {
+    fn as_tpm(&mut self) -> &mut dyn Tpm {
         self
     }
 }
