@@ -1566,11 +1566,7 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 #[derive(Default, Debug)]
 pub struct ReadClock {}
 
-impl CommandData for ReadClock {
-    fn marshal_params(&self, _: &mut &mut [u8]) -> Result<(), MarshalError> {
-        Ok(())
-    }
-}
+impl CommandData for ReadClock {}
 impl Command for ReadClock {
     const CODE: tpm::CC = tpm::CC::ReadClock;
     type Response<'a> = ReadClockResponse;
