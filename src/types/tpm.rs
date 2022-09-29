@@ -1,11 +1,9 @@
-//! Constants (TPM_* types)
-//!
-//! This module ... TODO
+use core::num::NonZeroU32;
+
 use crate::{
     error::{TpmError, UnmarshalError},
     MarshalFixed, Unmarshal, UnmarshalAny,
 };
-use core::num::NonZeroU32;
 
 /// TPM_RH constants
 pub mod rh {

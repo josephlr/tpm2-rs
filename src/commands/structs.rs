@@ -8,6 +8,7 @@
 //!
 //! TODO:
 //!   - Add additional notes about TPM2_HMAC and TPM2_StartHMAC
+
 use super::*;
 use crate::{
     types::{tpm, tpml, tpms},

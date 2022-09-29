@@ -1,5 +1,6 @@
-use super::*;
 use std::fs::{File, OpenOptions};
+
+use super::*;
 
 fn open(path: &str) -> io::Result<File> {
     OpenOptions::new().read(true).write(true).open(path)
@@ -7,7 +8,7 @@ fn open(path: &str) -> io::Result<File> {
 fn open_tpm() -> io::Result<File> {
     let f = match open("/dev/tpmrm0") {
         Ok(f) => Ok(f),
-        Err(e) if e.kind() == ErrorKind::NotFound => open("/dev/tpm0"),
+        Err(e) if e.kind() == io::ErrorKind::NotFound => open("/dev/tpm0"),
         Err(e) => Err(e),
     }?;
     Ok(f)

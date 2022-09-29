@@ -1,6 +1,8 @@
-use crate::{MarshalFixed, UnmarshalAny};
-use bitflags::bitflags;
 use core::mem;
+
+use bitflags::bitflags;
+
+use crate::{MarshalFixed, UnmarshalAny};
 
 bitflags! {
     #[derive(Default)]

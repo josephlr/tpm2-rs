@@ -2,6 +2,7 @@
 #![feature(split_array, doc_cfg)]
 
 #[cfg(feature = "alloc")]
+#[macro_use]
 extern crate alloc;
 #[cfg(feature = "std")]
 extern crate std;
@@ -22,8 +23,9 @@ pub use traits::{Tpm, TpmExt, TpmRaw};
 
 #[cfg(test)]
 mod test {
-    use crate::{commands::*, types::tpm, *};
     use std::vec::Vec;
+
+    use crate::{commands::*, types::tpm, *};
 
     #[test]
     fn can_exec() {

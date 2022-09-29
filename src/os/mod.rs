@@ -2,9 +2,9 @@
 #![cfg(feature = "std")]
 #![doc(cfg(feature = "std"))]
 
+use std::{io, prelude::v1::*};
+
 use crate::{error::DriverError, polyfill::ToUsize, Tpm};
-use alloc::{boxed::Box, vec, vec::Vec};
-use std::io::{self, ErrorKind, Read, Write};
 
 // Keep in sync with default_tpm cfg
 cfg_if::cfg_if! {
@@ -23,7 +23,7 @@ struct RwTpm<RW> {
     rw: RW,
 }
 
-impl<RW: Read + Write> Tpm for RwTpm<RW> {
+impl<RW: io::Read + io::Write> Tpm for RwTpm<RW> {
     fn command_buf(&mut self) -> &mut [u8] {
         &mut self.cmd
     }
@@ -41,7 +41,7 @@ impl<RW: Read + Write> Tpm for RwTpm<RW> {
 }
 
 // TODO: explain why you would want this
-pub fn tpm_from_read_write(rw: impl Read + Write) -> impl Tpm {
+pub fn tpm_from_read_write(rw: impl io::Read + io::Write) -> impl Tpm {
     RwTpm {
         cmd: vec![0; 4096].into_boxed_slice(),
         rsp: vec![],

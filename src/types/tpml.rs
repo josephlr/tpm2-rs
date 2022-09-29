@@ -1,3 +1,5 @@
+use core::mem;
+
 use super::tpms;
 use crate::{
     error::{MarshalError, UnmarshalError},
@@ -5,7 +7,6 @@ use crate::{
     polyfill::ToUsize,
     Marshal, Unmarshal,
 };
-use core::mem;
 
 pub type Digest<'a> = TpmL<'a, &'a [u8]>;
 pub type PcrSelection<'a> = TpmL<'a, tpms::PcrSelection>;

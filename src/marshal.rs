@@ -1,6 +1,8 @@
 //! Types and helper functions for Marshalling and Unmarshalling
-use crate::error::{MarshalError, UnmarshalError};
+
 use core::mem;
+
+use crate::error::{MarshalError, UnmarshalError};
 
 pub trait Marshal {
     fn marshal(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError>;

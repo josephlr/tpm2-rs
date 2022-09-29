@@ -1,3 +1,5 @@
+use core::fmt::Debug;
+
 use crate::{
     error::{MarshalError, UnmarshalError},
     marshal::pop_array_mut,
@@ -5,7 +7,6 @@ use crate::{
     types::{tpm, tpms, Auth, CommandHeader, ResponseHeader},
     Error, Marshal, MarshalFixed, Tpm, Unmarshal,
 };
-use core::fmt::Debug;
 
 /// The maximum number of authorizations for a Command
 const MAX_NUM_AUTHS: usize = 3;
