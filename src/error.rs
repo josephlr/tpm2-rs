@@ -1,3 +1,5 @@
+//! Error types for various TPM-related operations
+
 use core::num::{NonZeroU32, TryFromIntError};
 
 #[derive(Debug)]

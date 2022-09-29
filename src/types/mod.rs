@@ -1,3 +1,5 @@
+//! TODO: Explain the substructure here
+
 use crate::{error::UnmarshalError, polyfill::ToArr, MarshalFixed, Unmarshal};
 
 mod auth;

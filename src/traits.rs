@@ -1,4 +1,5 @@
-//! Main traits for interacting with and using a TPM2 Device.
+//! Main TPM2 device traits
+
 use crate::{
     commands::{run_command, GetRandom},
     error::DriverError,

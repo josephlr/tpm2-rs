@@ -1,3 +1,4 @@
+//! TPM2 TSS written in pure Rust
 #![no_std]
 #![feature(split_array, doc_cfg)]
 

@@ -1,3 +1,5 @@
+//! Functionality not yet in libcore
+
 use core::mem::size_of;
 
 pub(crate) trait ToUsize {
