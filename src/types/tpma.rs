@@ -1,157 +1,61 @@
 use super::{Fixed, Infallible};
+use bitflags::bitflags;
+use core::mem;
 
-pub trait Attribute: Default + Copy {
-    type Raw: Infallible;
+bitflags! {
+    #[derive(Default)]
+    #[repr(transparent)]
+    pub struct Session: u8 {
+        const CONTINUE_SESSION = 1 << 0;
+        const AUDIT_EXCLUSIVE = 1 << 1;
+        const AUDIT_RESET = 1 << 2;
+        const DECRYPT = 1 << 5;
+        const ENCRYPT = 1 << 6;
+        const AUDIT = 1 << 7;
 
-    fn from_raw(raw: Self::Raw) -> Self;
-    fn to_raw(self) -> Self::Raw;
-    fn get_bit(&self, n: usize) -> bool;
-    fn set_bit(&mut self, n: usize, b: bool);
-}
-
-impl<A: Attribute> Fixed for A {
-    const SIZE: usize = <A::Raw as Fixed>::SIZE;
-    type ARRAY = <A::Raw as Fixed>::ARRAY;
-    fn marshal_fixed(&self, arr: &mut Self::ARRAY) {
-        self.to_raw().marshal_fixed(arr)
+        const RESERVED = !(0b11100111);
     }
 }
 
-impl<A: Attribute> Infallible for A {
-    fn unmarshal_fixed(&mut self, arr: &Self::ARRAY) {
-        *self = Self::unmarshal_fixed_val(arr);
-    }
-    fn unmarshal_fixed_val(arr: &Self::ARRAY) -> Self {
-        Self::from_raw(<A::Raw as Infallible>::unmarshal_fixed_val(arr))
-    }
-}
+bitflags! {
+    #[derive(Default)]
+    #[repr(transparent)]
+    pub struct Memory: u32 {
+        const SHARED_RAM = 1 << 0;
+        const SHARED_NV = 1 << 1;
+        const OBJECT_COPIED_TO_RAM = 1 << 2;
 
-#[derive(PartialEq, Eq, Clone, Copy, Default, Debug)]
-pub struct Session {
-    reserved: u8,
-    pub continue_session: bool,
-    pub audit_exclusive: bool,
-    pub audit_reset: bool,
-    pub decrypt: bool,
-    pub encrypt: bool,
-    pub audit: bool,
-}
-
-impl Session {
-    pub const fn empty() -> Self {
-        Self {
-            reserved: 0,
-            continue_session: false,
-            audit_exclusive: false,
-            audit_reset: false,
-            decrypt: false,
-            encrypt: false,
-            audit: false,
-        }
+        const RESERVED = !(0b111);
     }
 }
 
-#[derive(Clone, Copy, Default)]
-pub struct Memory {
-    reserved: u32,
-    pub shared_ram: bool,
-    pub shared_nv: bool,
-    pub object_copied_to_ram: bool,
-}
-
-impl Attribute for Memory {
-    type Raw = u32;
-
-    fn from_raw(raw: Self::Raw) -> Self {
-        Self {
-            shared_ram: raw & (1 << 0) != 0,
-            shared_nv: raw & (1 << 1) != 0,
-            object_copied_to_ram: raw & (1 << 2) != 0,
-            reserved: raw & !(0b111),
+macro_rules! impl_bitflags { ($($T: ty)+) => { $(
+    impl Fixed for $T {
+        const SIZE: usize = mem::size_of::<Self>();
+        type ARRAY = [u8; Self::SIZE];
+        fn marshal_fixed(&self, arr: &mut Self::ARRAY) {
+            self.bits().marshal_fixed(arr)
         }
     }
 
-    fn to_raw(self) -> Self::Raw {
-        let mut raw = self.reserved & !(0b111);
-        if self.shared_ram {
-            raw |= 1 << 0;
+    impl Infallible for $T {
+        fn unmarshal_fixed(&mut self, arr: &Self::ARRAY) {
+            *self = Self::unmarshal_fixed_val(arr);
         }
-        if self.shared_nv {
-            raw |= 1 << 1;
-        }
-        if self.object_copied_to_ram {
-            raw |= 1 << 2;
-        }
-        raw
-    }
-
-    fn get_bit(&self, n: usize) -> bool {
-        self.to_raw() & (1 << n) != 0
-    }
-
-    fn set_bit(&mut self, n: usize, b: bool) {
-        match (n, b) {
-            (0, _) => self.shared_ram = b,
-            (1, _) => self.shared_nv = b,
-            (2, _) => self.object_copied_to_ram = b,
-            (_, true) => self.reserved |= 1 << n,
-            (_, false) => self.reserved &= !(1 << n),
+        fn unmarshal_fixed_val(arr: &Self::ARRAY) -> Self {
+            Self::from_bits_truncate(<_ as Infallible>::unmarshal_fixed_val(arr))
         }
     }
-}
+)+ } }
 
-impl Attribute for Session {
-    type Raw = u8;
+impl_bitflags!(Session Memory);
 
-    fn from_raw(raw: Self::Raw) -> Self {
-        Self {
-            continue_session: raw & (1 << 0) != 0,
-            audit_exclusive: raw & (1 << 1) != 0,
-            audit_reset: raw & (1 << 2) != 0,
-            decrypt: raw & (1 << 5) != 0,
-            encrypt: raw & (1 << 6) != 0,
-            audit: raw & (1 << 7) != 0,
-            reserved: raw & !(0b11100111),
-        }
-    }
-
-    fn to_raw(self) -> Self::Raw {
-        let mut raw = self.reserved & !(0b11100111);
-        if self.continue_session {
-            raw |= 1 << 0;
-        }
-        if self.audit_exclusive {
-            raw |= 1 << 1;
-        }
-        if self.audit_reset {
-            raw |= 1 << 2;
-        }
-        if self.decrypt {
-            raw |= 1 << 5;
-        }
-        if self.encrypt {
-            raw |= 1 << 6;
-        }
-        if self.audit {
-            raw |= 1 << 7;
-        }
-        raw
-    }
-
-    fn get_bit(&self, n: usize) -> bool {
-        self.to_raw() & (1 << n) != 0
-    }
-
-    fn set_bit(&mut self, n: usize, b: bool) {
-        match (n, b) {
-            (0, _) => self.continue_session = b,
-            (1, _) => self.audit_exclusive = b,
-            (2, _) => self.audit_reset = b,
-            (5, _) => self.decrypt = b,
-            (6, _) => self.encrypt = b,
-            (7, _) => self.audit = b,
-            (_, true) => self.reserved |= 1 << n,
-            (_, false) => self.reserved &= !(1 << n),
-        }
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[test]
+    fn all_bits_are_defined() {
+        assert_eq!(Session::all().bits(), u8::MAX);
+        assert_eq!(Memory::all().bits(), u32::MAX);
     }
 }

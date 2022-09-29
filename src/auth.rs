@@ -1,4 +1,4 @@
-use crate::{error::AuthError, tpm, tpma, tpms, Handle};
+use crate::{error::AuthError, tpm, tpma::Session, tpms, Handle};
 
 /// The maximum number of authorizations for a Command
 pub(crate) const MAX_NUM_AUTHS: usize = 3;
@@ -17,25 +17,19 @@ pub struct AuthHandle<'a> {
 #[derive(Debug)]
 pub struct PasswordAuth<'a>(&'a [u8]);
 
-const CONTINUE_SESSION: tpma::Session = {
-    let mut s = tpma::Session::empty();
-    s.continue_session = true;
-    s
-};
-
 impl Auth for PasswordAuth<'_> {
     fn get_auth(&self) -> tpms::AuthCommand {
         tpms::AuthCommand {
             session_handle: tpm::rh::PASSWORD,
             nonce: &[],
-            session_attributes: CONTINUE_SESSION,
+            session_attributes: Session::CONTINUE_SESSION,
             hmac: self.0,
         }
     }
 
     fn set_auth(&self, auth: &tpms::AuthResponse) -> Result<(), AuthError> {
         assert!(auth.nonce.is_empty());
-        assert_eq!(auth.session_attributes, CONTINUE_SESSION);
+        assert_eq!(auth.session_attributes, Session::CONTINUE_SESSION);
         assert!(auth.hmac.is_empty());
         Ok(())
     }

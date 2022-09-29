@@ -30,6 +30,7 @@ alloc = []
 
 [dependencies]
 cfg-if = "1.0"
+bitflags = "1"
 
 [workspace]
 members = ["derive", "simulator"]
