@@ -51,11 +51,7 @@ impl TpmRaw for dyn Tpm + '_ {
 /// Trait extending [`Tpm`] for running higher-level TPM workflows.
 ///
 /// These methods almost always issues multiple TPM commands under the hood.
-pub trait TpmExt: Tpm {
-    fn getrandom(&mut self, buf: &mut [u8]) -> Result<(), Error>;
-}
-
-impl<T: TpmRaw + ?Sized> TpmExt for T {
+pub trait TpmExt: TpmRaw {
     fn getrandom(&mut self, mut buf: &mut [u8]) -> Result<(), Error> {
         while !buf.is_empty() {
             let bytes_requested = buf.len().try_into().unwrap_or(u16::MAX);
@@ -68,3 +64,5 @@ impl<T: TpmRaw + ?Sized> TpmExt for T {
         Ok(())
     }
 }
+
+impl<T: TpmRaw + ?Sized> TpmExt for T {}
