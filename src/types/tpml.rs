@@ -61,7 +61,7 @@ impl<'a, T: Unmarshal<'a> + Default + Copy> Iterator for Iter<'a, T> {
             TpmL::Parsed(s) => {
                 let v: &T;
                 (v, *s) = s.split_first()?;
-                Some(v.clone())
+                Some(*v)
             }
         }
     }
@@ -122,7 +122,7 @@ impl<'a, T: Unmarshal<'a> + Default> Unmarshal<'a> for TpmL<'a, T> {
     fn unmarshal(&mut self, buf: &mut &'a [u8]) -> Result<(), UnmarshalError> {
         let count = u32::unmarshal_val(buf)?;
 
-        let orig: &[u8] = *buf;
+        let orig: &'a [u8] = buf;
         let mut tmp = T::default();
         for _ in 0..count {
             tmp.unmarshal(buf)?

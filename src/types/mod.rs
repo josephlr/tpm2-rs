@@ -65,7 +65,7 @@ pub(crate) fn pop_array_mut<'a, const N: usize>(
     if buf.len() < N {
         return Err(MarshalError::BufferOverflow);
     }
-    let old = mem::replace(buf, &mut []);
+    let old = mem::take(buf);
     let (arr, suffix) = old.split_array_mut();
     *buf = suffix;
     Ok(arr)
@@ -101,7 +101,7 @@ impl Infallible for () {
     fn unmarshal_fixed_val(_: &Self::ARRAY) {}
 }
 
-macro_rules! int_impls { ($($T: ty)+) => { $(
+macro_rules! impl_ints { ($($T: ty)+) => { $(
     impl Fixed for $T {
         const SIZE: usize = mem::size_of::<Self>();
         type ARRAY = [u8; Self::SIZE];
@@ -119,7 +119,7 @@ macro_rules! int_impls { ($($T: ty)+) => { $(
     }
 )+ } }
 
-int_impls!(u8 u16 u32 u64);
+impl_ints!(u8 u16 u32 u64);
 
 impl Fixed for bool {
     const SIZE: usize = <u8 as Fixed>::SIZE;

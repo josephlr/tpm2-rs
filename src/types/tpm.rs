@@ -175,10 +175,7 @@ impl Fixed for RC {
 
 impl Infallible for RC {
     fn unmarshal_fixed(&mut self, arr: &Self::ARRAY) {
-        *self = match NonZeroU32::new(u32::unmarshal_fixed_val(arr)) {
-            Some(n) => Some(TpmError(n)),
-            None => None,
-        };
+        *self = NonZeroU32::new(u32::unmarshal_fixed_val(arr)).map(TpmError);
     }
 }
 

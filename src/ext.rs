@@ -11,9 +11,9 @@ impl<T: Run + ?Sized> TpmExt for T {
             let bytes_requested = buf.len().try_into().unwrap_or(u16::MAX);
             let rsp = self.run(&GetRandom { bytes_requested })?;
 
-            let bytes_recieved = rsp.random_bytes.len();
-            buf[..bytes_recieved].copy_from_slice(rsp.random_bytes);
-            buf = &mut buf[bytes_recieved..];
+            let bytes_received = rsp.random_bytes.len();
+            buf[..bytes_received].copy_from_slice(rsp.random_bytes);
+            buf = &mut buf[bytes_received..];
         }
         Ok(())
     }
