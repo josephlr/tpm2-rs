@@ -1,7 +1,7 @@
 use tpm2::{
     commands::PcrRead,
     os::default_tpm,
-    types::{tpm, tpml, tpms},
+    types::{tpm, tpms},
     Run,
 };
 
@@ -22,7 +22,7 @@ fn main() {
     ];
 
     let cmd = PcrRead {
-        pcr_selection: tpml::PcrSelection::from(&sel),
+        pcr_selection: (&sel).into(),
     };
     println!("Reading from {:?} PCR banks", cmd.pcr_selection.len());
     let rsp = tpm.run(&cmd).expect("Unable to read PCRS");

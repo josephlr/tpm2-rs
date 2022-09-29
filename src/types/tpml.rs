@@ -3,7 +3,7 @@ use crate::{
     error::{MarshalError, UnmarshalError},
     polyfill::ToUsize,
 };
-use core::{convert::TryInto, slice};
+use core::mem;
 
 pub type Digest<'a> = TpmL<'a, &'a [u8]>;
 pub type PcrSelection<'a> = TpmL<'a, tpms::PcrSelection>;
@@ -11,19 +11,22 @@ pub type PcrSelection<'a> = TpmL<'a, tpms::PcrSelection>;
 #[derive(Clone, Copy, Debug)]
 pub enum TpmL<'a, T> {
     Raw(u32, &'a [u8]), // This data has been validated, just not stored
-    Parsed(&'a [T]),
+    Slice(&'a [T]),     // len fits in u32 (checked when constructing)
+    Value(Option<T>),
 }
 
 impl<'a, T> TpmL<'a, T> {
     #[inline]
-    pub fn len(self) -> usize {
+    pub fn len(&self) -> u32 {
         match self {
-            TpmL::Raw(len, _) => len.to_usize(),
-            TpmL::Parsed(s) => s.len(),
+            Self::Raw(len, _) => *len,
+            Self::Slice(s) => s.len() as u32,
+            Self::Value(Some(_)) => 1,
+            Self::Value(None) => 0,
         }
     }
     #[inline]
-    pub fn is_empty(self) -> bool {
+    pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
     #[inline]
@@ -43,13 +46,13 @@ impl<'a, T: Unmarshal<'a> + Default + Copy> IntoIterator for TpmL<'a, T> {
 
 impl<T> Default for TpmL<'_, T> {
     fn default() -> Self {
-        Self::Parsed(&[])
+        Self::Value(None)
     }
 }
 
 pub struct Iter<'a, T>(TpmL<'a, T>);
 
-// TODO: Some of these can be more efficient
+// TODO: We could implement additional Iterator methods more efficiently
 impl<'a, T: Unmarshal<'a> + Default + Copy> Iterator for Iter<'a, T> {
     type Item = T;
     fn next(&mut self) -> Option<T> {
@@ -58,61 +61,71 @@ impl<'a, T: Unmarshal<'a> + Default + Copy> Iterator for Iter<'a, T> {
                 *count = count.checked_sub(1)?;
                 Some(T::unmarshal_val(data).unwrap())
             }
-            TpmL::Parsed(s) => {
+            TpmL::Slice(s) => {
                 let v: &T;
                 (v, *s) = s.split_first()?;
                 Some(*v)
             }
+            TpmL::Value(s) => mem::take(s),
         }
     }
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let len = self.0.len();
+        let len = self.len();
         (len, Some(len))
     }
-    fn count(self) -> usize
-    where
-        Self: Sized,
-    {
+    fn count(self) -> usize {
         self.len()
     }
 }
 
 impl<'a, T: Unmarshal<'a> + Default + Copy> ExactSizeIterator for Iter<'a, T> {
     fn len(&self) -> usize {
-        self.0.len()
+        self.0.len().to_usize()
     }
 }
 
-impl<'a, T> From<&'a T> for TpmL<'a, T> {
-    fn from(v: &'a T) -> Self {
-        Self::Parsed(slice::from_ref(v))
+impl<T> From<T> for TpmL<'_, T> {
+    fn from(v: T) -> Self {
+        Self::Value(Some(v))
+    }
+}
+impl<T> From<[T; 0]> for TpmL<'_, T> {
+    fn from(_: [T; 0]) -> Self {
+        Self::Value(None)
+    }
+}
+impl<T> From<[T; 1]> for TpmL<'_, T> {
+    fn from(a: [T; 1]) -> Self {
+        let [v] = a;
+        Self::Value(Some(v))
     }
 }
 impl<'a, T> From<&'a [T]> for TpmL<'a, T> {
     fn from(s: &'a [T]) -> Self {
-        Self::Parsed(s)
+        assert!(s.len() <= u32::MAX.to_usize());
+        Self::Slice(s)
     }
 }
 impl<'a, T, const N: usize> From<&'a [T; N]> for TpmL<'a, T> {
     fn from(s: &'a [T; N]) -> Self {
-        Self::Parsed(s)
+        Self::Slice(s)
     }
 }
 
 impl<T: Marshal> Marshal for TpmL<'_, T> {
     fn marshal(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
-        match *self {
-            TpmL::Raw(count, data) => {
-                count.marshal(buf)?;
+        self.len().marshal(buf)?;
+        match self {
+            TpmL::Raw(_, data) => {
                 pop_slice_mut(data.len(), buf)?.copy_from_slice(data);
             }
-            TpmL::Parsed(s) => {
-                let count: u32 = s.len().try_into()?;
-                count.marshal(buf)?;
-                for v in s {
+            TpmL::Slice(s) => {
+                for v in *s {
                     v.marshal(buf)?;
                 }
             }
+            TpmL::Value(Some(v)) => v.marshal(buf)?,
+            TpmL::Value(None) => {}
         }
         Ok(())
     }
