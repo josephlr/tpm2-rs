@@ -40,27 +40,46 @@ pub trait Command: CommandData + Default + Debug {
     fn auths(&self) -> Self::Auths {
         Self::Auths::empty()
     }
+}
 
-    fn run<'a>(&self, tpm: &'a mut dyn Tpm) -> Result<Self::Response<'a>, Error> {
-        self.run_with_auths(tpm, &[])
+// Helper trait for running raw commands directly
+pub trait Run: Tpm {
+    #[inline]
+    fn run<'a, C: Command>(&'a mut self, cmd: &C) -> Result<C::Response<'a>, Error> {
+        self.run_with_auths(cmd, &[])
     }
 
     #[inline]
-    fn run_with_auths<'a>(
-        &self,
-        tpm: &'a mut dyn Tpm,
+    fn run_with_auths<'a, C: Command>(
+        &'a mut self,
+        cmd: &C,
         auths: &[&dyn Auth],
-    ) -> Result<Self::Response<'a>, Error> {
-        let mut rsp: Self::Response<'a> = Default::default();
+    ) -> Result<C::Response<'a>, Error> {
+        let mut rsp: C::Response<'a> = Default::default();
         run_impl(
-            tpm,
-            Self::CODE,
-            self.auths().as_slice(),
+            self.as_dyn(),
+            C::CODE,
+            cmd.auths().as_slice(),
             auths,
-            self,
+            cmd,
             &mut rsp,
         )?;
         Ok(rsp)
+    }
+
+    fn as_dyn(&mut self) -> &mut dyn Tpm;
+}
+
+impl<T: Tpm> Run for T {
+    #[inline]
+    fn as_dyn(&mut self) -> &mut dyn Tpm {
+        self
+    }
+}
+impl Run for dyn Tpm + '_ {
+    #[inline]
+    fn as_dyn(&mut self) -> &mut dyn Tpm {
+        self
     }
 }
 
@@ -169,21 +188,18 @@ mod test {
     fn can_exec() {
         #[allow(dead_code)]
         fn take_tpm(tpm: &mut dyn Tpm) -> Result<Vec<u8>, Error> {
-            Startup {
+            tpm.run(&Startup {
                 startup_type: tpm::SU::Clear,
-            }
-            .run(tpm)?;
+            })?;
 
-            let rsp = GetRandom {
+            let rsp = tpm.run(&GetRandom {
                 bytes_requested: 12,
-            }
-            .run(tpm)?;
+            })?;
             let b = Vec::from(rsp.random_bytes);
 
-            Shutdown {
+            tpm.run(&Shutdown {
                 shutdown_type: tpm::SU::Clear,
-            }
-            .run(tpm)?;
+            })?;
             Ok(b)
         }
     }
