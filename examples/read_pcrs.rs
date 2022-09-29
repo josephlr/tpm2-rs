@@ -2,7 +2,7 @@ use tpm2::{
     commands::PcrRead,
     os::default_tpm,
     types::{tpm, tpms},
-    Run,
+    TpmRaw,
 };
 
 fn main() {

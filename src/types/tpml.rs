@@ -1,7 +1,9 @@
-use super::{pop_slice_mut, tpms, Marshal, Unmarshal};
+use super::tpms;
 use crate::{
     error::{MarshalError, UnmarshalError},
+    marshal::pop_slice_mut,
     polyfill::ToUsize,
+    Marshal, Unmarshal,
 };
 use core::mem;
 

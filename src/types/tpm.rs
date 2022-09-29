@@ -1,14 +1,15 @@
 //! Constants (TPM_* types)
 //!
 //! This module ... TODO
+use crate::{
+    error::{TpmError, UnmarshalError},
+    Fixed, Infallible, Unmarshal,
+};
 use core::num::NonZeroU32;
-
-use super::{Fixed, Infallible, Unmarshal};
-use crate::error::{TpmError, UnmarshalError};
 
 /// TPM_RH constants
 pub mod rh {
-    use crate::Handle;
+    use crate::types::Handle;
     pub const PASSWORD: Handle = 0x40000009;
 }
 

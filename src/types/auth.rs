@@ -1,7 +1,5 @@
-use crate::{error::AuthError, tpm, tpma::Session, tpms, Handle};
-
-/// The maximum number of authorizations for a Command
-pub(crate) const MAX_NUM_AUTHS: usize = 3;
+use super::{tpm, tpma, tpms, Handle};
+use crate::error::AuthError;
 
 pub trait Auth: core::fmt::Debug {
     fn get_auth(&self) -> tpms::AuthCommand;
@@ -22,14 +20,14 @@ impl Auth for PasswordAuth<'_> {
         tpms::AuthCommand {
             session_handle: tpm::rh::PASSWORD,
             nonce: &[],
-            session_attributes: Session::CONTINUE_SESSION,
+            session_attributes: tpma::Session::CONTINUE_SESSION,
             hmac: self.0,
         }
     }
 
     fn set_auth(&self, auth: &tpms::AuthResponse) -> Result<(), AuthError> {
         assert!(auth.nonce.is_empty());
-        assert_eq!(auth.session_attributes, Session::CONTINUE_SESSION);
+        assert_eq!(auth.session_attributes, tpma::Session::CONTINUE_SESSION);
         assert!(auth.hmac.is_empty());
         Ok(())
     }

@@ -10,7 +10,7 @@ fn main() {
 }
 
 fn run_example(tpm: &mut dyn Tpm) {
-    use tpm2::Run;
+    use tpm2::TpmRaw;
 
     println!("Requesting {} random bytes with one command", NUM_BYTES);
     let cmd = GetRandom {

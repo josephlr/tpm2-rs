@@ -1,8 +1,9 @@
-use super::{pop_array_mut, pop_slice, tpm, tpma, Fixed, Marshal, Unmarshal};
+use super::{tpm, tpma, Handle};
 use crate::{
     error::{MarshalError, UnmarshalError},
+    marshal::{pop_array_mut, pop_slice},
     polyfill::ToArr,
-    Handle,
+    Fixed, Marshal, Unmarshal,
 };
 
 // TPMS_TIME_INFO

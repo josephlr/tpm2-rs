@@ -1,5 +1,8 @@
-use super::{pop_slice, pop_slice_mut, Marshal, Unmarshal};
-use crate::error::{MarshalError, UnmarshalError};
+use crate::{
+    error::{MarshalError, UnmarshalError},
+    marshal::{pop_slice, pop_slice_mut},
+    Marshal, Unmarshal,
+};
 use core::fmt::Debug;
 
 pub trait Buffer: Marshal + Default + Debug {}
