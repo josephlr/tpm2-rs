@@ -13,7 +13,7 @@ pub struct AuthHandle<'a> {
 }
 
 #[derive(Debug)]
-pub struct PasswordAuth<'a>(&'a [u8]);
+pub struct PasswordAuth<'a>(pub &'a [u8]);
 
 impl Auth for PasswordAuth<'_> {
     fn get_auth(&self) -> tpms::AuthCommand {
