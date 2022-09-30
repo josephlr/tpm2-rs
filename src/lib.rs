@@ -26,7 +26,11 @@ pub use traits::{Tpm, TpmExt, TpmRaw};
 mod test {
     use std::vec::Vec;
 
-    use crate::{commands::*, types::tpm, *};
+    use crate::{
+        commands::*,
+        types::{tpm, Auth, PasswordAuth},
+        *,
+    };
 
     #[test]
     fn can_exec() {
@@ -46,5 +50,34 @@ mod test {
             })?;
             Ok(b)
         }
+    }
+
+    #[test]
+    fn with_auth() {
+        fn check_command(_: &impl Command) {}
+
+        let password = [1, 2, 3, 4, 5];
+        let auth1 = PasswordAuth(&password);
+
+        static PASS_AUTH: PasswordAuth = PasswordAuth(&[42; 5]);
+        let auth2: &'static dyn Auth = &PASS_AUTH;
+
+        let c0 = GetRandom {
+            bytes_requested: 12,
+        };
+        check_command(&c0);
+
+        let c1 = c0.with_auth(&auth1);
+        check_command(&c1);
+
+        let c2 = c1.with_auth(auth2);
+        check_command(&c2);
+
+        let c3 = c2.with_auth(&auth1);
+        check_command(&c3);
+
+        // Does not compile
+        // let c4 = c3.with_auth(auth2);
+        // check_command(&c4);
     }
 }

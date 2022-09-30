@@ -20,8 +20,8 @@ impl CommandData for Startup {
 impl Command for Startup {
     const CODE: tpm::CC = tpm::CC::Startup;
     type Response<'a> = ();
-    type Auths<'a> = [&'a dyn Auth; 0];
-    fn auths(&self) -> Self::Auths<'_> {
+    type Auths = [&'static dyn Auth; 0];
+    fn auths(&self) -> Self::Auths {
         []
     }
 }
@@ -42,8 +42,8 @@ impl CommandData for Shutdown {
 impl Command for Shutdown {
     const CODE: tpm::CC = tpm::CC::Shutdown;
     type Response<'a> = ();
-    type Auths<'a> = [&'a dyn Auth; 0];
-    fn auths(&self) -> Self::Auths<'_> {
+    type Auths = [&'static dyn Auth; 0];
+    fn auths(&self) -> Self::Auths {
         []
     }
 }
@@ -503,8 +503,8 @@ impl CommandData for GetRandom {
 impl Command for GetRandom {
     const CODE: tpm::CC = tpm::CC::GetRandom;
     type Response<'a> = GetRandomResponse<'a>;
-    type Auths<'a> = [&'a dyn Auth; 0];
-    fn auths(&self) -> Self::Auths<'_> {
+    type Auths = [&'static dyn Auth; 0];
+    fn auths(&self) -> Self::Auths {
         []
     }
 }
@@ -850,8 +850,8 @@ impl CommandData for PcrRead<'_> {
 impl Command for PcrRead<'_> {
     const CODE: tpm::CC = tpm::CC::PcrRead;
     type Response<'a> = PcrReadResponse<'a>;
-    type Auths<'a> = [&'a dyn Auth; 0] where Self: 'a;
-    fn auths(&self) -> Self::Auths<'_> {
+    type Auths = [&'static dyn Auth; 0];
+    fn auths(&self) -> Self::Auths {
         []
     }
 }
@@ -1572,8 +1572,8 @@ impl CommandData for ReadClock {}
 impl Command for ReadClock {
     const CODE: tpm::CC = tpm::CC::ReadClock;
     type Response<'a> = ReadClockResponse;
-    type Auths<'a> = [&'a dyn Auth; 0];
-    fn auths(&self) -> Self::Auths<'_> {
+    type Auths = [&'static dyn Auth; 0];
+    fn auths(&self) -> Self::Auths {
         []
     }
 }

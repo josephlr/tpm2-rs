@@ -52,18 +52,81 @@ mod sealed {
             self
         }
     }
+
+    /// Helper trait for dealing with Auth Arrays
+    pub trait AuthArray {
+        fn as_slice(&self) -> &[&dyn Auth];
+    }
+    impl<const N: usize> AuthArray for [&dyn Auth; N] {
+        fn as_slice(&self) -> &[&dyn Auth] {
+            self
+        }
+    }
 }
 pub(crate) use sealed::*;
 
+/// Auth arrays which can add an additional authorization
+pub trait AppendAuth<'e>: AuthArray {
+    type Output: AuthArray;
+    fn append(self, auth: &'e dyn Auth) -> Self::Output;
+}
+impl<'e> AppendAuth<'e> for [&dyn Auth; 0] {
+    type Output = [&'e dyn Auth; 1];
+    fn append(self, auth: &'e dyn Auth) -> Self::Output {
+        [auth]
+    }
+}
+impl<'e, 'a: 'e> AppendAuth<'e> for [&'a dyn Auth; 1] {
+    type Output = [&'e dyn Auth; 2];
+    fn append(self, auth: &'e dyn Auth) -> Self::Output {
+        let [a1] = self;
+        [a1, auth]
+    }
+}
+impl<'e, 'a: 'e> AppendAuth<'e> for [&'a dyn Auth; 2] {
+    type Output = [&'e dyn Auth; 3];
+    fn append(self, auth: &'e dyn Auth) -> Self::Output {
+        let [a1, a2] = self;
+        [a1, a2, auth]
+    }
+}
+
+/// Helper type for implementing [`Command::with_auth`]
+#[derive(Debug)]
+pub struct WithAuth<'a, C>(C, &'a dyn Auth);
+impl<'a, C: Command> Inner for WithAuth<'a, C> {
+    fn inner(&self) -> &dyn CommandData {
+        self.0.inner()
+    }
+}
+impl<'a, C: Command> Command for WithAuth<'a, C>
+where
+    C::Auths: AppendAuth<'a>,
+{
+    const CODE: tpm::CC = C::CODE;
+    type Response<'b> = C::Response<'b>;
+
+    type Auths = <C::Auths as AppendAuth<'a>>::Output;
+    fn auths(&self) -> Self::Auths {
+        self.0.auths().append(self.1)
+    }
+}
+
 /// Common Trait for all TPM2 Commands
-pub trait Command: Inner + Default + Debug {
+pub trait Command: Inner + Debug + Sized {
     const CODE: tpm::CC;
     type Response<'a>: ResponseData<'a> + Default + Debug;
 
-    type Auths<'a>: AsRef<[&'a dyn Auth]>
+    type Auths: AuthArray;
+    fn auths(&self) -> Self::Auths;
+
+    // TODO: Move to `impl Command` when that's supported.
+    fn with_auth<'a>(self, auth: &'a dyn Auth) -> WithAuth<'a, Self>
     where
-        Self: 'a;
-    fn auths(&self) -> Self::Auths<'_>;
+        WithAuth<'a, Self>: Command,
+    {
+        WithAuth(self, auth)
+    }
 }
 
 // This functions is intentionally non-generic to reduce code size.

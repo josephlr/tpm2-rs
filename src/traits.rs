@@ -3,7 +3,7 @@
 use core::borrow::Borrow;
 
 use crate::{
-    commands::{run_command, GetRandom},
+    commands::{run_command, AuthArray, GetRandom},
     error::DriverError,
     Command, Error,
 };
@@ -23,7 +23,7 @@ pub trait TpmRaw: Tpm {
         let mut rsp: C::Response<'a> = Default::default();
         run_command(
             self.as_tpm(),
-            cmd.auths().as_ref(),
+            cmd.auths().as_slice(),
             cmd.inner(),
             &mut rsp,
             C::CODE,
