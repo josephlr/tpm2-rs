@@ -25,7 +25,7 @@ fn main() {
         pcr_selection: (&sel).into(),
     };
     println!("Reading from {:?} PCR banks", cmd.pcr_selection.len());
-    let rsp = tpm.run(&cmd).expect("Unable to read PCRS");
+    let rsp = tpm.run(cmd).expect("Unable to read PCRS");
 
     for sel in rsp.pcr_selection {
         print!("{:?} selection:", sel.hash);

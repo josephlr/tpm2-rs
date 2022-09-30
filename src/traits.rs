@@ -1,5 +1,7 @@
 //! Main TPM2 device traits
 
+use core::borrow::Borrow;
+
 use crate::{
     commands::{run_command, GetRandom},
     error::DriverError,
@@ -17,18 +19,18 @@ pub trait Tpm {
 /// Trait extending [`Tpm`] for running raw commands.
 pub trait TpmRaw: Tpm {
     #[inline]
-    fn run<'a, C: Command>(&'a mut self, cmd: &C) -> Result<C::Response<'a>, Error> {
+    fn run<'a, C: Command>(&'a mut self, cmd: impl Borrow<C>) -> Result<C::Response<'a>, Error> {
         self.run_with_auths(cmd, &[])
     }
 
     #[inline]
     fn run_with_auths<'a, C: Command>(
         &'a mut self,
-        cmd: &C,
+        cmd: impl Borrow<C>,
         auths: &[&dyn Auth],
     ) -> Result<C::Response<'a>, Error> {
         let mut rsp: C::Response<'a> = Default::default();
-        run_command(self.as_tpm(), cmd, &mut rsp, C::CODE, auths)?;
+        run_command(self.as_tpm(), cmd.borrow(), &mut rsp, C::CODE, auths)?;
         Ok(rsp)
     }
 
@@ -56,7 +58,7 @@ pub trait TpmExt: TpmRaw {
     fn getrandom(&mut self, mut buf: &mut [u8]) -> Result<(), Error> {
         while !buf.is_empty() {
             let bytes_requested = buf.len().try_into().unwrap_or(u16::MAX);
-            let rsp = self.run(&GetRandom { bytes_requested })?;
+            let rsp = self.run(GetRandom { bytes_requested })?;
 
             let bytes_received = rsp.random_bytes.len();
             buf[..bytes_received].copy_from_slice(rsp.random_bytes);

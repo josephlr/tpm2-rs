@@ -32,16 +32,16 @@ mod test {
     fn can_exec() {
         #[allow(dead_code)]
         fn take_tpm(tpm: &mut dyn Tpm) -> Result<Vec<u8>, Error> {
-            tpm.run(&Startup {
+            tpm.run(Startup {
                 startup_type: tpm::SU::Clear,
             })?;
 
-            let rsp = tpm.run(&GetRandom {
+            let rsp = tpm.run(GetRandom {
                 bytes_requested: 12,
             })?;
             let b = Vec::from(rsp.random_bytes);
 
-            tpm.run(&Shutdown {
+            tpm.run(Shutdown {
                 shutdown_type: tpm::SU::Clear,
             })?;
             Ok(b)

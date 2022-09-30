@@ -16,7 +16,7 @@ fn run_example(tpm: &mut dyn Tpm) {
     let cmd = GetRandom {
         bytes_requested: NUM_BYTES,
     };
-    let rsp = tpm.run(&cmd).expect("TPM2_GetRandom failed");
+    let rsp = tpm.run(cmd).expect("TPM2_GetRandom failed");
     println!("Got {} random bytes:", rsp.random_bytes.len());
     print_bytes(rsp.random_bytes);
 }
