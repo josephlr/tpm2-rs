@@ -20,16 +20,10 @@ use crate::{
     Error, Marshal, MarshalFixed, Tpm, Unmarshal,
 };
 
-/// The maximum number of authorizations for a Command
-const MAX_NUM_AUTHS: usize = 3;
-
 mod sealed {
     use super::*;
     /// The object-safe functionality of a TPM Command
     pub trait CommandData {
-        fn get_auths(&self, _: &mut [&dyn Auth; MAX_NUM_AUTHS]) -> usize {
-            0
-        }
         fn marshal_handles(&self, _: &mut &mut [u8]) -> Result<(), MarshalError> {
             Ok(())
         }
@@ -59,34 +53,27 @@ mod sealed {
         }
     }
 }
-use sealed::*;
+pub(crate) use sealed::*;
 
 /// Common Trait for all TPM2 Commands
 pub trait Command: Inner + Default + Debug {
     const CODE: tpm::CC;
     type Response<'a>: ResponseData<'a> + Default + Debug;
 
-    // type Auths: for<'a> AsRef<[&'a dyn Auth]>;
+    type Auths<'a>: AsRef<[&'a dyn Auth]>
+    where
+        Self: 'a;
+    fn auths(&self) -> Self::Auths<'_>;
 }
 
 // This functions is intentionally non-generic to reduce code size.
 pub(crate) fn run_command<'a>(
     tpm: &'a mut dyn Tpm,
+    auths: &[&dyn Auth],
     cmd: &dyn CommandData,
     rsp: &mut dyn ResponseData<'a>,
     code: tpm::CC,
-    extra_auths: &[&dyn Auth],
 ) -> Result<(), Error> {
-    // Merge Auths into a single slice
-    let mut auths: [&dyn Auth; 3] = Default::default();
-    let num_cmd_auths = cmd.get_auths(&mut auths);
-    let num_auths = num_cmd_auths + extra_auths.len();
-    if num_auths > 3 {
-        return Err(Error::TooManyAuths(num_auths));
-    }
-    auths[num_cmd_auths..num_auths].copy_from_slice(extra_auths);
-    let auths = &auths[..num_auths];
-
     //// Marshal Command
     let mut cmd_buf = tpm.command_buf();
     let buf_len = cmd_buf.len();

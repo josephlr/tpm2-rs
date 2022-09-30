@@ -5,7 +5,6 @@ use core::borrow::Borrow;
 use crate::{
     commands::{run_command, GetRandom},
     error::DriverError,
-    types::Auth,
     Command, Error,
 };
 
@@ -20,22 +19,14 @@ pub trait Tpm {
 pub trait TpmRaw: Tpm {
     #[inline]
     fn run<'a, C: Command>(&'a mut self, cmd: impl Borrow<C>) -> Result<C::Response<'a>, Error> {
-        self.run_with_auths(cmd, &[])
-    }
-
-    #[inline]
-    fn run_with_auths<'a, C: Command>(
-        &'a mut self,
-        cmd: impl Borrow<C>,
-        auths: &[&dyn Auth],
-    ) -> Result<C::Response<'a>, Error> {
+        let cmd: &C = cmd.borrow();
         let mut rsp: C::Response<'a> = Default::default();
         run_command(
             self.as_tpm(),
-            cmd.borrow().inner(),
+            cmd.auths().as_ref(),
+            cmd.inner(),
             &mut rsp,
             C::CODE,
-            auths,
         )?;
         Ok(rsp)
     }
