@@ -4,8 +4,6 @@ use crate::{error::UnmarshalError, polyfill::ToArr, MarshalFixed, Unmarshal};
 
 mod auth;
 pub use auth::*;
-mod buffer;
-pub use buffer::*;
 
 pub mod tpm;
 pub mod tpm2b;
