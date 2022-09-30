@@ -8,7 +8,6 @@ pub enum Error {
     Tpm(TpmError),
     Marshal(MarshalError),
     Unmarshal(UnmarshalError),
-    Auth(AuthError),
     Driver(DriverError),
     TooManyAuths(usize),
 }
@@ -36,10 +35,6 @@ pub enum UnmarshalError {
 
 #[derive(Debug)]
 #[non_exhaustive]
-pub enum AuthError {}
-
-#[derive(Debug)]
-#[non_exhaustive]
 pub enum DriverError {
     IntegerOverflow,
     #[cfg(feature = "std")]
@@ -60,11 +55,6 @@ impl From<MarshalError> for Error {
 impl From<UnmarshalError> for Error {
     fn from(e: UnmarshalError) -> Self {
         Self::Unmarshal(e)
-    }
-}
-impl From<AuthError> for Error {
-    fn from(e: AuthError) -> Self {
-        Self::Auth(e)
     }
 }
 impl From<DriverError> for Error {
