@@ -30,7 +30,13 @@ pub trait TpmRaw: Tpm {
         auths: &[&dyn Auth],
     ) -> Result<C::Response<'a>, Error> {
         let mut rsp: C::Response<'a> = Default::default();
-        run_command(self.as_tpm(), cmd.borrow(), &mut rsp, C::CODE, auths)?;
+        run_command(
+            self.as_tpm(),
+            cmd.borrow().inner(),
+            &mut rsp,
+            C::CODE,
+            auths,
+        )?;
         Ok(rsp)
     }
 

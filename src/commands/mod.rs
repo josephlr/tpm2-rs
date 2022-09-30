@@ -48,13 +48,25 @@ mod sealed {
         }
     }
     impl ResponseData<'_> for () {}
+
+    /// Helper trait to reduce generated code (can't use AsRef or Borrow here).
+    pub trait Inner {
+        fn inner(&self) -> &dyn CommandData;
+    }
+    impl<T: CommandData> Inner for T {
+        fn inner(&self) -> &dyn CommandData {
+            self
+        }
+    }
 }
 use sealed::*;
 
 /// Common Trait for all TPM2 Commands
-pub trait Command: CommandData + Default + Debug {
+pub trait Command: Inner + Default + Debug {
     const CODE: tpm::CC;
     type Response<'a>: ResponseData<'a> + Default + Debug;
+
+    // type Auths: for<'a> AsRef<[&'a dyn Auth]>;
 }
 
 // This functions is intentionally non-generic to reduce code size.
