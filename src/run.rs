@@ -140,13 +140,13 @@ impl TpmRun for dyn Tpm + '_ {
         cmd: C,
     ) -> Result<C::Response<'_>, Error> {
         let mut rsp = C::Response::default();
-        run_command(self, &cmd.auths(), cmd.data(), &mut rsp, C::CODE)?;
+        run_impl(self, &cmd.auths(), cmd.data(), &mut rsp, C::CODE)?;
         Ok(rsp)
     }
 }
 
 // This function is intentionally non-generic to reduce code size.
-pub(crate) fn run_command<'a>(
+fn run_impl<'a>(
     tpm: &'a mut dyn Tpm,
     auths: &[&dyn Auth],
     cmd: &dyn CommandData,
