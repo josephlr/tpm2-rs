@@ -8,7 +8,7 @@ use crate::{
 ///
 /// This command (and its response) are defined in the
 /// TPM2 Library Specification - v1.59 - Part 3 - Section 9.3
-#[derive(Default, Debug)]
+#[derive(Clone, Copy, Default, Debug)]
 pub struct Startup {
     pub startup_type: tpm::SU,
 }
@@ -30,7 +30,7 @@ impl Command for Startup {
 ///
 /// This command (and its response) are defined in the
 /// TPM2 Library Specification - v1.59 - Part 3 - Section 9.4
-#[derive(Default, Debug)]
+#[derive(Clone, Copy, Default, Debug)]
 pub struct Shutdown {
     pub shutdown_type: tpm::SU,
 }
@@ -484,14 +484,14 @@ impl Command for Shutdown {
 ///
 /// This command (and its response) are defined in the
 /// TPM2 Library Specification - v1.59 - Part 3 - Section 16.1
-#[derive(Default, Debug)]
+#[derive(Clone, Copy, Default, Debug)]
 pub struct GetRandom {
     pub bytes_requested: u16,
 }
 /// TPM2_GetRandom Response
 ///
 /// See [GetRandom] for more information.
-#[derive(Default, Debug)]
+#[derive(Clone, Copy, Default, Debug)]
 pub struct GetRandomResponse<'a> {
     pub random_bytes: &'a [u8],
 }
@@ -838,7 +838,7 @@ impl<'a> ResponseData<'a> for GetRandomResponse<'a> {
 ///
 /// This command (and its response) are defined in the
 /// TPM2 Library Specification - v1.59 - Part 3 - Section 22.4
-#[derive(Default, Debug)]
+#[derive(Clone, Copy, Default, Debug)]
 pub struct PcrRead<'a> {
     pub pcr_selection: tpml::PcrSelection<'a>,
 }
@@ -859,7 +859,7 @@ impl Command for PcrRead<'_> {
 /// TPM2_PCR_Read Response
 ///
 /// See [PcrRead] for more information.
-#[derive(Default, Debug)]
+#[derive(Clone, Copy, Default, Debug)]
 pub struct PcrReadResponse<'a> {
     pub pcr_update_counter: u32,
     pub pcr_selection: tpml::PcrSelection<'a>,
@@ -1565,7 +1565,7 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 ///
 /// This command (and its response) are defined in the
 /// TPM2 Library Specification - v1.59 - Part 3 - Section 29.1
-#[derive(Default, Debug)]
+#[derive(Clone, Copy, Default, Debug)]
 pub struct ReadClock {}
 
 impl CommandData for ReadClock {}
@@ -1581,7 +1581,7 @@ impl Command for ReadClock {
 /// TPM2_ReadClock Response
 ///
 /// See [ReadClock] for more information.
-#[derive(Default, Debug)]
+#[derive(Clone, Copy, Default, Debug)]
 pub struct ReadClockResponse {
     pub current_time: tpms::TimeInfo,
 }
