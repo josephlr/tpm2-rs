@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
     types::{tpm, tpml, tpms},
-    Marshal, Unmarshal,
+    Auths, Marshal, Unmarshal,
 };
 
 /// TPM2_Startup Command

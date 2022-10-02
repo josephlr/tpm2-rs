@@ -3,7 +3,7 @@
 use core::fmt::Debug;
 
 use crate::{
-    commands::{run_command, Auths},
+    commands::run_command,
     error::{DriverError, MarshalError},
     marshal::{CommandData, ResponseData},
     types::{tpm, Auth},
@@ -34,8 +34,37 @@ pub trait Command: CommandData + Copy + Debug {
     }
 }
 
+pub trait Auths<const N: usize> {
+    fn auths(&self) -> [&dyn Auth; N] {
+        [Default::default(); N]
+    }
+}
+
 #[derive(Clone, Copy, Debug)]
 pub struct WithAuth<'a, C>(C, &'a dyn Auth);
+
+impl<C: CommandData> CommandData for &C {
+    fn marshal_handles(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
+        (*self).marshal_handles(buf)
+    }
+    fn marshal_params(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
+        (*self).marshal_params(buf)
+    }
+}
+impl<C: Command> Command for &C {
+    const CODE: tpm::CC = C::CODE;
+    type Response<'t> = C::Response<'t>;
+    #[inline]
+    fn data(&self) -> &dyn CommandData {
+        (*self).data()
+    }
+}
+impl<const N: usize, C: Auths<N>> Auths<N> for &C {
+    #[inline]
+    fn auths(&self) -> [&dyn Auth; N] {
+        (*self).auths()
+    }
+}
 
 impl<C: CommandData> CommandData for WithAuth<'_, C> {
     #[inline]

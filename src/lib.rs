@@ -21,7 +21,7 @@ pub mod types;
 pub use error::Error;
 pub use ext::TpmExt;
 pub use marshal::{Marshal, MarshalFixed, Unmarshal, UnmarshalAny};
-pub use run::{Command, Tpm, TpmRun, WithAuth};
+pub use run::{Auths, Command, Tpm, TpmRun, WithAuth};
 
 #[cfg(test)]
 mod test {

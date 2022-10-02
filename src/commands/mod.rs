@@ -20,35 +20,6 @@ use crate::{
     Command, Error, Marshal, MarshalFixed, Tpm, Unmarshal,
 };
 
-pub trait Auths<const N: usize> {
-    fn auths(&self) -> [&dyn Auth; N] {
-        [Default::default(); N]
-    }
-}
-
-impl<C: CommandData> CommandData for &C {
-    fn marshal_handles(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
-        (*self).marshal_handles(buf)
-    }
-    fn marshal_params(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
-        (*self).marshal_params(buf)
-    }
-}
-impl<C: Command> Command for &C {
-    const CODE: tpm::CC = C::CODE;
-    type Response<'t> = C::Response<'t>;
-    #[inline]
-    fn data(&self) -> &dyn CommandData {
-        (*self).data()
-    }
-}
-impl<const N: usize, C: Auths<N>> Auths<N> for &C {
-    #[inline]
-    fn auths(&self) -> [&dyn Auth; N] {
-        (*self).auths()
-    }
-}
-
 // This function is intentionally non-generic to reduce code size.
 pub(crate) fn run_command<'a>(
     tpm: &'a mut dyn Tpm,
