@@ -1,11 +1,9 @@
 //! Main TPM2 device traits
 
-use core::borrow::Borrow;
-
 use crate::{
-    commands::{run_command, AuthArray, GetRandom},
+    commands::{run_command, Auths, Command, GetRandom},
     error::DriverError,
-    Command, Error,
+    Error,
 };
 
 /// A TPM2 Device
@@ -17,34 +15,30 @@ pub trait Tpm {
 
 /// Trait extending [`Tpm`] for running raw commands.
 pub trait TpmRaw: Tpm {
-    #[inline]
-    fn run<'a, C: Command>(&'a mut self, cmd: impl Borrow<C>) -> Result<C::Response<'a>, Error> {
-        let cmd: &C = cmd.borrow();
-        let mut rsp: C::Response<'a> = Default::default();
-        run_command(
-            self.as_tpm(),
-            cmd.auths().as_slice(),
-            cmd.inner(),
-            &mut rsp,
-            C::CODE,
-        )?;
-        Ok(rsp)
-    }
-
-    #[doc(hidden)]
-    fn as_tpm(&mut self) -> &mut dyn Tpm;
+    fn run<C: Command + Auths<N>, const N: usize>(
+        &mut self,
+        cmd: C,
+    ) -> Result<C::Response<'_>, Error>;
 }
 
 impl<T: Tpm> TpmRaw for T {
     #[inline]
-    fn as_tpm(&mut self) -> &mut dyn Tpm {
-        self
+    fn run<C: Command + Auths<N>, const N: usize>(
+        &mut self,
+        cmd: C,
+    ) -> Result<C::Response<'_>, Error> {
+        <dyn Tpm>::run(self, cmd)
     }
 }
 impl TpmRaw for dyn Tpm + '_ {
     #[inline]
-    fn as_tpm(&mut self) -> &mut dyn Tpm {
-        self
+    fn run<C: Command + Auths<N>, const N: usize>(
+        &mut self,
+        cmd: C,
+    ) -> Result<C::Response<'_>, Error> {
+        let mut rsp = C::Response::default();
+        run_command(self, &cmd.auths(), cmd.data(), &mut rsp, C::CODE)?;
+        Ok(rsp)
     }
 }
 

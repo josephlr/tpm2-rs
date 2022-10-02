@@ -22,7 +22,7 @@ use crate::{
 
 mod sealed {
     use super::*;
-    /// The object-safe functionality of a TPM Command
+    /// The object-safe supertrait of [`Command`]
     pub trait CommandData {
         fn marshal_handles(&self, _: &mut &mut [u8]) -> Result<(), MarshalError> {
             Ok(())
@@ -32,104 +32,116 @@ mod sealed {
         }
     }
 
-    /// The object-safe functionality of a TPM Response
-    pub trait ResponseData<'a> {
-        fn unmarshal_handles(&mut self, _: &mut &[u8]) -> Result<(), UnmarshalError> {
+    /// The object-safe supertrait of [`Response`](Command::Response)
+    pub trait ResponseData<'b> {
+        fn unmarshal_handles(&mut self, _: &mut &'b [u8]) -> Result<(), UnmarshalError> {
             Ok(())
         }
-        fn unmarshal_params(&mut self, _: &mut &'a [u8]) -> Result<(), UnmarshalError> {
+        fn unmarshal_params(&mut self, _: &mut &'b [u8]) -> Result<(), UnmarshalError> {
             Ok(())
         }
     }
     impl ResponseData<'_> for () {}
-
-    /// Helper trait to reduce generated code (can't use AsRef or Borrow here).
-    pub trait Inner {
-        fn inner(&self) -> &dyn CommandData;
-    }
-    impl<T: CommandData> Inner for T {
-        fn inner(&self) -> &dyn CommandData {
-            self
-        }
-    }
-
-    /// Helper trait for dealing with Auth Arrays
-    pub trait AuthArray {
-        fn as_slice(&self) -> &[&dyn Auth];
-    }
-    impl<const N: usize> AuthArray for [&dyn Auth; N] {
-        fn as_slice(&self) -> &[&dyn Auth] {
-            self
-        }
-    }
 }
-pub(crate) use sealed::*;
-
-/// Auth arrays which can add an additional authorization
-pub trait AppendAuth<'e>: AuthArray {
-    type Output: AuthArray;
-    fn append(self, auth: &'e dyn Auth) -> Self::Output;
-}
-impl<'e> AppendAuth<'e> for [&dyn Auth; 0] {
-    type Output = [&'e dyn Auth; 1];
-    fn append(self, auth: &'e dyn Auth) -> Self::Output {
-        [auth]
-    }
-}
-impl<'e, 'a: 'e> AppendAuth<'e> for [&'a dyn Auth; 1] {
-    type Output = [&'e dyn Auth; 2];
-    fn append(self, auth: &'e dyn Auth) -> Self::Output {
-        let [a1] = self;
-        [a1, auth]
-    }
-}
-impl<'e, 'a: 'e> AppendAuth<'e> for [&'a dyn Auth; 2] {
-    type Output = [&'e dyn Auth; 3];
-    fn append(self, auth: &'e dyn Auth) -> Self::Output {
-        let [a1, a2] = self;
-        [a1, a2, auth]
-    }
-}
-
-/// Helper type for implementing [`Command::with_auth`]
-#[derive(Debug)]
-pub struct WithAuth<'a, C>(C, &'a dyn Auth);
-impl<'a, C: Command> Inner for WithAuth<'a, C> {
-    fn inner(&self) -> &dyn CommandData {
-        self.0.inner()
-    }
-}
-impl<'a, C: Command> Command for WithAuth<'a, C>
-where
-    C::Auths: AppendAuth<'a>,
-{
-    const CODE: tpm::CC = C::CODE;
-    type Response<'b> = C::Response<'b>;
-
-    type Auths = <C::Auths as AppendAuth<'a>>::Output;
-    fn auths(&self) -> Self::Auths {
-        self.0.auths().append(self.1)
-    }
-}
+use sealed::*;
 
 /// Common Trait for all TPM2 Commands
-pub trait Command: Inner + Debug + Sized {
+pub trait Command: CommandData + Copy + Debug {
     const CODE: tpm::CC;
-    type Response<'a>: ResponseData<'a> + Default + Debug;
+    type Response<'t>: ResponseData<'t> + Default + Copy + Debug;
 
-    type Auths: AuthArray;
-    fn auths(&self) -> Self::Auths;
+    /// This helper function isn't necessary for correctness, but exists to
+    /// reduce the number of vtables we use. If we have a type of `&C`, `&&C`,
+    /// [`WithAuth<'a, C>`] or `&WithAuth<'a, &C>`, we can instead use the
+    /// vtable for `C`. See the difference in code generation:
+    /// - [without the helper](https://godbolt.org/z/3Yv9TYT18)
+    /// - [with the helper](https://godbolt.org/z/793r1ccjc)
+    /// Note the difference in the number of vtables emitted.
+    ///
+    /// It should always be the case that `c.data().marshal_*()` and
+    /// `c.marshal_*() do the exact same thing.
+    fn data(&self) -> &dyn CommandData {
+        self
+    }
 
-    // TODO: Move to `impl Command` when that's supported.
-    fn with_auth<'a>(self, auth: &'a dyn Auth) -> WithAuth<'a, Self>
-    where
-        WithAuth<'a, Self>: Command,
-    {
+    fn with_auth(self, auth: &'_ dyn Auth) -> WithAuth<'_, Self> {
         WithAuth(self, auth)
     }
 }
 
-// This functions is intentionally non-generic to reduce code size.
+pub trait Auths<const N: usize> {
+    fn auths(&self) -> [&dyn Auth; N] {
+        [Default::default(); N]
+    }
+}
+
+impl<C: CommandData> CommandData for &C {
+    fn marshal_handles(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
+        (*self).marshal_handles(buf)
+    }
+    fn marshal_params(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
+        (*self).marshal_params(buf)
+    }
+}
+impl<C: Command> Command for &C {
+    const CODE: tpm::CC = C::CODE;
+    type Response<'t> = C::Response<'t>;
+    #[inline]
+    fn data(&self) -> &dyn CommandData {
+        (*self).data()
+    }
+}
+impl<const N: usize, C: Auths<N>> Auths<N> for &C {
+    #[inline]
+    fn auths(&self) -> [&dyn Auth; N] {
+        (*self).auths()
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct WithAuth<'a, C>(C, &'a dyn Auth);
+
+impl<C: CommandData> CommandData for WithAuth<'_, C> {
+    #[inline]
+    fn marshal_handles(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
+        self.0.marshal_handles(buf)
+    }
+    #[inline]
+    fn marshal_params(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
+        self.0.marshal_params(buf)
+    }
+}
+impl<C: Command> Command for WithAuth<'_, C> {
+    const CODE: tpm::CC = C::CODE;
+    type Response<'t> = C::Response<'t>;
+    #[inline]
+    fn data(&self) -> &dyn CommandData {
+        self.0.data()
+    }
+}
+
+impl<C: Auths<0>> Auths<1> for WithAuth<'_, C> {
+    #[inline]
+    fn auths(&self) -> [&dyn Auth; 1] {
+        [self.1]
+    }
+}
+impl<C: Auths<1>> Auths<2> for WithAuth<'_, C> {
+    #[inline]
+    fn auths(&self) -> [&dyn Auth; 2] {
+        let [a1] = self.0.auths();
+        [a1, self.1]
+    }
+}
+impl<C: Auths<2>> Auths<3> for WithAuth<'_, C> {
+    #[inline]
+    fn auths(&self) -> [&dyn Auth; 3] {
+        let [a1, a2] = self.0.auths();
+        [a1, a2, self.1]
+    }
+}
+
+// This function is intentionally non-generic to reduce code size.
 pub(crate) fn run_command<'a>(
     tpm: &'a mut dyn Tpm,
     auths: &[&dyn Auth],

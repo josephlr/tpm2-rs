@@ -17,7 +17,6 @@ pub mod error;
 pub mod os;
 pub mod types;
 
-pub use commands::Command;
 pub use error::Error;
 pub use marshal::{Marshal, MarshalFixed, Unmarshal, UnmarshalAny};
 pub use traits::{Tpm, TpmExt, TpmRaw};
@@ -53,8 +52,9 @@ mod test {
     }
 
     #[test]
+    #[allow(clippy::needless_borrow)]
     fn with_auth() {
-        fn check_command(_: &impl Command) {}
+        fn check_run<C: Command + Auths<N>, const N: usize>(_: C) {}
 
         let password = [1, 2, 3, 4, 5];
         let auth1 = PasswordAuth(&password);
@@ -65,19 +65,23 @@ mod test {
         let c0 = GetRandom {
             bytes_requested: 12,
         };
-        check_command(&c0);
+        check_run(c0);
+        check_run(&c0);
 
         let c1 = c0.with_auth(&auth1);
-        check_command(&c1);
+        check_run(c1);
+        check_run(&c1);
 
         let c2 = c1.with_auth(auth2);
-        check_command(&c2);
+        check_run(c2);
+        check_run(&c2);
 
         let c3 = c2.with_auth(&auth1);
-        check_command(&c3);
+        check_run(c3);
+        check_run(&c3);
 
+        let _c4 = c3.with_auth(auth2);
         // Does not compile
-        // let c4 = c3.with_auth(auth2);
-        // check_command(&c4);
+        // check_run(_c4);
     }
 }

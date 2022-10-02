@@ -20,11 +20,8 @@ impl CommandData for Startup {
 impl Command for Startup {
     const CODE: tpm::CC = tpm::CC::Startup;
     type Response<'a> = ();
-    type Auths = [&'static dyn Auth; 0];
-    fn auths(&self) -> Self::Auths {
-        []
-    }
 }
+impl Auths<0> for Startup {}
 
 /// TPM2_Shutdown Command
 ///
@@ -42,12 +39,8 @@ impl CommandData for Shutdown {
 impl Command for Shutdown {
     const CODE: tpm::CC = tpm::CC::Shutdown;
     type Response<'a> = ();
-    type Auths = [&'static dyn Auth; 0];
-    fn auths(&self) -> Self::Auths {
-        []
-    }
 }
-
+impl Auths<0> for Shutdown {}
 // /// TPM2_SelfTest Command
 // ///
 // /// This command (and its response) are defined in the
@@ -503,11 +496,8 @@ impl CommandData for GetRandom {
 impl Command for GetRandom {
     const CODE: tpm::CC = tpm::CC::GetRandom;
     type Response<'a> = GetRandomResponse<'a>;
-    type Auths = [&'static dyn Auth; 0];
-    fn auths(&self) -> Self::Auths {
-        []
-    }
 }
+impl Auths<0> for GetRandom {}
 impl<'a> ResponseData<'a> for GetRandomResponse<'a> {
     fn unmarshal_params(&mut self, buf: &mut &'a [u8]) -> Result<(), UnmarshalError> {
         self.random_bytes.unmarshal(buf)
@@ -850,11 +840,8 @@ impl CommandData for PcrRead<'_> {
 impl Command for PcrRead<'_> {
     const CODE: tpm::CC = tpm::CC::PcrRead;
     type Response<'a> = PcrReadResponse<'a>;
-    type Auths = [&'static dyn Auth; 0];
-    fn auths(&self) -> Self::Auths {
-        []
-    }
 }
+impl Auths<0> for PcrRead<'_> {}
 
 /// TPM2_PCR_Read Response
 ///
@@ -1572,11 +1559,8 @@ impl CommandData for ReadClock {}
 impl Command for ReadClock {
     const CODE: tpm::CC = tpm::CC::ReadClock;
     type Response<'a> = ReadClockResponse;
-    type Auths = [&'static dyn Auth; 0];
-    fn auths(&self) -> Self::Auths {
-        []
-    }
 }
+impl Auths<0> for ReadClock {}
 
 /// TPM2_ReadClock Response
 ///
