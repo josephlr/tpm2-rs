@@ -10,7 +10,7 @@ extern crate std;
 
 mod marshal;
 mod polyfill;
-mod traits;
+mod run;
 
 pub mod commands;
 pub mod error;
@@ -19,7 +19,7 @@ pub mod types;
 
 pub use error::Error;
 pub use marshal::{Marshal, MarshalFixed, Unmarshal, UnmarshalAny};
-pub use traits::{Tpm, TpmExt, TpmRaw};
+pub use run::{Tpm, TpmExt, TpmRun};
 
 #[cfg(test)]
 mod test {

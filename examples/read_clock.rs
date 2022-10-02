@@ -1,4 +1,4 @@
-use tpm2::{commands::ReadClock, os::default_tpm, TpmRaw};
+use tpm2::{commands::ReadClock, os::default_tpm, TpmRun};
 
 fn main() {
     let mut tpm = default_tpm().expect("Unable to open TPM");

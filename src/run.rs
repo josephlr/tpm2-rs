@@ -14,14 +14,14 @@ pub trait Tpm {
 }
 
 /// Trait extending [`Tpm`] for running raw commands.
-pub trait TpmRaw: Tpm {
+pub trait TpmRun: Tpm {
     fn run<C: Command + Auths<N>, const N: usize>(
         &mut self,
         cmd: C,
     ) -> Result<C::Response<'_>, Error>;
 }
 
-impl<T: Tpm> TpmRaw for T {
+impl<T: Tpm> TpmRun for T {
     #[inline]
     fn run<C: Command + Auths<N>, const N: usize>(
         &mut self,
@@ -30,7 +30,7 @@ impl<T: Tpm> TpmRaw for T {
         <dyn Tpm>::run(self, cmd)
     }
 }
-impl TpmRaw for dyn Tpm + '_ {
+impl TpmRun for dyn Tpm + '_ {
     #[inline]
     fn run<C: Command + Auths<N>, const N: usize>(
         &mut self,
@@ -45,7 +45,7 @@ impl TpmRaw for dyn Tpm + '_ {
 /// Trait extending [`Tpm`] for running higher-level TPM workflows.
 ///
 /// These methods almost always issues multiple TPM commands under the hood.
-pub trait TpmExt: TpmRaw {
+pub trait TpmExt: TpmRun {
     fn getrandom(&mut self, mut buf: &mut [u8]) -> Result<(), Error> {
         while !buf.is_empty() {
             let bytes_requested = buf.len().try_into().unwrap_or(u16::MAX);
@@ -59,4 +59,4 @@ pub trait TpmExt: TpmRaw {
     }
 }
 
-impl<T: TpmRaw + ?Sized> TpmExt for T {}
+impl<T: TpmRun + ?Sized> TpmExt for T {}
