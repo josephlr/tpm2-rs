@@ -54,6 +54,7 @@ impl Command for Shutdown {
     type Response<'a> = ();
 }
 impl Auths<0> for Shutdown {}
+
 // /// TPM2_SelfTest Command
 // ///
 // /// This command (and its response) are defined in the
@@ -494,13 +495,6 @@ impl Auths<0> for Shutdown {}
 pub struct GetRandom {
     pub bytes_requested: u16,
 }
-/// TPM2_GetRandom Response
-///
-/// See [GetRandom] for more information.
-#[derive(Clone, Copy, Default, Debug)]
-pub struct GetRandomResponse<'a> {
-    pub random_bytes: &'a [u8],
-}
 impl CommandData for GetRandom {
     fn marshal_params(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
         self.bytes_requested.marshal(buf)
@@ -511,6 +505,14 @@ impl Command for GetRandom {
     type Response<'a> = GetRandomResponse<'a>;
 }
 impl Auths<0> for GetRandom {}
+
+/// TPM2_GetRandom Response
+///
+/// See [GetRandom] for more information.
+#[derive(Clone, Copy, Default, Debug)]
+pub struct GetRandomResponse<'a> {
+    pub random_bytes: &'a [u8],
+}
 impl<'a> ResponseData<'a> for GetRandomResponse<'a> {
     fn unmarshal_params(&mut self, buf: &mut &'a [u8]) -> Result<(), UnmarshalError> {
         self.random_bytes.unmarshal(buf)
