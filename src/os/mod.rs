@@ -40,7 +40,7 @@ impl<RW: io::Read + io::Write> Tpm for RwTpm<RW> {
     }
 }
 
-// TODO: explain why you would want this
+/// TODO: explain why you would want this
 pub fn tpm_from_read_write(rw: impl io::Read + io::Write) -> impl Tpm {
     RwTpm {
         cmd: vec![0; 4096].into_boxed_slice(),

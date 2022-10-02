@@ -1,6 +1,6 @@
 use crate::{commands::GetRandom, Error, TpmRun};
 
-/// Trait extending [`Tpm`] for running higher-level TPM workflows.
+/// Trait extending [`Tpm`](crate::Tpm) for running higher-level TPM workflows.
 ///
 /// These methods almost always issues multiple TPM commands under the hood.
 pub trait TpmExt: TpmRun {

@@ -1,4 +1,4 @@
-//! TPM2 [`Command`]s and Responses
+//! TPM2 [`Command`]s and [`Response`](Command::Response)s
 //!
 //! These structures should be fairly direct translations of the
 //! "TPM2_* Command" and "TPM2_* Response" tables in Part 3 of the TPM2 Spec.
