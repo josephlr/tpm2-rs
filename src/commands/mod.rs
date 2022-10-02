@@ -17,32 +17,8 @@ use crate::{
     marshal::{pop_array_mut, CommandData, ResponseData},
     polyfill::ToUsize,
     types::{tpm, tpms, Auth, CommandHeader, ResponseHeader},
-    Error, Marshal, MarshalFixed, Tpm, Unmarshal,
+    Command, Error, Marshal, MarshalFixed, Tpm, Unmarshal,
 };
-
-/// Common Trait for all TPM2 Commands
-pub trait Command: CommandData + Copy + Debug {
-    const CODE: tpm::CC;
-    type Response<'t>: ResponseData<'t> + Default + Copy + Debug;
-
-    /// This helper function isn't necessary for correctness, but exists to
-    /// reduce the number of vtables we use. If we have a type of `&C`, `&&C`,
-    /// [`WithAuth<'a, C>`] or `&WithAuth<'a, &C>`, we can instead use the
-    /// vtable for `C`. See the difference in code generation:
-    /// - [without the helper](https://godbolt.org/z/3Yv9TYT18)
-    /// - [with the helper](https://godbolt.org/z/793r1ccjc)
-    /// Note the difference in the number of vtables emitted.
-    ///
-    /// It should always be the case that `c.data().marshal_*()` and
-    /// `c.marshal_*() do the exact same thing.
-    fn data(&self) -> &dyn CommandData {
-        self
-    }
-
-    fn with_auth(self, auth: &'_ dyn Auth) -> WithAuth<'_, Self> {
-        WithAuth(self, auth)
-    }
-}
 
 pub trait Auths<const N: usize> {
     fn auths(&self) -> [&dyn Auth; N] {
@@ -70,49 +46,6 @@ impl<const N: usize, C: Auths<N>> Auths<N> for &C {
     #[inline]
     fn auths(&self) -> [&dyn Auth; N] {
         (*self).auths()
-    }
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct WithAuth<'a, C>(C, &'a dyn Auth);
-
-impl<C: CommandData> CommandData for WithAuth<'_, C> {
-    #[inline]
-    fn marshal_handles(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
-        self.0.marshal_handles(buf)
-    }
-    #[inline]
-    fn marshal_params(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
-        self.0.marshal_params(buf)
-    }
-}
-impl<C: Command> Command for WithAuth<'_, C> {
-    const CODE: tpm::CC = C::CODE;
-    type Response<'t> = C::Response<'t>;
-    #[inline]
-    fn data(&self) -> &dyn CommandData {
-        self.0.data()
-    }
-}
-
-impl<C: Auths<0>> Auths<1> for WithAuth<'_, C> {
-    #[inline]
-    fn auths(&self) -> [&dyn Auth; 1] {
-        [self.1]
-    }
-}
-impl<C: Auths<1>> Auths<2> for WithAuth<'_, C> {
-    #[inline]
-    fn auths(&self) -> [&dyn Auth; 2] {
-        let [a1] = self.0.auths();
-        [a1, self.1]
-    }
-}
-impl<C: Auths<2>> Auths<3> for WithAuth<'_, C> {
-    #[inline]
-    fn auths(&self) -> [&dyn Auth; 3] {
-        let [a1, a2] = self.0.auths();
-        [a1, a2, self.1]
     }
 }
 
