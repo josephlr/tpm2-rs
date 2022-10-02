@@ -8,6 +8,7 @@ extern crate alloc;
 #[cfg(feature = "std")]
 extern crate std;
 
+mod ext;
 mod marshal;
 mod polyfill;
 mod run;
@@ -18,8 +19,9 @@ pub mod os;
 pub mod types;
 
 pub use error::Error;
+pub use ext::TpmExt;
 pub use marshal::{Marshal, MarshalFixed, Unmarshal, UnmarshalAny};
-pub use run::{Tpm, TpmExt, TpmRun};
+pub use run::{Tpm, TpmRun};
 
 #[cfg(test)]
 mod test {
