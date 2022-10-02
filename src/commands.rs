@@ -58,14 +58,14 @@ impl Auths<0> for Shutdown {}
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 10.2
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct SelfTest {
 //     pub todo: (),
 // }
 // /// TPM2_SelfTest Response
 // ///
 // /// See [SelfTest] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct SelfTestResponse {
 //     pub todo: (),
 // }
@@ -74,14 +74,14 @@ impl Auths<0> for Shutdown {}
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 10.3
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct IncrementalSelfTest {
 //     pub todo: (),
 // }
 // /// TPM2_IncrementalSelfTest Response
 // ///
 // /// See [IncrementalSelfTest] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct IncrementalSelfTestResponse {
 //     pub todo: (),
 // }
@@ -90,14 +90,14 @@ impl Auths<0> for Shutdown {}
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 10.4
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct GetTestResult {
 //     pub todo: (),
 // }
 // /// TPM2_GetTestResult Response
 // ///
 // /// See [GetTestResult] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct GetTestResultResponse {
 //     pub todo: (),
 // }
@@ -106,14 +106,14 @@ impl Auths<0> for Shutdown {}
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 11.1
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct StartAuthSession {
 //     pub todo: (),
 // }
 // /// TPM2_StartAuthSession Response
 // ///
 // /// See [StartAuthSession] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct StartAuthSessionResponse {
 //     pub todo: (),
 // }
@@ -122,14 +122,14 @@ impl Auths<0> for Shutdown {}
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 11.2
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct PolicyRestart {
 //     pub todo: (),
 // }
 // /// TPM2_PolicyRestart Response
 // ///
 // /// See [PolicyRestart] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct PolicyRestartResponse {
 //     pub todo: (),
 // }
@@ -138,14 +138,14 @@ impl Auths<0> for Shutdown {}
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 12.1
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct Create {
 //     pub todo: (),
 // }
 // /// TPM2_Create Response
 // ///
 // /// See [Create] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct CreateResponse {
 //     pub todo: (),
 // }
@@ -154,14 +154,14 @@ impl Auths<0> for Shutdown {}
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 12.2
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct Load {
 //     pub todo: (),
 // }
 // /// TPM2_Load Response
 // ///
 // /// See [Load] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct LoadResponse {
 //     pub todo: (),
 // }
@@ -170,14 +170,14 @@ impl Auths<0> for Shutdown {}
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 12.3
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct LoadExternal {
 //     pub todo: (),
 // }
 // /// TPM2_LoadExternal Response
 // ///
 // /// See [LoadExternal] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct LoadExternalResponse {
 //     pub todo: (),
 // }
@@ -186,14 +186,14 @@ impl Auths<0> for Shutdown {}
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 12.4
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct ReadPublic {
 //     pub todo: (),
 // }
 // /// TPM2_ReadPublic Response
 // ///
 // /// See [ReadPublic] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct ReadPublicResponse {
 //     pub todo: (),
 // }
@@ -202,14 +202,14 @@ impl Auths<0> for Shutdown {}
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 12.5
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct ActivateCredential {
 //     pub todo: (),
 // }
 // /// TPM2_ActivateCredential Response
 // ///
 // /// See [ActivateCredential] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct ActivateCredentialResponse {
 //     pub todo: (),
 // }
@@ -218,14 +218,14 @@ impl Auths<0> for Shutdown {}
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 12.6
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct MakeCredential {
 //     pub todo: (),
 // }
 // /// TPM2_MakeCredential Response
 // ///
 // /// See [MakeCredential] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct MakeCredentialResponse {
 //     pub todo: (),
 // }
@@ -234,14 +234,14 @@ impl Auths<0> for Shutdown {}
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 12.7
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct Unseal {
 //     pub todo: (),
 // }
 // /// TPM2_Unseal Response
 // ///
 // /// See [Unseal] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct UnsealResponse {
 //     pub todo: (),
 // }
@@ -250,14 +250,14 @@ impl Auths<0> for Shutdown {}
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 12.8
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct ObjectChangeAuth {
 //     pub todo: (),
 // }
 // /// TPM2_ObjectChangeAuth Response
 // ///
 // /// See [ObjectChangeAuth] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct ObjectChangeAuthResponse {
 //     pub todo: (),
 // }
@@ -266,14 +266,14 @@ impl Auths<0> for Shutdown {}
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 12.9
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct CreateLoaded {
 //     pub todo: (),
 // }
 // /// TPM2_CreateLoaded Response
 // ///
 // /// See [CreateLoaded] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct CreateLoadedResponse {
 //     pub todo: (),
 // }
@@ -282,14 +282,14 @@ impl Auths<0> for Shutdown {}
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 13.1
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct Duplicate {
 //     pub todo: (),
 // }
 // /// TPM2_Duplicate Response
 // ///
 // /// See [Duplicate] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct DuplicateResponse {
 //     pub todo: (),
 // }
@@ -298,14 +298,14 @@ impl Auths<0> for Shutdown {}
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 13.2
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct Rewrap {
 //     pub todo: (),
 // }
 // /// TPM2_Rewrap Response
 // ///
 // /// See [Rewrap] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct RewrapResponse {
 //     pub todo: (),
 // }
@@ -314,14 +314,14 @@ impl Auths<0> for Shutdown {}
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 13.3
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct Import {
 //     pub todo: (),
 // }
 // /// TPM2_Import Response
 // ///
 // /// See [Import] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct ImportResponse {
 //     pub todo: (),
 // }
@@ -330,14 +330,14 @@ impl Auths<0> for Shutdown {}
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 14.2
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct RsaEncrypt {
 //     pub todo: (),
 // }
 // /// TPM2_RSA_Encrypt Response
 // ///
 // /// See [RsaEncrypt] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct RsaEncryptResponse {
 //     pub todo: (),
 // }
@@ -346,14 +346,14 @@ impl Auths<0> for Shutdown {}
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 14.3
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct RsaDecrypt {
 //     pub todo: (),
 // }
 // /// TPM2_RSA_Decrypt Response
 // ///
 // /// See [RsaDecrypt] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct RsaDecryptResponse {
 //     pub todo: (),
 // }
@@ -362,14 +362,14 @@ impl Auths<0> for Shutdown {}
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 14.4
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct EcdhKeyGen {
 //     pub todo: (),
 // }
 // /// TPM2_ECDH_KeyGen Response
 // ///
 // /// See [EcdhKeyGen] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct EcdhKeyGenResponse {
 //     pub todo: (),
 // }
@@ -378,14 +378,14 @@ impl Auths<0> for Shutdown {}
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 14.5
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct EcdhZGen {
 //     pub todo: (),
 // }
 // /// TPM2_ECDH_ZGen Response
 // ///
 // /// See [EcdhZGen] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct EcdhZGenResponse {
 //     pub todo: (),
 // }
@@ -394,14 +394,14 @@ impl Auths<0> for Shutdown {}
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 14.6
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct EccParameters {
 //     pub todo: (),
 // }
 // /// TPM2_ECC_Parameters Response
 // ///
 // /// See [EccParameters] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct EccParametersResponse {
 //     pub todo: (),
 // }
@@ -410,14 +410,14 @@ impl Auths<0> for Shutdown {}
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 14.7
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct ZGen2Phase {
 //     pub todo: (),
 // }
 // /// TPM2_ZGen_2Phase Response
 // ///
 // /// See [ZGen2Phase] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct ZGen2PhaseResponse {
 //     pub todo: (),
 // }
@@ -426,14 +426,14 @@ impl Auths<0> for Shutdown {}
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 15.2
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct EncryptDecrypt {
 //     pub todo: (),
 // }
 // /// TPM2_EncryptDecrypt Response
 // ///
 // /// See [EncryptDecrypt] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct EncryptDecryptResponse {
 //     pub todo: (),
 // }
@@ -442,14 +442,14 @@ impl Auths<0> for Shutdown {}
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 15.3
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct EncryptDecrypt2 {
 //     pub todo: (),
 // }
 // /// TPM2_EncryptDecrypt2 Response
 // ///
 // /// See [EncryptDecrypt2] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct EncryptDecrypt2Response {
 //     pub todo: (),
 // }
@@ -458,14 +458,14 @@ impl Auths<0> for Shutdown {}
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 15.4
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct Hash {
 //     pub todo: (),
 // }
 // /// TPM2_Hash Response
 // ///
 // /// See [Hash] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct HashResponse {
 //     pub todo: (),
 // }
@@ -474,14 +474,14 @@ impl Auths<0> for Shutdown {}
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 15.6
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct Mac {
 //     pub todo: (),
 // }
 // /// TPM2_MAC Response
 // ///
 // /// See [Mac] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct MacResponse {
 //     pub todo: (),
 // }
@@ -521,14 +521,14 @@ impl<'a> ResponseData<'a> for GetRandomResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 16.2
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct StirRandom {
 //     pub todo: (),
 // }
 // /// TPM2_StirRandom Response
 // ///
 // /// See [StirRandom] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct StirRandomResponse {
 //     pub todo: (),
 // }
@@ -537,14 +537,14 @@ impl<'a> ResponseData<'a> for GetRandomResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 17.3
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct MacStart {
 //     pub todo: (),
 // }
 // /// TPM2_MAC_Start Response
 // ///
 // /// See [MacStart] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct MacStartResponse {
 //     pub todo: (),
 // }
@@ -553,14 +553,14 @@ impl<'a> ResponseData<'a> for GetRandomResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 17.4
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct HashSequenceStart {
 //     pub todo: (),
 // }
 // /// TPM2_HashSequenceStart Response
 // ///
 // /// See [HashSequenceStart] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct HashSequenceStartResponse {
 //     pub todo: (),
 // }
@@ -569,14 +569,14 @@ impl<'a> ResponseData<'a> for GetRandomResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 17.5
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct SequenceUpdate {
 //     pub todo: (),
 // }
 // /// TPM2_SequenceUpdate Response
 // ///
 // /// See [SequenceUpdate] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct SequenceUpdateResponse {
 //     pub todo: (),
 // }
@@ -585,14 +585,14 @@ impl<'a> ResponseData<'a> for GetRandomResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 17.6
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct SequenceComplete {
 //     pub todo: (),
 // }
 // /// TPM2_SequenceComplete Response
 // ///
 // /// See [SequenceComplete] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct SequenceCompleteResponse {
 //     pub todo: (),
 // }
@@ -601,14 +601,14 @@ impl<'a> ResponseData<'a> for GetRandomResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 17.7
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct EventSequenceComplete {
 //     pub todo: (),
 // }
 // /// TPM2_EventSequenceComplete Response
 // ///
 // /// See [EventSequenceComplete] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct EventSequenceCompleteResponse {
 //     pub todo: (),
 // }
@@ -617,14 +617,14 @@ impl<'a> ResponseData<'a> for GetRandomResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 18.2
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct Certify {
 //     pub todo: (),
 // }
 // /// TPM2_Certify Response
 // ///
 // /// See [Certify] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct CertifyResponse {
 //     pub todo: (),
 // }
@@ -633,14 +633,14 @@ impl<'a> ResponseData<'a> for GetRandomResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 18.3
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct CertifyCreation {
 //     pub todo: (),
 // }
 // /// TPM2_CertifyCreation Response
 // ///
 // /// See [CertifyCreation] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct CertifyCreationResponse {
 //     pub todo: (),
 // }
@@ -649,14 +649,14 @@ impl<'a> ResponseData<'a> for GetRandomResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 18.4
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct Quote {
 //     pub todo: (),
 // }
 // /// TPM2_Quote Response
 // ///
 // /// See [Quote] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct QuoteResponse {
 //     pub todo: (),
 // }
@@ -665,14 +665,14 @@ impl<'a> ResponseData<'a> for GetRandomResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 18.5
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct GetSessionAuditDigest {
 //     pub todo: (),
 // }
 // /// TPM2_GetSessionAuditDigest Response
 // ///
 // /// See [GetSessionAuditDigest] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct GetSessionAuditDigestResponse {
 //     pub todo: (),
 // }
@@ -681,14 +681,14 @@ impl<'a> ResponseData<'a> for GetRandomResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 18.6
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct GetCommandAuditDigest {
 //     pub todo: (),
 // }
 // /// TPM2_GetCommandAuditDigest Response
 // ///
 // /// See [GetCommandAuditDigest] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct GetCommandAuditDigestResponse {
 //     pub todo: (),
 // }
@@ -697,14 +697,14 @@ impl<'a> ResponseData<'a> for GetRandomResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 18.7
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct GetTime {
 //     pub todo: (),
 // }
 // /// TPM2_GetTime Response
 // ///
 // /// See [GetTime] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct GetTimeResponse {
 //     pub todo: (),
 // }
@@ -713,14 +713,14 @@ impl<'a> ResponseData<'a> for GetRandomResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 18.8
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct CertifyX509 {
 //     pub todo: (),
 // }
 // /// TPM2_CertifyX509 Response
 // ///
 // /// See [CertifyX509] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct CertifyX509Response {
 //     pub todo: (),
 // }
@@ -729,14 +729,14 @@ impl<'a> ResponseData<'a> for GetRandomResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 19.2
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct Commit {
 //     pub todo: (),
 // }
 // /// TPM2_Commit Response
 // ///
 // /// See [Commit] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct CommitResponse {
 //     pub todo: (),
 // }
@@ -745,14 +745,14 @@ impl<'a> ResponseData<'a> for GetRandomResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 19.3
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct EcEphemeral {
 //     pub todo: (),
 // }
 // /// TPM2_EC_Ephemeral Response
 // ///
 // /// See [EcEphemeral] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct EcEphemeralResponse {
 //     pub todo: (),
 // }
@@ -761,14 +761,14 @@ impl<'a> ResponseData<'a> for GetRandomResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 20.1
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct VerifySignature {
 //     pub todo: (),
 // }
 // /// TPM2_VerifySignature Response
 // ///
 // /// See [VerifySignature] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct VerifySignatureResponse {
 //     pub todo: (),
 // }
@@ -777,14 +777,14 @@ impl<'a> ResponseData<'a> for GetRandomResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 20.2
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct Sign {
 //     pub todo: (),
 // }
 // /// TPM2_Sign Response
 // ///
 // /// See [Sign] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct SignResponse {
 //     pub todo: (),
 // }
@@ -793,14 +793,14 @@ impl<'a> ResponseData<'a> for GetRandomResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 21.2
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct SetCommandCodeAuditStatus {
 //     pub todo: (),
 // }
 // /// TPM2_SetCommandCodeAuditStatus Response
 // ///
 // /// See [SetCommandCodeAuditStatus] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct SetCommandCodeAuditStatusResponse {
 //     pub todo: (),
 // }
@@ -809,14 +809,14 @@ impl<'a> ResponseData<'a> for GetRandomResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 22.2
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct PcrExtend {
 //     pub todo: (),
 // }
 // /// TPM2_PCR_Extend Response
 // ///
 // /// See [PcrExtend] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct PcrExtendResponse {
 //     pub todo: (),
 // }
@@ -825,14 +825,14 @@ impl<'a> ResponseData<'a> for GetRandomResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 22.3
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct PcrEvent {
 //     pub todo: (),
 // }
 // /// TPM2_PCR_Event Response
 // ///
 // /// See [PcrEvent] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct PcrEventResponse {
 //     pub todo: (),
 // }
@@ -877,14 +877,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 22.5
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct PcrAllocate {
 //     pub todo: (),
 // }
 // /// TPM2_PCR_Allocate Response
 // ///
 // /// See [PcrAllocate] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct PcrAllocateResponse {
 //     pub todo: (),
 // }
@@ -893,14 +893,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 22.6
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct PcrSetAuthPolicy {
 //     pub todo: (),
 // }
 // /// TPM2_PCR_SetAuthPolicy Response
 // ///
 // /// See [PcrSetAuthPolicy] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct PcrSetAuthPolicyResponse {
 //     pub todo: (),
 // }
@@ -909,14 +909,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 22.7
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct PcrSetAuthValue {
 //     pub todo: (),
 // }
 // /// TPM2_PCR_SetAuthValue Response
 // ///
 // /// See [PcrSetAuthValue] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct PcrSetAuthValueResponse {
 //     pub todo: (),
 // }
@@ -925,14 +925,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 22.8
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct PcrReset {
 //     pub todo: (),
 // }
 // /// TPM2_PCR_Reset Response
 // ///
 // /// See [PcrReset] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct PcrResetResponse {
 //     pub todo: (),
 // }
@@ -941,14 +941,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 23.3
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct PolicySigned {
 //     pub todo: (),
 // }
 // /// TPM2_PolicySigned Response
 // ///
 // /// See [PolicySigned] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct PolicySignedResponse {
 //     pub todo: (),
 // }
@@ -957,14 +957,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 23.4
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct PolicySecret {
 //     pub todo: (),
 // }
 // /// TPM2_PolicySecret Response
 // ///
 // /// See [PolicySecret] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct PolicySecretResponse {
 //     pub todo: (),
 // }
@@ -973,14 +973,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 23.5
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct PolicyTicket {
 //     pub todo: (),
 // }
 // /// TPM2_PolicyTicket Response
 // ///
 // /// See [PolicyTicket] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct PolicyTicketResponse {
 //     pub todo: (),
 // }
@@ -989,14 +989,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 23.6
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct PolicyOR {
 //     pub todo: (),
 // }
 // /// TPM2_PolicyOR Response
 // ///
 // /// See [PolicyOR] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct PolicyORResponse {
 //     pub todo: (),
 // }
@@ -1005,14 +1005,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 23.7
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct PolicyPcr {
 //     pub todo: (),
 // }
 // /// TPM2_PolicyPCR Response
 // ///
 // /// See [PolicyPcr] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct PolicyPcrResponse {
 //     pub todo: (),
 // }
@@ -1021,14 +1021,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 23.8
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct PolicyLocality {
 //     pub todo: (),
 // }
 // /// TPM2_PolicyLocality Response
 // ///
 // /// See [PolicyLocality] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct PolicyLocalityResponse {
 //     pub todo: (),
 // }
@@ -1037,14 +1037,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 23.9
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct PolicyNv {
 //     pub todo: (),
 // }
 // /// TPM2_PolicyNV Response
 // ///
 // /// See [PolicyNv] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct PolicyNvResponse {
 //     pub todo: (),
 // }
@@ -1053,14 +1053,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 23.10
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct PolicyCounterTimer {
 //     pub todo: (),
 // }
 // /// TPM2_PolicyCounterTimer Response
 // ///
 // /// See [PolicyCounterTimer] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct PolicyCounterTimerResponse {
 //     pub todo: (),
 // }
@@ -1069,14 +1069,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 23.11
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct PolicyCommandCode {
 //     pub todo: (),
 // }
 // /// TPM2_PolicyCommandCode Response
 // ///
 // /// See [PolicyCommandCode] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct PolicyCommandCodeResponse {
 //     pub todo: (),
 // }
@@ -1085,14 +1085,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 23.12
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct PolicyPhysicalPresence {
 //     pub todo: (),
 // }
 // /// TPM2_PolicyPhysicalPresence Response
 // ///
 // /// See [PolicyPhysicalPresence] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct PolicyPhysicalPresenceResponse {
 //     pub todo: (),
 // }
@@ -1101,14 +1101,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 23.13
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct PolicyCpHash {
 //     pub todo: (),
 // }
 // /// TPM2_PolicyCpHash Response
 // ///
 // /// See [PolicyCpHash] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct PolicyCpHashResponse {
 //     pub todo: (),
 // }
@@ -1117,14 +1117,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 23.14
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct PolicyNameHash {
 //     pub todo: (),
 // }
 // /// TPM2_PolicyNameHash Response
 // ///
 // /// See [PolicyNameHash] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct PolicyNameHashResponse {
 //     pub todo: (),
 // }
@@ -1133,14 +1133,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 23.15
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct PolicyDuplicationSelect {
 //     pub todo: (),
 // }
 // /// TPM2_PolicyDuplicationSelect Response
 // ///
 // /// See [PolicyDuplicationSelect] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct PolicyDuplicationSelectResponse {
 //     pub todo: (),
 // }
@@ -1149,14 +1149,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 23.16
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct PolicyAuthorize {
 //     pub todo: (),
 // }
 // /// TPM2_PolicyAuthorize Response
 // ///
 // /// See [PolicyAuthorize] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct PolicyAuthorizeResponse {
 //     pub todo: (),
 // }
@@ -1165,14 +1165,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 23.17
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct PolicyAuthValue {
 //     pub todo: (),
 // }
 // /// TPM2_PolicyAuthValue Response
 // ///
 // /// See [PolicyAuthValue] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct PolicyAuthValueResponse {
 //     pub todo: (),
 // }
@@ -1181,14 +1181,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 23.18
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct PolicyPassword {
 //     pub todo: (),
 // }
 // /// TPM2_PolicyPassword Response
 // ///
 // /// See [PolicyPassword] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct PolicyPasswordResponse {
 //     pub todo: (),
 // }
@@ -1197,14 +1197,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 23.19
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct PolicyGetDigest {
 //     pub todo: (),
 // }
 // /// TPM2_PolicyGetDigest Response
 // ///
 // /// See [PolicyGetDigest] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct PolicyGetDigestResponse {
 //     pub todo: (),
 // }
@@ -1213,14 +1213,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 23.20
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct PolicyNvWritten {
 //     pub todo: (),
 // }
 // /// TPM2_PolicyNvWritten Response
 // ///
 // /// See [PolicyNvWritten] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct PolicyNvWrittenResponse {
 //     pub todo: (),
 // }
@@ -1229,14 +1229,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 23.21
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct PolicyTemplate {
 //     pub todo: (),
 // }
 // /// TPM2_PolicyTemplate Response
 // ///
 // /// See [PolicyTemplate] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct PolicyTemplateResponse {
 //     pub todo: (),
 // }
@@ -1245,14 +1245,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 23.22
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct PolicyAuthorizeNv {
 //     pub todo: (),
 // }
 // /// TPM2_PolicyAuthorizeNV Response
 // ///
 // /// See [PolicyAuthorizeNv] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct PolicyAuthorizeNvResponse {
 //     pub todo: (),
 // }
@@ -1261,14 +1261,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 24.1
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct CreatePrimary {
 //     pub todo: (),
 // }
 // /// TPM2_CreatePrimary Response
 // ///
 // /// See [CreatePrimary] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct CreatePrimaryResponse {
 //     pub todo: (),
 // }
@@ -1277,14 +1277,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 24.2
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct HierarchyControl {
 //     pub todo: (),
 // }
 // /// TPM2_HierarchyControl Response
 // ///
 // /// See [HierarchyControl] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct HierarchyControlResponse {
 //     pub todo: (),
 // }
@@ -1293,14 +1293,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 24.3
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct SetPrimaryPolicy {
 //     pub todo: (),
 // }
 // /// TPM2_SetPrimaryPolicy Response
 // ///
 // /// See [SetPrimaryPolicy] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct SetPrimaryPolicyResponse {
 //     pub todo: (),
 // }
@@ -1309,14 +1309,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 24.4
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct ChangePps {
 //     pub todo: (),
 // }
 // /// TPM2_ChangePPS Response
 // ///
 // /// See [ChangePps] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct ChangePpsResponse {
 //     pub todo: (),
 // }
@@ -1325,14 +1325,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 24.5
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct ChangeEps {
 //     pub todo: (),
 // }
 // /// TPM2_ChangeEPS Response
 // ///
 // /// See [ChangeEps] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct ChangeEpsResponse {
 //     pub todo: (),
 // }
@@ -1341,14 +1341,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 24.6
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct Clear {
 //     pub todo: (),
 // }
 // /// TPM2_Clear Response
 // ///
 // /// See [Clear] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct ClearResponse {
 //     pub todo: (),
 // }
@@ -1357,14 +1357,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 24.7
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct ClearControl {
 //     pub todo: (),
 // }
 // /// TPM2_ClearControl Response
 // ///
 // /// See [ClearControl] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct ClearControlResponse {
 //     pub todo: (),
 // }
@@ -1373,14 +1373,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 24.8
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct HierarchyChangeAuth {
 //     pub todo: (),
 // }
 // /// TPM2_HierarchyChangeAuth Response
 // ///
 // /// See [HierarchyChangeAuth] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct HierarchyChangeAuthResponse {
 //     pub todo: (),
 // }
@@ -1389,14 +1389,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 25.2
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct DictionaryAttackLockReset {
 //     pub todo: (),
 // }
 // /// TPM2_DictionaryAttackLockReset Response
 // ///
 // /// See [DictionaryAttackLockReset] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct DictionaryAttackLockResetResponse {
 //     pub todo: (),
 // }
@@ -1405,14 +1405,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 25.3
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct DictionaryAttackParameters {
 //     pub todo: (),
 // }
 // /// TPM2_DictionaryAttackParameters Response
 // ///
 // /// See [DictionaryAttackParameters] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct DictionaryAttackParametersResponse {
 //     pub todo: (),
 // }
@@ -1421,14 +1421,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 26.2
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct PpCommands {
 //     pub todo: (),
 // }
 // /// TPM2_PP_Commands Response
 // ///
 // /// See [PpCommands] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct PpCommandsResponse {
 //     pub todo: (),
 // }
@@ -1437,14 +1437,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 26.3
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct SetAlgorithmSet {
 //     pub todo: (),
 // }
 // /// TPM2_SetAlgorithmSet Response
 // ///
 // /// See [SetAlgorithmSet] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct SetAlgorithmSetResponse {
 //     pub todo: (),
 // }
@@ -1453,14 +1453,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 27.2
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct FieldUpgradeStart {
 //     pub todo: (),
 // }
 // /// TPM2_FieldUpgradeStart Response
 // ///
 // /// See [FieldUpgradeStart] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct FieldUpgradeStartResponse {
 //     pub todo: (),
 // }
@@ -1469,14 +1469,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 27.3
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct FieldUpgradeData {
 //     pub todo: (),
 // }
 // /// TPM2_FieldUpgradeData Response
 // ///
 // /// See [FieldUpgradeData] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct FieldUpgradeDataResponse {
 //     pub todo: (),
 // }
@@ -1485,14 +1485,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 27.4
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct FirmwareRead {
 //     pub todo: (),
 // }
 // /// TPM2_FirmwareRead Response
 // ///
 // /// See [FirmwareRead] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct FirmwareReadResponse {
 //     pub todo: (),
 // }
@@ -1501,14 +1501,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 28.2
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct ContextSave {
 //     pub todo: (),
 // }
 // /// TPM2_ContextSave Response
 // ///
 // /// See [ContextSave] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct ContextSaveResponse {
 //     pub todo: (),
 // }
@@ -1517,14 +1517,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 28.3
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct ContextLoad {
 //     pub todo: (),
 // }
 // /// TPM2_ContextLoad Response
 // ///
 // /// See [ContextLoad] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct ContextLoadResponse {
 //     pub todo: (),
 // }
@@ -1533,14 +1533,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 28.4
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct FlushContext {
 //     pub todo: (),
 // }
 // /// TPM2_FlushContext Response
 // ///
 // /// See [FlushContext] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct FlushContextResponse {
 //     pub todo: (),
 // }
@@ -1549,14 +1549,14 @@ impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 28.5
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct EvictControl {
 //     pub todo: (),
 // }
 // /// TPM2_EvictControl Response
 // ///
 // /// See [EvictControl] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct EvictControlResponse {
 //     pub todo: (),
 // }
@@ -1592,14 +1592,14 @@ impl ResponseData<'_> for ReadClockResponse {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 29.2
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct ClockSet {
 //     pub todo: (),
 // }
 // /// TPM2_ClockSet Response
 // ///
 // /// See [ClockSet] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct ClockSetResponse {
 //     pub todo: (),
 // }
@@ -1608,14 +1608,14 @@ impl ResponseData<'_> for ReadClockResponse {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 29.3
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct ClockRateAdjust {
 //     pub todo: (),
 // }
 // /// TPM2_ClockRateAdjust Response
 // ///
 // /// See [ClockRateAdjust] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct ClockRateAdjustResponse {
 //     pub todo: (),
 // }
@@ -1624,14 +1624,14 @@ impl ResponseData<'_> for ReadClockResponse {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 30.2
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct GetCapability {
 //     pub todo: (),
 // }
 // /// TPM2_GetCapability Response
 // ///
 // /// See [GetCapability] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct GetCapabilityResponse {
 //     pub todo: (),
 // }
@@ -1640,14 +1640,14 @@ impl ResponseData<'_> for ReadClockResponse {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 30.3
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct TestParms {
 //     pub todo: (),
 // }
 // /// TPM2_TestParms Response
 // ///
 // /// See [TestParms] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct TestParmsResponse {
 //     pub todo: (),
 // }
@@ -1656,14 +1656,14 @@ impl ResponseData<'_> for ReadClockResponse {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 31.3
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct NvDefineSpace {
 //     pub todo: (),
 // }
 // /// TPM2_NV_DefineSpace Response
 // ///
 // /// See [NvDefineSpace] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct NvDefineSpaceResponse {
 //     pub todo: (),
 // }
@@ -1672,14 +1672,14 @@ impl ResponseData<'_> for ReadClockResponse {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 31.4
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct NvUndefineSpace {
 //     pub todo: (),
 // }
 // /// TPM2_NV_UndefineSpace Response
 // ///
 // /// See [NvUndefineSpace] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct NvUndefineSpaceResponse {
 //     pub todo: (),
 // }
@@ -1688,14 +1688,14 @@ impl ResponseData<'_> for ReadClockResponse {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 31.5
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct NvUndefineSpaceSpecial {
 //     pub todo: (),
 // }
 // /// TPM2_NV_UndefineSpaceSpecial Response
 // ///
 // /// See [NvUndefineSpaceSpecial] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct NvUndefineSpaceSpecialResponse {
 //     pub todo: (),
 // }
@@ -1704,14 +1704,14 @@ impl ResponseData<'_> for ReadClockResponse {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 31.6
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct NvReadPublic {
 //     pub todo: (),
 // }
 // /// TPM2_NV_ReadPublic Response
 // ///
 // /// See [NvReadPublic] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct NvReadPublicResponse {
 //     pub todo: (),
 // }
@@ -1720,14 +1720,14 @@ impl ResponseData<'_> for ReadClockResponse {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 31.7
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct NvWrite {
 //     pub todo: (),
 // }
 // /// TPM2_NV_Write Response
 // ///
 // /// See [NvWrite] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct NvWriteResponse {
 //     pub todo: (),
 // }
@@ -1736,14 +1736,14 @@ impl ResponseData<'_> for ReadClockResponse {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 31.8
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct NvIncrement {
 //     pub todo: (),
 // }
 // /// TPM2_NV_Increment Response
 // ///
 // /// See [NvIncrement] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct NvIncrementResponse {
 //     pub todo: (),
 // }
@@ -1752,14 +1752,14 @@ impl ResponseData<'_> for ReadClockResponse {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 31.9
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct NvExtend {
 //     pub todo: (),
 // }
 // /// TPM2_NV_Extend Response
 // ///
 // /// See [NvExtend] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct NvExtendResponse {
 //     pub todo: (),
 // }
@@ -1768,14 +1768,14 @@ impl ResponseData<'_> for ReadClockResponse {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 31.10
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct NvSetBits {
 //     pub todo: (),
 // }
 // /// TPM2_NV_SetBits Response
 // ///
 // /// See [NvSetBits] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct NvSetBitsResponse {
 //     pub todo: (),
 // }
@@ -1784,14 +1784,14 @@ impl ResponseData<'_> for ReadClockResponse {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 31.11
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct NvWriteLock {
 //     pub todo: (),
 // }
 // /// TPM2_NV_WriteLock Response
 // ///
 // /// See [NvWriteLock] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct NvWriteLockResponse {
 //     pub todo: (),
 // }
@@ -1800,14 +1800,14 @@ impl ResponseData<'_> for ReadClockResponse {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 31.12
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct NvGlobalWriteLock {
 //     pub todo: (),
 // }
 // /// TPM2_NV_GlobalWriteLock Response
 // ///
 // /// See [NvGlobalWriteLock] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct NvGlobalWriteLockResponse {
 //     pub todo: (),
 // }
@@ -1816,14 +1816,14 @@ impl ResponseData<'_> for ReadClockResponse {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 31.13
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct NvRead {
 //     pub todo: (),
 // }
 // /// TPM2_NV_Read Response
 // ///
 // /// See [NvRead] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct NvReadResponse {
 //     pub todo: (),
 // }
@@ -1832,14 +1832,14 @@ impl ResponseData<'_> for ReadClockResponse {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 31.14
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct NvReadLock {
 //     pub todo: (),
 // }
 // /// TPM2_NV_ReadLock Response
 // ///
 // /// See [NvReadLock] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct NvReadLockResponse {
 //     pub todo: (),
 // }
@@ -1848,14 +1848,14 @@ impl ResponseData<'_> for ReadClockResponse {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 31.15
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct NvChangeAuth {
 //     pub todo: (),
 // }
 // /// TPM2_NV_ChangeAuth Response
 // ///
 // /// See [NvChangeAuth] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct NvChangeAuthResponse {
 //     pub todo: (),
 // }
@@ -1864,14 +1864,14 @@ impl ResponseData<'_> for ReadClockResponse {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 31.16
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct NvCertify {
 //     pub todo: (),
 // }
 // /// TPM2_NV_Certify Response
 // ///
 // /// See [NvCertify] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct NvCertifyResponse {
 //     pub todo: (),
 // }
@@ -1880,14 +1880,14 @@ impl ResponseData<'_> for ReadClockResponse {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 32.2
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct AcGetCapability {
 //     pub todo: (),
 // }
 // /// TPM2_AC_GetCapability Response
 // ///
 // /// See [AcGetCapability] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct AcGetCapabilityResponse {
 //     pub todo: (),
 // }
@@ -1896,14 +1896,14 @@ impl ResponseData<'_> for ReadClockResponse {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 32.3
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct AcSend {
 //     pub todo: (),
 // }
 // /// TPM2_AC_Send Response
 // ///
 // /// See [AcSend] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct AcSendResponse {
 //     pub todo: (),
 // }
@@ -1912,14 +1912,14 @@ impl ResponseData<'_> for ReadClockResponse {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 32.4
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct PolicyAcSendSelect {
 //     pub todo: (),
 // }
 // /// TPM2_Policy_AC_SendSelect Response
 // ///
 // /// See [PolicyAcSendSelect] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct PolicyAcSendSelectResponse {
 //     pub todo: (),
 // }
@@ -1928,14 +1928,14 @@ impl ResponseData<'_> for ReadClockResponse {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 33.2
-// #[derive(CommandData, Command, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
 // pub struct ActSetTimeout {
 //     pub todo: (),
 // }
 // /// TPM2_ACT_SetTimeout Response
 // ///
 // /// See [ActSetTimeout] for more information.
-// #[derive(ResponseData, Default, Debug)]
+// #[derive(Clone, Copy, Default, Debug, ResponseData)]
 // pub struct ActSetTimeoutResponse {
 //     pub todo: (),
 // }
