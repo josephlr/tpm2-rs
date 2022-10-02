@@ -14,36 +14,11 @@ use core::fmt::Debug;
 
 use crate::{
     error::{MarshalError, UnmarshalError},
-    marshal::pop_array_mut,
+    marshal::{pop_array_mut, CommandData, ResponseData},
     polyfill::ToUsize,
     types::{tpm, tpms, Auth, CommandHeader, ResponseHeader},
     Error, Marshal, MarshalFixed, Tpm, Unmarshal,
 };
-
-mod sealed {
-    use super::*;
-    /// The object-safe supertrait of [`Command`]
-    pub trait CommandData {
-        fn marshal_handles(&self, _: &mut &mut [u8]) -> Result<(), MarshalError> {
-            Ok(())
-        }
-        fn marshal_params(&self, _: &mut &mut [u8]) -> Result<(), MarshalError> {
-            Ok(())
-        }
-    }
-
-    /// The object-safe supertrait of [`Response`](Command::Response)
-    pub trait ResponseData<'b> {
-        fn unmarshal_handles(&mut self, _: &mut &'b [u8]) -> Result<(), UnmarshalError> {
-            Ok(())
-        }
-        fn unmarshal_params(&mut self, _: &mut &'b [u8]) -> Result<(), UnmarshalError> {
-            Ok(())
-        }
-    }
-    impl ResponseData<'_> for () {}
-}
-use sealed::*;
 
 /// Common Trait for all TPM2 Commands
 pub trait Command: CommandData + Copy + Debug {

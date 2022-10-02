@@ -36,6 +36,31 @@ pub trait UnmarshalAny: MarshalFixed + Default {
     }
 }
 
+mod sealed {
+    use super::*;
+    /// The object-safe supertrait of [`Command`]
+    pub trait CommandData {
+        fn marshal_handles(&self, _: &mut &mut [u8]) -> Result<(), MarshalError> {
+            Ok(())
+        }
+        fn marshal_params(&self, _: &mut &mut [u8]) -> Result<(), MarshalError> {
+            Ok(())
+        }
+    }
+
+    /// The object-safe supertrait of [`Response`](Command::Response)
+    pub trait ResponseData<'b> {
+        fn unmarshal_handles(&mut self, _: &mut &'b [u8]) -> Result<(), UnmarshalError> {
+            Ok(())
+        }
+        fn unmarshal_params(&mut self, _: &mut &'b [u8]) -> Result<(), UnmarshalError> {
+            Ok(())
+        }
+    }
+    impl ResponseData<'_> for () {}
+}
+pub(crate) use sealed::*;
+
 #[inline]
 pub(crate) fn pop_array<'a, const N: usize>(
     buf: &mut &'a [u8],
@@ -208,6 +233,11 @@ mod test {
         trait Foo: for<'a> Unmarshal<'a> {}
         let _: &dyn Foo;
 
-        // let _: &dyn FixedSize;
+        let _: &dyn CommandData;
+        let _: &dyn ResponseData;
+        let _: &dyn ResponseData<'static>;
+
+        trait Bar: for<'a> ResponseData<'static> {}
+        let _: &dyn Bar;
     }
 }
