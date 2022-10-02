@@ -1,6 +1,7 @@
 //! Functionality not yet in libcore
 
 use core::mem::size_of;
+const _: () = assert!(size_of::<usize>() >= 4, "usize must be at least 32 bits");
 
 pub(crate) trait ToUsize {
     fn to_usize(self) -> usize;
@@ -9,7 +10,6 @@ pub(crate) trait ToUsize {
 impl ToUsize for u32 {
     #[inline(always)]
     fn to_usize(self) -> usize {
-        assert!(size_of::<usize>() >= size_of::<u32>());
         self as usize
     }
 }
