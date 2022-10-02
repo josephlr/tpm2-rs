@@ -24,16 +24,19 @@ pub trait Command: CommandData + Copy + Debug {
     ///
     /// It should always be the case that `c.data().marshal_*()` and
     /// `c.marshal_*() do the exact same thing.
+    #[inline]
     fn data(&self) -> &dyn CommandData {
         self
     }
 
+    #[inline]
     fn with_auth(self, auth: &'_ dyn Auth) -> WithAuth<'_, Self> {
         WithAuth(self, auth)
     }
 }
 
 pub trait Auths<const N: usize> {
+    #[inline]
     fn auths(&self) -> [&dyn Auth; N] {
         [Default::default(); N]
     }
@@ -43,9 +46,11 @@ pub trait Auths<const N: usize> {
 pub struct WithAuth<'a, C>(C, &'a dyn Auth);
 
 impl<C: CommandData> CommandData for &C {
+    #[inline]
     fn marshal_handles(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
         (*self).marshal_handles(buf)
     }
+    #[inline]
     fn marshal_params(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
         (*self).marshal_params(buf)
     }
