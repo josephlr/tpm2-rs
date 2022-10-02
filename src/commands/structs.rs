@@ -1,7 +1,8 @@
-use super::*;
 use crate::{
+    error::{MarshalError, UnmarshalError},
+    marshal::{CommandData, ResponseData},
     types::{tpm, tpml, tpms},
-    Auths, Marshal, Unmarshal,
+    Auths, Command, Marshal, Unmarshal,
 };
 
 /// TPM2_Startup Command
