@@ -11,27 +11,45 @@ use crate::{
 
 /// TPMT_HA (TPMU_HA)
 #[derive(Clone, Copy, Default, Debug)]
+#[non_exhaustive]
 pub enum Hash {
     #[default]
     Null,
-    SHA1([u8; 20]),
-    SHA256([u8; 32]),
-    // TODO implement the other hash algos
+    Sha1([u8; 20]),
+    Sha256([u8; 32]),
+    Sha384([u8; 48]),
+    Sha512([u8; 64]),
+    Sm3_256([u8; 32]),
+    Sha3_256([u8; 32]),
+    Sha3_384([u8; 48]),
+    Sha3_512([u8; 64]),
 }
 
 impl Hash {
     pub const fn alg(&self) -> tpm::Alg {
         match self {
             Self::Null => tpm::Alg::Null,
-            Self::SHA1(_) => tpm::Alg::SHA1,
-            Self::SHA256(_) => tpm::Alg::SHA256,
+            Self::Sha1(_) => tpm::Alg::Sha1,
+            Self::Sha256(_) => tpm::Alg::Sha256,
+            Self::Sha384(_) => tpm::Alg::Sha384,
+            Self::Sha512(_) => tpm::Alg::Sha512,
+            Self::Sm3_256(_) => tpm::Alg::Sm3_256,
+            Self::Sha3_256(_) => tpm::Alg::Sha3_256,
+            Self::Sha3_384(_) => tpm::Alg::Sha3_384,
+            Self::Sha3_512(_) => tpm::Alg::Sha3_512,
         }
     }
     pub const fn digest(&self) -> &[u8] {
         match self {
             Self::Null => &[],
-            Self::SHA1(d) => d,
-            Self::SHA256(d) => d,
+            Self::Sha1(d) => d,
+            Self::Sha256(d) => d,
+            Self::Sha384(d) => d,
+            Self::Sha512(d) => d,
+            Self::Sm3_256(d) => d,
+            Self::Sha3_256(d) => d,
+            Self::Sha3_384(d) => d,
+            Self::Sha3_512(d) => d,
         }
     }
 }
@@ -47,15 +65,18 @@ impl Marshal for Hash {
 
 impl Unmarshal<'_> for Hash {
     fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
-        *self = Self::unmarshal_val(buf)?;
+        *self = match tpm::Alg::unmarshal_val(buf)? {
+            tpm::Alg::Null => Self::Null,
+            tpm::Alg::Sha1 => Self::Sha1(*pop_array(buf)?),
+            tpm::Alg::Sha256 => Self::Sha256(*pop_array(buf)?),
+            tpm::Alg::Sha384 => Self::Sha384(*pop_array(buf)?),
+            tpm::Alg::Sha512 => Self::Sha512(*pop_array(buf)?),
+            tpm::Alg::Sm3_256 => Self::Sm3_256(*pop_array(buf)?),
+            tpm::Alg::Sha3_256 => Self::Sha3_256(*pop_array(buf)?),
+            tpm::Alg::Sha3_384 => Self::Sha3_384(*pop_array(buf)?),
+            tpm::Alg::Sha3_512 => Self::Sha3_512(*pop_array(buf)?),
+            _ => return Err(UnmarshalError::InvalidValue),
+        };
         Ok(())
-    }
-    fn unmarshal_val(buf: &mut &[u8]) -> Result<Self, UnmarshalError> {
-        match tpm::Alg::unmarshal_val(buf)? {
-            tpm::Alg::Null => Ok(Self::Null),
-            tpm::Alg::SHA1 => Ok(Self::SHA1(*pop_array(buf)?)),
-            tpm::Alg::SHA256 => Ok(Self::SHA256(*pop_array(buf)?)),
-            _ => Err(UnmarshalError::InvalidValue),
-        }
     }
 }

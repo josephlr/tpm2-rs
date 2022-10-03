@@ -12,11 +12,11 @@ fn main() {
 
     let sel = [
         tpms::PcrSelection {
-            hash: tpm::Alg::SHA1,
+            hash: tpm::Alg::Sha1,
             select: [true; tpms::NUM_PCRS],
         },
         tpms::PcrSelection {
-            hash: tpm::Alg::SHA256,
+            hash: tpm::Alg::Sha256,
             select: [true; tpms::NUM_PCRS],
         },
     ];

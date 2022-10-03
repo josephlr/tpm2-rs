@@ -19,6 +19,7 @@ pub mod rh {
 
 /// TPM_CC values
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[non_exhaustive]
 #[repr(u32)]
 pub enum CC {
     NvUndefineSpaceSpecial = 0x0000011f,
@@ -150,6 +151,7 @@ impl MarshalFixed for CC {
 
 /// TPM_SU values
 #[derive(Clone, Copy, PartialEq, Eq, Default, Debug)]
+#[non_exhaustive]
 #[repr(u16)]
 pub enum SU {
     #[default]
@@ -187,6 +189,7 @@ impl UnmarshalFixed for RC {
 
 /// TPM_ST values
 #[derive(Clone, Copy, PartialEq, Eq, Default, Debug)]
+#[non_exhaustive]
 #[repr(u16)]
 pub enum ST {
     #[default]
@@ -217,15 +220,49 @@ impl Unmarshal<'_> for ST {
 ///
 /// TODO: This isn't all the ALG_IDs
 #[derive(Clone, Copy, Default, Debug)]
+#[non_exhaustive]
 #[repr(u16)]
 pub enum Alg {
     Error = 0x0000,
-    SHA1 = 0x0004,
+    Rsa = 0x0001,
+    Tdes = 0x0003,
+    Sha1 = 0x0004,
+    Hmac = 0x0005,
+    Aes = 0x0006,
+    Mgf1 = 0x0007,
+    KeyedHash = 0x0008,
+    Xor = 0x000A,
+    Sha256 = 0x000B,
+    Sha384 = 0x000C,
+    Sha512 = 0x000D,
     #[default]
     Null = 0x0010,
-    SHA256 = 0x000B,
-    SHA385 = 0x000C,
-    SHA512 = 0x000D,
+    Sm3_256 = 0x0012,
+    Sm4 = 0x0013,
+    RsaSsa = 0x0014,
+    RsaEs = 0x0015,
+    RsaPss = 0x0016,
+    Oaep = 0x0017,
+    Ecdsa = 0x0018,
+    Ecdh = 0x0019,
+    Ecdaa = 0x001A,
+    Sm2 = 0x001B,
+    EcSchnorr = 0x001C,
+    Ecmqv = 0x001D,
+    Kdf1Sp800_56A = 0x0020,
+    Kdf2 = 0x0021,
+    Kdf1Sp800_108 = 0x0022,
+    Ecc = 0x0023,
+    SymCipher = 0x0025,
+    Camellia = 0x0026,
+    Sha3_256 = 0x0027,
+    Sha3_384 = 0x0028,
+    Sha3_512 = 0x0029,
+    Ctr = 0x0040,
+    Ofb = 0x0041,
+    Cbc = 0x0042,
+    Cfb = 0x0043,
+    Ecb = 0x0044,
 }
 impl MarshalFixed for Alg {
     const SIZE: usize = <u16 as MarshalFixed>::SIZE;
@@ -238,10 +275,44 @@ impl Unmarshal<'_> for Alg {
     fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
         *self = match u16::unmarshal_val(buf)? {
             0x0000 => Self::Error,
-            0x0004 => Self::SHA1,
-            0x000B => Self::SHA256,
-            0x000C => Self::SHA385,
-            0x000D => Self::SHA512,
+            0x0001 => Self::Rsa,
+            0x0003 => Self::Tdes,
+            0x0004 => Self::Sha1,
+            0x0005 => Self::Hmac,
+            0x0006 => Self::Aes,
+            0x0007 => Self::Mgf1,
+            0x0008 => Self::KeyedHash,
+            0x000A => Self::Xor,
+            0x000B => Self::Sha256,
+            0x000C => Self::Sha384,
+            0x000D => Self::Sha512,
+            0x0010 => Self::Null,
+            0x0012 => Self::Sm3_256,
+            0x0013 => Self::Sm4,
+            0x0014 => Self::RsaSsa,
+            0x0015 => Self::RsaEs,
+            0x0016 => Self::RsaPss,
+            0x0017 => Self::Oaep,
+            0x0018 => Self::Ecdsa,
+            0x0019 => Self::Ecdh,
+            0x001A => Self::Ecdaa,
+            0x001B => Self::Sm2,
+            0x001C => Self::EcSchnorr,
+            0x001D => Self::Ecmqv,
+            0x0020 => Self::Kdf1Sp800_56A,
+            0x0021 => Self::Kdf2,
+            0x0022 => Self::Kdf1Sp800_108,
+            0x0023 => Self::Ecc,
+            0x0025 => Self::SymCipher,
+            0x0026 => Self::Camellia,
+            0x0027 => Self::Sha3_256,
+            0x0028 => Self::Sha3_384,
+            0x0029 => Self::Sha3_512,
+            0x0040 => Self::Ctr,
+            0x0041 => Self::Ofb,
+            0x0042 => Self::Cbc,
+            0x0043 => Self::Cfb,
+            0x0044 => Self::Ecb,
             _ => return Err(UnmarshalError::InvalidValue),
         };
         Ok(())
