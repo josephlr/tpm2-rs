@@ -218,9 +218,10 @@ impl Unmarshal<'_> for ST {
 #[derive(Clone, Copy, Default, Debug)]
 #[repr(u16)]
 pub enum Alg {
-    #[default]
     Error = 0x0000,
     SHA1 = 0x0004,
+    #[default]
+    Null = 0x0010,
     SHA256 = 0x000B,
     SHA385 = 0x000C,
     SHA512 = 0x000D,
