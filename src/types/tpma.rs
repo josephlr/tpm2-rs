@@ -45,11 +45,8 @@ macro_rules! impl_bitflags { ($($T: ty)+) => { $(
     }
 
     impl UnmarshalAny for $T {
-        fn unmarshal_fixed(&mut self, arr: &Self::ARRAY) {
-            *self = Self::unmarshal_fixed_val(arr);
-        }
-        fn unmarshal_fixed_val(arr: &Self::ARRAY) -> Self {
-            Self::from_bits_truncate(<_ as UnmarshalAny>::unmarshal_fixed_val(arr))
+        fn unmarshal_fixed(arr: &Self::ARRAY) -> Self {
+            Self::from_bits_truncate(<_ as UnmarshalAny>::unmarshal_fixed(arr))
         }
     }
 )+ } }

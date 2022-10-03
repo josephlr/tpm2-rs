@@ -179,8 +179,8 @@ impl MarshalFixed for RC {
 }
 
 impl UnmarshalAny for RC {
-    fn unmarshal_fixed(&mut self, arr: &Self::ARRAY) {
-        *self = NonZeroU32::new(u32::unmarshal_fixed_val(arr)).map(TpmError);
+    fn unmarshal_fixed(arr: &Self::ARRAY) -> Self {
+        NonZeroU32::new(u32::unmarshal_fixed(arr)).map(TpmError)
     }
 }
 
