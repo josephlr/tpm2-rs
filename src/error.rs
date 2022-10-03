@@ -12,11 +12,11 @@ pub enum Error {
     TooManyAuths(usize),
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 #[repr(transparent)]
 pub struct TpmError(pub NonZeroU32);
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 #[non_exhaustive]
 pub enum MarshalError {
     BufferOverflow,
@@ -24,7 +24,7 @@ pub enum MarshalError {
     IntegerOverflow,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 #[non_exhaustive]
 pub enum UnmarshalError {
     BufferOverflow,
