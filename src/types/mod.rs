@@ -12,6 +12,7 @@ pub mod tpmi;
 pub mod tpml;
 pub mod tpms;
 pub mod tpmt;
+pub mod tpmu;
 
 pub type Handle = u32;
 
