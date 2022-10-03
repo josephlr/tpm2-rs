@@ -13,7 +13,7 @@
 use crate::{
     error::{MarshalError, UnmarshalError},
     marshal::{CommandData, ResponseData},
-    types::{tpm, tpml, tpms},
+    types::{tpm, tpm2b, tpml, tpms, tpmu, Handle},
     Auths, Command, Marshal, Unmarshal,
 };
 
@@ -183,21 +183,41 @@ impl Auths<0> for Shutdown {}
 //     pub todo: (),
 // }
 
-// /// TPM2_ReadPublic Command
-// ///
-// /// This command (and its response) are defined in the
-// /// TPM2 Library Specification - v1.59 - Part 3 - Section 12.4
-// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
-// pub struct ReadPublic {
-//     pub todo: (),
-// }
-// /// TPM2_ReadPublic Response
-// ///
-// /// See [ReadPublic] for more information.
-// #[derive(Clone, Copy, Default, Debug, ResponseData)]
-// pub struct ReadPublicResponse {
-//     pub todo: (),
-// }
+/// TPM2_ReadPublic Command
+///
+/// This command (and its response) are defined in the
+/// TPM2 Library Specification - v1.59 - Part 3 - Section 12.4
+#[derive(Clone, Copy, Default, Debug)]
+pub struct ReadPublic {
+    pub object_handle: Handle,
+}
+impl CommandData for ReadPublic {
+    fn marshal_handles(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
+        self.object_handle.marshal(buf)
+    }
+}
+impl Command for ReadPublic {
+    const CODE: tpm::CC = tpm::CC::ReadPublic;
+    type Response<'t> = ReadPublicResponse<'t>;
+}
+impl Auths<0> for ReadPublic {}
+
+/// TPM2_ReadPublic Response
+///
+/// See [ReadPublic] for more information.
+#[derive(Clone, Copy, Default, Debug)]
+pub struct ReadPublicResponse<'t> {
+    pub public: &'t [u8],
+    pub name: tpm2b::Out<'t, tpmu::Name>,
+    pub qualified_name: tpm2b::Out<'t, tpmu::Name>,
+}
+impl<'t> ResponseData<'t> for ReadPublicResponse<'t> {
+    fn unmarshal_params(&mut self, buf: &mut &'t [u8]) -> Result<(), UnmarshalError> {
+        self.public.unmarshal(buf)?;
+        self.name.unmarshal(buf)?;
+        self.qualified_name.unmarshal(buf)
+    }
+}
 
 // /// TPM2_ActivateCredential Command
 // ///
