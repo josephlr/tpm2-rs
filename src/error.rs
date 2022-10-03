@@ -20,7 +20,6 @@ pub struct TpmError(pub NonZeroU32);
 #[non_exhaustive]
 pub enum MarshalError {
     BufferOverflow,
-    BufferRemaining,
     IntegerOverflow,
 }
 
