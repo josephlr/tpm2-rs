@@ -8,7 +8,7 @@ use crate::{
     Marshal, MarshalFixed, Unmarshal,
 };
 
-// TPMS_TIME_INFO
+/// TPMS_TIME_INFO
 #[derive(Clone, Copy, Debug, Default)]
 pub struct TimeInfo {
     time: u64,
@@ -29,7 +29,7 @@ impl Unmarshal<'_> for TimeInfo {
     }
 }
 
-// TPMS_CLOCK_INFO
+/// TPMS_CLOCK_INFO
 #[derive(Clone, Copy, Debug, Default)]
 pub struct ClockInfo {
     clock: u64,
@@ -61,7 +61,7 @@ impl Unmarshal<'_> for ClockInfo {
     }
 }
 
-// TPMS_AUTH_COMMAND
+/// TPMS_AUTH_COMMAND
 #[derive(Clone, Copy, Default)]
 pub struct AuthCommand<'a> {
     pub session_handle: Handle,
@@ -80,7 +80,7 @@ impl Marshal for AuthCommand<'_> {
     }
 }
 
-// TPMS_AUTH_RESPONSE
+/// TPMS_AUTH_RESPONSE
 #[derive(Clone, Copy, Default)]
 pub struct AuthResponse<'a> {
     pub nonce: &'a [u8],
@@ -100,7 +100,9 @@ impl<'a> Unmarshal<'a> for AuthResponse<'a> {
 const SIZE_OF_SELECT: usize = 3;
 pub const NUM_PCRS: usize = 8 * SIZE_OF_SELECT;
 
-// TODO: Do we want to support anything other than 24 PCRs?
+/// TPMS_PCR_SELECT
+///
+/// TODO: Do we want to support anything other than 24 PCRs?
 pub type PcrSelect = [bool; NUM_PCRS];
 
 impl Marshal for PcrSelect {
@@ -144,6 +146,7 @@ impl Unmarshal<'_> for PcrSelect {
     }
 }
 
+/// TPMS_PCR_SELECTION
 #[derive(Clone, Copy, Default, Debug)]
 pub struct PcrSelection {
     pub hash: tpm::Alg,

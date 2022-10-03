@@ -9,6 +9,7 @@ use crate::{
     Marshal, Unmarshal, UnmarshalFixed,
 };
 
+/// TPMU_NAME
 #[derive(Clone, Copy, Default, Debug)]
 pub enum Name {
     #[default]

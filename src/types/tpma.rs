@@ -9,6 +9,7 @@ use bitflags::bitflags;
 use crate::{MarshalFixed, UnmarshalFixed};
 
 bitflags! {
+    /// TPMA_SESSION
     #[derive(Default)]
     #[repr(transparent)]
     pub struct Session: u8 {
@@ -24,6 +25,7 @@ bitflags! {
 }
 
 bitflags! {
+    /// TPMA_MEMORY
     #[derive(Default)]
     #[repr(transparent)]
     pub struct Memory: u32 {

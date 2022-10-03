@@ -148,7 +148,7 @@ impl MarshalFixed for CC {
     }
 }
 
-// TPM_SU values
+/// TPM_SU values
 #[derive(Clone, Copy, PartialEq, Eq, Default, Debug)]
 #[repr(u16)]
 pub enum SU {
@@ -164,6 +164,7 @@ impl MarshalFixed for SU {
     }
 }
 
+/// TPM_RC
 pub type RC = Option<TpmError>;
 
 impl MarshalFixed for RC {
@@ -184,7 +185,7 @@ impl UnmarshalFixed for RC {
     }
 }
 
-// TPM_ST values
+/// TPM_ST values
 #[derive(Clone, Copy, PartialEq, Eq, Default, Debug)]
 #[repr(u16)]
 pub enum ST {

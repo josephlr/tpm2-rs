@@ -9,6 +9,7 @@ use crate::{
     Marshal, Unmarshal,
 };
 
+/// TPMT_HA (TPMU_HA)
 #[derive(Clone, Copy, Default, Debug)]
 pub enum Hash {
     #[default]
