@@ -27,7 +27,7 @@ pub trait MarshalFixed {
     fn marshal_fixed(&self, arr: &mut Self::ARRAY);
 }
 
-pub trait UnmarshalAny: MarshalFixed {
+pub trait UnmarshalFixed: MarshalFixed {
     fn unmarshal_fixed(arr: &Self::ARRAY) -> Self;
 }
 
@@ -114,7 +114,7 @@ impl<const N: usize, T: MarshalFixed<ARRAY = [u8; N]>> Marshal for T {
     }
 }
 
-impl<const N: usize, T: UnmarshalAny<ARRAY = [u8; N]>> Unmarshal<'_> for T {
+impl<const N: usize, T: UnmarshalFixed<ARRAY = [u8; N]>> Unmarshal<'_> for T {
     fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
         let arr = pop_array(buf)?;
         *self = Self::unmarshal_fixed(arr);
@@ -131,7 +131,7 @@ impl MarshalFixed for () {
     type ARRAY = [u8; 0];
     fn marshal_fixed(&self, _: &mut Self::ARRAY) {}
 }
-impl UnmarshalAny for () {
+impl UnmarshalFixed for () {
     fn unmarshal_fixed(_: &Self::ARRAY) -> Self {}
 }
 
@@ -143,7 +143,7 @@ macro_rules! impl_ints { ($($T: ty)+) => { $(
             *arr = self.to_be_bytes();
         }
     }
-    impl UnmarshalAny for $T {
+    impl UnmarshalFixed for $T {
         fn unmarshal_fixed(arr: &Self::ARRAY) -> Self {
             Self::from_be_bytes(*arr)
         }

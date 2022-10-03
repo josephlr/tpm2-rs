@@ -6,7 +6,7 @@ use core::mem;
 
 use bitflags::bitflags;
 
-use crate::{MarshalFixed, UnmarshalAny};
+use crate::{MarshalFixed, UnmarshalFixed};
 
 bitflags! {
     #[derive(Default)]
@@ -44,9 +44,9 @@ macro_rules! impl_bitflags { ($($T: ty)+) => { $(
         }
     }
 
-    impl UnmarshalAny for $T {
+    impl UnmarshalFixed for $T {
         fn unmarshal_fixed(arr: &Self::ARRAY) -> Self {
-            Self::from_bits_truncate(<_ as UnmarshalAny>::unmarshal_fixed(arr))
+            Self::from_bits_truncate(<_ as UnmarshalFixed>::unmarshal_fixed(arr))
         }
     }
 )+ } }

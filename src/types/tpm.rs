@@ -8,7 +8,7 @@ use core::num::NonZeroU32;
 
 use crate::{
     error::{TpmError, UnmarshalError},
-    MarshalFixed, Unmarshal, UnmarshalAny,
+    MarshalFixed, Unmarshal, UnmarshalFixed,
 };
 
 /// TPM_RH constants
@@ -178,7 +178,7 @@ impl MarshalFixed for RC {
     }
 }
 
-impl UnmarshalAny for RC {
+impl UnmarshalFixed for RC {
     fn unmarshal_fixed(arr: &Self::ARRAY) -> Self {
         NonZeroU32::new(u32::unmarshal_fixed(arr)).map(TpmError)
     }
