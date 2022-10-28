@@ -17,6 +17,10 @@ pub mod rh {
     pub const PASSWORD: Handle = 0x40000009;
 }
 
+// 5.3 Miscellaneous Types
+/// TPM_KEY_BITS
+pub type KeyBits = u16;
+
 /// TPM_CC values
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 #[non_exhaustive]

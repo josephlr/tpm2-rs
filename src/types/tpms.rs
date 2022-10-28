@@ -173,6 +173,8 @@ pub type SchemeHash = tpmi::AlgHash;
 pub type SchemeHmac = SchemeHash;
 /// TPMS_KEYEDHASH_PARMS
 pub type KeyedHashParms = tpmt::KeyedHashScheme;
+/// TPMS_SYMCIPHER_PARMS
+pub type SymCipherParms = tpmt::SymDefObject;
 
 /// TPMS_SCHEME_XOR
 #[derive(Clone, Copy, Default, Debug)]

@@ -84,7 +84,7 @@ impl Unmarshal<'_> for Hash {
 /// TPMT_PUBLIC_PARMS (TPMU_PUBLIC_PARMS)
 pub enum PublicParams {
     KeyedHash(tpms::KeyedHashParms),
-    SymCipher(()),
+    SymCipher(tpms::SymCipherParms),
     Rsa(()),
     Ecc(()),
 }
@@ -109,9 +109,10 @@ pub enum KeyedHashScheme {
     Null,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Default, Debug)]
 pub enum SymDefObject {
-    Sym(tpmi::AlgSym),
+    Sym(tpmi::AlgSym, tpm::KeyBits, tpmi::AlgSymMode),
     Xor(tpmi::AlgHash),
+    #[default]
     Null,
 }

@@ -11,3 +11,5 @@ pub type AlgHash = tpm::Alg;
 pub type AlgKdf = tpm::Alg;
 /// TPMI_ALG_SYM (TPMI_ALG_SYM_OBJECT), expect not xor or null
 pub type AlgSym = tpm::Alg;
+/// TPMI_ALG_SYM_MODE
+pub type AlgSymMode = tpm::Alg;
