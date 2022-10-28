@@ -49,6 +49,19 @@ impl Unmarshal<'_> for ResponseHeader {
     }
 }
 
+pub trait GetAlg {
+    fn alg(&self) -> tpm::Alg;
+}
+
+impl<T: GetAlg> GetAlg for Option<T> {
+    fn alg(&self) -> tpm::Alg {
+        match self {
+            Some(t) => t.alg(),
+            None => tpm::Alg::Null,
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
