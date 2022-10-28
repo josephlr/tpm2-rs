@@ -82,20 +82,20 @@ impl Unmarshal<'_> for Hash {
 }
 
 /// TPMT_PUBLIC_PARMS (TPMU_PUBLIC_PARMS)
-pub enum PublicParams {
+pub enum PublicParms {
     KeyedHash(tpms::KeyedHashParms),
     SymCipher(tpms::SymCipherParms),
     Rsa(()),
     Ecc(()),
 }
 
-impl PublicParams {
+impl PublicParms {
     pub const fn alg(&self) -> tpm::Alg {
         match self {
-            PublicParams::KeyedHash(_) => tpm::Alg::KeyedHash,
-            PublicParams::SymCipher(_) => tpm::Alg::SymCipher,
-            PublicParams::Rsa(_) => tpm::Alg::Rsa,
-            PublicParams::Ecc(_) => tpm::Alg::Ecc,
+            PublicParms::KeyedHash(_) => tpm::Alg::KeyedHash,
+            PublicParms::SymCipher(_) => tpm::Alg::SymCipher,
+            PublicParms::Rsa(_) => tpm::Alg::Rsa,
+            PublicParms::Ecc(_) => tpm::Alg::Ecc,
         }
     }
 }
