@@ -166,3 +166,31 @@ impl Unmarshal<'_> for PcrSelection {
         self.select.unmarshal(buf)
     }
 }
+
+/// TPMS_SCHEME_HASH
+pub type SchemeHash = tpmi::AlgHash;
+/// TPMS_SCHEME_HMAC
+pub type SchemeHmac = SchemeHash;
+/// TPMS_KEYEDHASH_PARMS
+pub type KeyedHashParms = tpmt::KeyedHashScheme;
+
+/// TPMS_SCHEME_XOR
+#[derive(Clone, Copy, Default, Debug)]
+pub struct SchemeXor {
+    pub hash: tpmi::AlgHash,
+    pub kdf: tpmi::AlgKdf,
+}
+
+impl Marshal for SchemeXor {
+    fn marshal(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
+        self.hash.marshal(buf)?;
+        self.kdf.marshal(buf)
+    }
+}
+
+impl Unmarshal<'_> for SchemeXor {
+    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
+        self.hash.unmarshal(buf)?;
+        self.kdf.unmarshal(buf)
+    }
+}
