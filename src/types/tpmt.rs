@@ -2,7 +2,7 @@
 //!
 //! TODO: [`Public`] is weird.
 
-use super::tpm;
+use super::{tpm, tpmi, tpms};
 use crate::{
     error::{MarshalError, UnmarshalError},
     marshal::{pop_array, pop_slice_mut},
@@ -79,4 +79,39 @@ impl Unmarshal<'_> for Hash {
         };
         Ok(())
     }
+}
+
+/// TPMT_PUBLIC_PARMS (TPMU_PUBLIC_PARMS)
+pub enum PublicParams {
+    KeyedHash(tpms::KeyedHashParms),
+    SymCipher(()),
+    Rsa(()),
+    Ecc(()),
+}
+
+impl PublicParams {
+    pub const fn alg(&self) -> tpm::Alg {
+        match self {
+            PublicParams::KeyedHash(_) => tpm::Alg::KeyedHash,
+            PublicParams::SymCipher(_) => tpm::Alg::SymCipher,
+            PublicParams::Rsa(_) => tpm::Alg::Rsa,
+            PublicParams::Ecc(_) => tpm::Alg::Ecc,
+        }
+    }
+}
+
+/// TPMT_KEYEDHASH_SCHEME (TPMU_SCHEME_KEYEDHASH)
+#[derive(Clone, Copy, Default, Debug)]
+pub enum KeyedHashScheme {
+    Hmac(tpms::SchemeHmac),
+    Xor(tpms::SchemeXor),
+    #[default]
+    Null,
+}
+
+#[derive(Clone, Copy, Default, Debug)]
+pub enum SymDefObject {
+    Sym(tpmi::AlgSym),
+    Xor(tpmi::AlgHash),
+    Null,
 }
