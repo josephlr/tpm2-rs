@@ -1,6 +1,6 @@
 //! `TPMS_*` Structure Types
 
-use super::{tpm, tpma, tpmi, tpmt, Handle};
+use super::{tpma, tpmi, tpmt, Handle};
 use crate::{
     error::{MarshalError, UnmarshalError},
     marshal::{pop_array_mut, pop_slice},

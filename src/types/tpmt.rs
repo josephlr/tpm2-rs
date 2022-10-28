@@ -109,7 +109,7 @@ pub enum KeyedHashScheme {
     Null,
 }
 
-#[derive(Clone, Copy, Default, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum SymDefObject {
     Sym(tpmi::AlgSym),
     Xor(tpmi::AlgHash),
