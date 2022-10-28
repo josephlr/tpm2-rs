@@ -1,6 +1,6 @@
 //! `TPMS_*` Structure Types
 
-use super::{tpm, tpma, Handle};
+use super::{tpm, tpma, tpmi, tpmt, Handle};
 use crate::{
     error::{MarshalError, UnmarshalError},
     marshal::{pop_array_mut, pop_slice},
@@ -149,7 +149,7 @@ impl Unmarshal<'_> for PcrSelect {
 /// TPMS_PCR_SELECTION
 #[derive(Clone, Copy, Default, Debug)]
 pub struct PcrSelection {
-    pub hash: tpm::Alg,
+    pub hash: tpmi::AlgHash,
     pub select: PcrSelect,
 }
 
