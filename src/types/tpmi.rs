@@ -13,3 +13,5 @@ pub type AlgKdf = tpm::Alg;
 pub type AlgSym = tpm::Alg;
 /// TPMI_ALG_SYM_MODE
 pub type AlgSymMode = tpm::Alg;
+/// TPMI_ALG_ASYM_SCHEME
+pub type AlgAsymScheme = tpm::Alg;

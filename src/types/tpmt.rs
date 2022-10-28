@@ -116,3 +116,59 @@ pub enum SymDefObject {
     #[default]
     Null,
 }
+
+/// TPMT_ASYM_SCHEME (TPMU_ASYM_SCHEME)
+///
+/// Also effectivly includes the TPMS_{KEY,SIG,ENC} types
+#[derive(Clone, Copy, Default, Debug)]
+pub enum AsymScheme {
+    Ecdh(tpmi::AlgHash),
+    Ecmqv(tpmi::AlgHash),
+    RsaSsa(tpmi::AlgHash),
+    RsaPss(tpmi::AlgHash),
+    Ecdsa(tpmi::AlgHash),
+    Ecdaa(tpmi::AlgHash, u16),
+    Sm2(tpmi::AlgHash),
+    EcSchnorr(tpmi::AlgHash),
+    RsaEs,
+    Oaep(tpmi::AlgHash),
+    #[default]
+    Null,
+}
+
+impl AsymScheme {
+    /// The asymetric signing algorithm
+    pub const fn alg(&self) -> tpmi::AlgAsymScheme {
+        match self {
+            AsymScheme::Ecdh(_) => tpm::Alg::Ecdh,
+            AsymScheme::Ecmqv(_) => tpm::Alg::Ecmqv,
+            AsymScheme::RsaSsa(_) => tpm::Alg::RsaSsa,
+            AsymScheme::RsaPss(_) => tpm::Alg::RsaPss,
+            AsymScheme::Ecdsa(_) => tpm::Alg::Ecdsa,
+            AsymScheme::Ecdaa(_, _) => tpm::Alg::Ecdaa,
+            AsymScheme::Sm2(_) => tpm::Alg::Sm2,
+            AsymScheme::EcSchnorr(_) => tpm::Alg::EcSchnorr,
+            AsymScheme::RsaEs => tpm::Alg::RsaEs,
+            AsymScheme::Oaep(_) => tpm::Alg::Oaep,
+            AsymScheme::Null => tpm::Alg::Null,
+        }
+    }
+
+    /// The hash algorithm used in this signing method. Returns `Alg::Null` if
+    /// the method doesn't use a hash algorithm.
+    pub const fn hash(&self) -> tpmi::AlgHash {
+        match *self {
+            AsymScheme::Ecdh(h) => h,
+            AsymScheme::Ecmqv(h) => h,
+            AsymScheme::RsaSsa(h) => h,
+            AsymScheme::RsaPss(h) => h,
+            AsymScheme::Ecdsa(h) => h,
+            AsymScheme::Ecdaa(h, _) => h,
+            AsymScheme::Sm2(h) => h,
+            AsymScheme::EcSchnorr(h) => h,
+            AsymScheme::RsaEs => tpm::Alg::Null,
+            AsymScheme::Oaep(h) => h,
+            AsymScheme::Null => tpm::Alg::Null,
+        }
+    }
+}

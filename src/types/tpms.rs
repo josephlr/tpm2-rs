@@ -196,3 +196,10 @@ impl Unmarshal<'_> for SchemeXor {
         self.kdf.unmarshal(buf)
     }
 }
+
+/// TPMS_ASYM_PARMS
+#[derive(Clone, Copy, Default, Debug)]
+pub struct AsymParms {
+    pub symmetric: tpmt::SymDefObject,
+    pub scheme: tpmt::AsymScheme,
+}
