@@ -88,11 +88,12 @@ impl Unmarshal<'_> for Option<Hash> {
 }
 
 /// TPMT_PUBLIC_PARMS (TPMU_PUBLIC_PARMS)
+#[derive(Clone, Copy, Debug)]
 pub enum PublicParms {
     KeyedHash(Option<KeyedHashScheme>),
     SymCipher(SymDefObject),
-    Rsa(()),
-    Ecc(()),
+    Rsa(tpms::RsaParms),
+    Ecc(tpms::EccParms),
 }
 
 impl PublicParms {
@@ -102,6 +103,21 @@ impl PublicParms {
             PublicParms::SymCipher(_) => tpm::Alg::SymCipher,
             PublicParms::Rsa(_) => tpm::Alg::Rsa,
             PublicParms::Ecc(_) => tpm::Alg::Ecc,
+        }
+    }
+    /// Returns common asymmetric scheme details if using RSA or ECC
+    pub const fn asym(&self) -> Option<tpms::AsymParms> {
+        match self {
+            PublicParms::KeyedHash(_) => None,
+            PublicParms::SymCipher(_) => None,
+            PublicParms::Rsa(p) => Some(tpms::AsymParms {
+                symmetric: p.symmetric,
+                scheme: p.scheme,
+            }),
+            PublicParms::Ecc(p) => Some(tpms::AsymParms {
+                symmetric: p.symmetric,
+                scheme: p.scheme,
+            }),
         }
     }
 }

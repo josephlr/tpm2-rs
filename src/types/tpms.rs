@@ -205,7 +205,7 @@ pub struct AsymParms {
 }
 
 /// TPMS_RSA_PARMS
-#[derive(Clone, Copy, Default, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct RsaParms {
     pub symmetric: Option<tpmt::SymDefObject>,
     pub scheme: Option<tpmt::AsymScheme>,
