@@ -320,3 +320,20 @@ impl Unmarshal<'_> for Alg {
         Ok(())
     }
 }
+
+/// TPM_ECC_CURVE (TPMI_ECC_CURVE)
+///
+/// List of reistered curve identifiers
+#[derive(Clone, Copy, Debug)]
+#[non_exhaustive]
+#[repr(u16)]
+pub enum EccCurve {
+    NistP192 = 0x0001,
+    NistP224 = 0x0002,
+    NistP256 = 0x0003,
+    NistP384 = 0x0004,
+    NistP521 = 0x0005,
+    BnP256 = 0x0010,
+    BnP638 = 0x0011,
+    Sm2P256 = 0x0020,
+}
