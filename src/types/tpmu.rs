@@ -54,6 +54,7 @@ impl Unmarshal<'_> for Option<Name> {
 /// TPMU_PUBLIC_ID
 ///
 /// Part of the TPMT_PUBLIC structure
+#[derive(Clone, Copy, Debug)]
 pub enum PublicId<'t> {
     KeyedHash(&'t [u8]),
     SymCipher(&'t [u8]),

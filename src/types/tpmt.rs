@@ -2,7 +2,7 @@
 //!
 //! TODO: [`Public`] is weird.
 
-use super::{tpm, tpmi, tpms};
+use super::{tpm, tpma, tpmi, tpms, tpmu};
 use crate::{
     error::{MarshalError, UnmarshalError},
     marshal::{pop_array, pop_slice_mut},
@@ -97,7 +97,7 @@ pub enum PublicParms {
 }
 
 impl PublicParms {
-    pub const fn alg(&self) -> tpm::Alg {
+    pub const fn alg(&self) -> tpmi::AlgPublic {
         match self {
             PublicParms::KeyedHash(_) => tpm::Alg::KeyedHash,
             PublicParms::SymCipher(_) => tpm::Alg::SymCipher,
@@ -225,5 +225,24 @@ impl KdfScheme {
             KdfScheme::Kdf2(h) => h,
             KdfScheme::Kdf1Sp800_108(h) => h,
         }
+    }
+}
+
+/// TPMT_PUBLIC
+///
+/// The algorithm is encoded via the parameters field.
+#[derive(Clone, Copy, Debug)]
+pub struct Public<'t> {
+    pub name_alg: Option<tpmi::AlgHash>,
+    pub object_attributes: tpma::Object,
+    pub auth_policy: &'t [u8],
+    pub parameters: PublicParms,
+    pub unique: tpmu::PublicId<'t>,
+}
+
+impl Public<'_> {
+    /// The Object's type
+    pub const fn alg(&self) -> tpmi::AlgPublic {
+        self.parameters.alg()
     }
 }
