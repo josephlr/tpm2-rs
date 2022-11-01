@@ -1,6 +1,6 @@
 //! `TPMS_*` Structure Types
 
-use super::{tpma, tpmi, tpmt, Handle};
+use super::{tpm, tpma, tpmi, tpmt, Handle};
 use crate::{
     error::{MarshalError, UnmarshalError},
     marshal::{pop_array_mut, pop_slice},
@@ -211,4 +211,13 @@ pub struct RsaParms {
     pub scheme: Option<tpmt::AsymScheme>,
     pub key_bits: tpmi::RsaKeyBits,
     pub exponent: u32,
+}
+
+/// TPMS_ECC_PARMS
+#[derive(Clone, Copy, Debug)]
+pub struct EccParms {
+    pub symmetric: Option<tpmt::SymDefObject>,
+    pub scheme: Option<tpmt::AsymScheme>,
+    pub curve_id: tpm::EccCurve,
+    pub kdf: Option<tpmt::KdfScheme>,
 }
