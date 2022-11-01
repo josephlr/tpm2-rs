@@ -221,3 +221,10 @@ pub struct EccParms {
     pub curve_id: tpm::EccCurve,
     pub kdf: Option<tpmt::KdfScheme>,
 }
+
+/// TPMS_ECC_POINT
+#[derive(Clone, Copy, Debug)]
+pub struct EccPoint<'t> {
+    pub x: &'t [u8],
+    pub y: &'t [u8],
+}

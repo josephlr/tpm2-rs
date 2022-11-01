@@ -2,7 +2,7 @@
 //!
 //! TODO: Explain why [`Name`] is weird
 
-use super::{tpmt, Handle};
+use super::{tpms, tpmt, Handle};
 use crate::{
     error::{MarshalError, UnmarshalError},
     marshal::pop_array,
@@ -49,4 +49,15 @@ impl Unmarshal<'_> for Option<Name> {
         };
         Ok(())
     }
+}
+
+/// TPMU_PUBLIC_ID
+///
+/// Part of the TPMT_PUBLIC structure
+pub enum PublicId<'t> {
+    KeyedHash(&'t [u8]),
+    SymCipher(&'t [u8]),
+    Rsa(&'t [u8]),
+    Ecc(tpms::EccPoint<'t>),
+    // Derive(tpms::Derive<'t>),
 }
