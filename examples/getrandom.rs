@@ -12,7 +12,7 @@ fn main() {
 fn run_example(tpm: &mut dyn Tpm) {
     use tpm2::TpmRun;
 
-    println!("Requesting {} random bytes with one command", NUM_BYTES);
+    println!("Requesting {NUM_BYTES} random bytes with one command");
     let cmd = GetRandom {
         bytes_requested: NUM_BYTES,
     };
@@ -35,6 +35,6 @@ fn ext_example(tpm: &mut dyn Tpm) {
 
 fn print_bytes(b: &[u8]) {
     for chunk in b.chunks(8) {
-        println!("\t{:02X?}", chunk)
+        println!("\t{chunk:02X?}")
     }
 }

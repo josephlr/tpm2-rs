@@ -31,7 +31,7 @@ fn main() {
         print!("{:?} selection:", sel.hash);
         for (i, &bit) in sel.select.iter().enumerate() {
             if bit {
-                print!(" {}", i);
+                print!(" {i}");
             }
         }
         println!();
@@ -41,7 +41,7 @@ fn main() {
     for digest in rsp.pcr_values {
         print!("\t0x");
         for &b in digest {
-            print!("{:02X}", b);
+            print!("{b:02X}");
         }
         println!()
     }
