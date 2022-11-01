@@ -10,10 +10,8 @@ use crate::{
 };
 
 /// TPMU_NAME
-#[derive(Clone, Copy, Default, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum Name {
-    #[default]
-    None,
     Handle(Handle),
     Digest(tpmt::Hash),
 }
@@ -21,30 +19,34 @@ pub enum Name {
 impl Marshal for Name {
     fn marshal(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
         match self {
-            Name::None => Ok(()),
             Name::Handle(h) => h.marshal(buf),
             Name::Digest(d) => d.marshal(buf),
         }
     }
 }
 
-impl Unmarshal<'_> for Name {
-    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
-        *self = Self::unmarshal_val(buf)?;
-        Ok(())
+impl Marshal for Option<Name> {
+    fn marshal(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
+        match self {
+            Some(n) => n.marshal(buf),
+            None => Ok(()),
+        }
     }
+}
 
-    fn unmarshal_val(buf: &mut &[u8]) -> Result<Self, UnmarshalError> {
-        Ok(match buf.len() {
-            0 => Self::None,
+impl Unmarshal<'_> for Option<Name> {
+    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
+        *self = match buf.len() {
+            0 => None,
             4 => {
                 let arr: &[u8; 4] = pop_array(buf).unwrap();
-                Self::Handle(Handle::unmarshal_fixed(arr))
+                Some(Name::Handle(Handle::unmarshal_fixed(arr)))
             }
             _ => {
                 let h = Option::<tpmt::Hash>::unmarshal_val(buf)?.unwrap();
-                Self::Digest(h)
+                Some(Name::Digest(h))
             }
-        })
+        };
+        Ok(())
     }
 }

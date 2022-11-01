@@ -208,8 +208,8 @@ impl Auths<0> for ReadPublic {}
 #[derive(Clone, Copy, Default, Debug)]
 pub struct ReadPublicResponse<'t> {
     pub public: &'t [u8],
-    pub name: tpm2b::Out<'t, tpmu::Name>,
-    pub qualified_name: tpm2b::Out<'t, tpmu::Name>,
+    pub name: tpm2b::Out<'t, Option<tpmu::Name>>,
+    pub qualified_name: tpm2b::Out<'t, Option<tpmu::Name>>,
 }
 impl<'t> ResponseData<'t> for ReadPublicResponse<'t> {
     fn unmarshal_params(&mut self, buf: &mut &'t [u8]) -> Result<(), UnmarshalError> {
