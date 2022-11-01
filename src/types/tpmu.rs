@@ -41,7 +41,10 @@ impl Unmarshal<'_> for Name {
                 let arr: &[u8; 4] = pop_array(buf).unwrap();
                 Self::Handle(Handle::unmarshal_fixed(arr))
             }
-            _ => Self::Digest(tpmt::Hash::unmarshal_val(buf)?),
+            _ => {
+                let h = Option::<tpmt::Hash>::unmarshal_val(buf)?.unwrap();
+                Self::Digest(h)
+            }
         })
     }
 }
