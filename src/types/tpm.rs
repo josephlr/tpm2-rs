@@ -197,7 +197,6 @@ impl UnmarshalFixed for RC {
 #[repr(u16)]
 pub enum ST {
     #[default]
-    Null = 0x8000,
     NoSessions = 0x8001,
     Sessions = 0x8002,
 }
@@ -211,7 +210,6 @@ impl MarshalFixed for ST {
 impl Unmarshal<'_> for ST {
     fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
         *self = match u16::unmarshal_val(buf)? {
-            0x8000 => Self::Null,
             0x8001 => Self::NoSessions,
             0x8002 => Self::Sessions,
             _ => return Err(UnmarshalError::InvalidValue),
