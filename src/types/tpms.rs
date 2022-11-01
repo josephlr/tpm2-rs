@@ -201,5 +201,5 @@ impl Unmarshal<'_> for SchemeXor {
 #[derive(Clone, Copy, Default, Debug)]
 pub struct AsymParms {
     pub symmetric: tpmt::SymDefObject,
-    pub scheme: tpmt::AsymScheme,
+    pub scheme: Option<tpmt::AsymScheme>,
 }
