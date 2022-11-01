@@ -9,8 +9,10 @@ use super::tpm;
 pub type AlgHash = tpm::Alg;
 /// TPMI_ALG_KDF
 pub type AlgKdf = tpm::Alg;
-/// TPMI_ALG_SYM (TPMI_ALG_SYM_OBJECT), expect not xor or null
+/// TPMI_ALG_SYM
 pub type AlgSym = tpm::Alg;
+// TPMI_ALG_SYM_OBJECT
+pub type AlgSymObject = tpm::Alg;
 /// TPMI_ALG_SYM_MODE
 pub type AlgSymMode = tpm::Alg;
 /// TPMI_ALG_ASYM_SCHEME

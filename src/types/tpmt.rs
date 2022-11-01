@@ -107,20 +107,23 @@ impl PublicParms {
 }
 
 /// TPMT_KEYEDHASH_SCHEME (TPMU_SCHEME_KEYEDHASH)
-#[derive(Clone, Copy, Default, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum KeyedHashScheme {
     Hmac(tpms::SchemeHmac),
     Xor(tpms::SchemeXor),
-    #[default]
-    Null,
 }
 
-#[derive(Clone, Copy, Default, Debug)]
-pub enum SymDefObject {
-    Sym(tpmi::AlgSym, tpm::KeyBits, tpmi::AlgSymMode),
+#[derive(Clone, Copy, Debug)]
+pub struct SymDefObject {
+    pub algorithm: tpmi::AlgSymObject,
+    pub key_bits: tpm::KeyBits,
+    pub mode: tpmi::AlgSymMode,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum SymDef {
+    Sym(SymDefObject),
     Xor(tpmi::AlgHash),
-    #[default]
-    Null,
 }
 
 /// TPMT_ASYM_SCHEME (TPMU_ASYM_SCHEME)

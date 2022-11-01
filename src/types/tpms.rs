@@ -172,7 +172,7 @@ pub type SchemeHash = tpmi::AlgHash;
 /// TPMS_SCHEME_HMAC
 pub type SchemeHmac = SchemeHash;
 /// TPMS_KEYEDHASH_PARMS
-pub type KeyedHashParms = tpmt::KeyedHashScheme;
+pub type KeyedHashParms = Option<tpmt::KeyedHashScheme>;
 /// TPMS_SYMCIPHER_PARMS
 pub type SymCipherParms = tpmt::SymDefObject;
 
@@ -200,6 +200,6 @@ impl Unmarshal<'_> for SchemeXor {
 /// TPMS_ASYM_PARMS
 #[derive(Clone, Copy, Default, Debug)]
 pub struct AsymParms {
-    pub symmetric: tpmt::SymDefObject,
+    pub symmetric: Option<tpmt::SymDefObject>,
     pub scheme: Option<tpmt::AsymScheme>,
 }
