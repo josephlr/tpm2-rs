@@ -177,3 +177,37 @@ impl AsymScheme {
         }
     }
 }
+
+/// TPMT_KDF_SCHEME (TPMU_KDF_SCHEME)
+///
+/// Currently cannot be used, as the KDF
+#[derive(Clone, Copy, Debug)]
+pub enum KdfScheme {
+    Mgf1(tpmi::AlgHash),
+    Kdf1Sp800_56A(tpmi::AlgHash),
+    Kdf2(tpmi::AlgHash),
+    Kdf1Sp800_108(tpmi::AlgHash),
+}
+
+impl KdfScheme {
+    /// The KDF Scheme algorithm
+    pub const fn alg(&self) -> tpmi::AlgKdf {
+        match self {
+            KdfScheme::Mgf1(_) => tpm::Alg::Mgf1,
+            KdfScheme::Kdf1Sp800_56A(_) => tpm::Alg::Kdf1Sp800_56A,
+            KdfScheme::Kdf2(_) => tpm::Alg::Kdf2,
+            KdfScheme::Kdf1Sp800_108(_) => tpm::Alg::Kdf1Sp800_108,
+        }
+    }
+
+    /// The hash algorithm used in this signing method. Currently, all KDF
+    /// schemes use a hash algorithm (so no returning `Alg::Null`).
+    pub const fn hash(&self) -> tpmi::AlgHash {
+        match *self {
+            KdfScheme::Mgf1(h) => h,
+            KdfScheme::Kdf1Sp800_56A(h) => h,
+            KdfScheme::Kdf2(h) => h,
+            KdfScheme::Kdf1Sp800_108(h) => h,
+        }
+    }
+}
