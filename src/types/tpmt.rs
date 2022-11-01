@@ -89,8 +89,8 @@ impl Unmarshal<'_> for Option<Hash> {
 
 /// TPMT_PUBLIC_PARMS (TPMU_PUBLIC_PARMS)
 pub enum PublicParms {
-    KeyedHash(tpms::KeyedHashParms),
-    SymCipher(tpms::SymCipherParms),
+    KeyedHash(Option<KeyedHashScheme>),
+    SymCipher(SymDefObject),
     Rsa(()),
     Ecc(()),
 }
@@ -109,7 +109,7 @@ impl PublicParms {
 /// TPMT_KEYEDHASH_SCHEME (TPMU_SCHEME_KEYEDHASH)
 #[derive(Clone, Copy, Debug)]
 pub enum KeyedHashScheme {
-    Hmac(tpms::SchemeHmac),
+    Hmac(tpmi::AlgHash),
     Xor(tpms::SchemeXor),
 }
 

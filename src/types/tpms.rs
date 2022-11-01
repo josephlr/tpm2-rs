@@ -167,14 +167,14 @@ impl Unmarshal<'_> for PcrSelection {
     }
 }
 
-/// TPMS_SCHEME_HASH
-pub type SchemeHash = tpmi::AlgHash;
-/// TPMS_SCHEME_HMAC
-pub type SchemeHmac = SchemeHash;
-/// TPMS_KEYEDHASH_PARMS
-pub type KeyedHashParms = Option<tpmt::KeyedHashScheme>;
-/// TPMS_SYMCIPHER_PARMS
-pub type SymCipherParms = tpmt::SymDefObject;
+/// TPMS_SCHEME_HASH (not used)
+// pub type SchemeHash = tpmi::AlgHash;
+/// TPMS_SCHEME_HMAC (not used)
+// pub type SchemeHmac = SchemeHash;
+/// TPMS_KEYEDHASH_PARMS (not used)
+// pub type KeyedHashParms = Option<tpmt::KeyedHashScheme>;
+/// TPMS_SYMCIPHER_PARMS (not used)
+// pub type SymCipherParms = tpmt::SymDefObject;
 
 /// TPMS_SCHEME_XOR
 #[derive(Clone, Copy, Default, Debug)]
