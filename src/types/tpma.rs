@@ -37,6 +37,29 @@ bitflags! {
     }
 }
 
+bitflags! {
+    /// TPMA_MEMORY
+    #[derive(Default)]
+    #[repr(transparent)]
+    pub struct Object: u32 {
+        const FIXED_TPM = 1 << 1;
+        const ST_CLEAR = 1 << 2;
+        const FIXED_PARENT = 1 << 4;
+        const SENSITIVE_DATA_ORIGIN = 1 << 5;
+        const USER_WITH_AUTH = 1 << 6;
+        const ADMIN_WITH_POLICY = 1 << 7;
+        const NO_DA = 1 << 10;
+        const ENCRYPTED_DUPLICATION = 1 << 11;
+        const RESTRICTED = 1 << 16;
+        const DECRYPT = 1 << 17;
+        const SIGN = 1 << 18;
+        const ENCRYPT = 1 << 18;
+        const X509_SIGN = 1 << 19;
+
+        const RESERVED = !(0b11110000110011110110);
+    }
+}
+
 macro_rules! impl_bitflags { ($($T: ty)+) => { $(
     impl MarshalFixed for $T {
         const SIZE: usize = mem::size_of::<Self>();
@@ -53,7 +76,7 @@ macro_rules! impl_bitflags { ($($T: ty)+) => { $(
     }
 )+ } }
 
-impl_bitflags!(Session Memory);
+impl_bitflags!(Session Memory Object);
 
 #[cfg(test)]
 mod test {
@@ -62,5 +85,6 @@ mod test {
     fn all_bits_are_defined() {
         assert_eq!(Session::all().bits(), u8::MAX);
         assert_eq!(Memory::all().bits(), u32::MAX);
+        assert_eq!(Object::all().bits(), u32::MAX);
     }
 }
