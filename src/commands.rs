@@ -530,11 +530,11 @@ impl Auths<0> for GetRandom {}
 ///
 /// See [GetRandom] for more information.
 #[derive(Clone, Copy, Default, Debug)]
-pub struct GetRandomResponse<'a> {
-    pub random_bytes: &'a [u8],
+pub struct GetRandomResponse<'t> {
+    pub random_bytes: &'t [u8],
 }
-impl<'a> ResponseData<'a> for GetRandomResponse<'a> {
-    fn unmarshal_params(&mut self, buf: &mut &'a [u8]) -> Result<(), UnmarshalError> {
+impl<'t> ResponseData<'t> for GetRandomResponse<'t> {
+    fn unmarshal_params(&mut self, buf: &mut &'t [u8]) -> Result<(), UnmarshalError> {
         self.random_bytes.unmarshal(buf)
     }
 }
