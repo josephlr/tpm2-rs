@@ -4,11 +4,17 @@
 
 use core::marker::PhantomData;
 
+use super::tpms;
 use crate::{
     error::{MarshalError, UnmarshalError},
     polyfill::ToUsize,
     Marshal, Unmarshal,
 };
+
+pub type PcrSelectionIn<'b> = In<'b, tpms::PcrSelection>;
+pub type PcrSelectionOut<'t> = Out<'t, tpms::PcrSelection>;
+pub type DigestIn<'b> = In<'b, &'b [u8]>;
+pub type DigestOut<'t> = Out<'t, &'t [u8]>;
 
 /// Generic type for TPM inputs (just contains a slice)
 #[derive(Debug)]

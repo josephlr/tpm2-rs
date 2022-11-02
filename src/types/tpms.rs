@@ -1,6 +1,6 @@
 //! `TPMS_*` Structure Types
 
-use super::{tpm, tpma, tpmi, tpmt, Handle};
+use super::{tpm, tpma, tpmi, tpml, tpmt, tpm2b, Handle};
 use crate::{
     error::{MarshalError, UnmarshalError},
     marshal::{pop_array_mut, pop_slice},
@@ -227,4 +227,16 @@ pub struct EccParms {
 pub struct EccPoint<'t> {
     pub x: &'t [u8],
     pub y: &'t [u8],
+}
+
+/// TPMS_CREATION_DATA
+#[derive(Clone, Copy, Debug)]
+pub struct CreationData<'t> {
+    pub pcr_select: tpml::PcrSelectionOut<'t>,
+    pub pcr_digest: &'t [u8],
+    pub locality: tpma::Locality,
+    pub parent_name_alg: Option<tpmi::AlgHash>,
+    pub parent_name: tpm2b::NameOut<'t>,
+    pub parent_qualified_name: tpm2b::NameOut<'t>,
+    pub outside_info: &'t [u8],
 }

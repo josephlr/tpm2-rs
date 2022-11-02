@@ -3,7 +3,7 @@
 //! Most of these types are found in Part 2, Section 9 (Interface Types).
 //! TODO: Should we have these types at all?
 
-use super::tpm;
+use super::{tpm, Handle};
 
 /// TPMI_ALG_HASH
 pub type AlgHash = tpm::Alg;
@@ -22,3 +22,6 @@ pub type AlgPublic = tpm::Alg;
 
 /// TPMI_RSA_KEY_BITS
 pub type RsaKeyBits = u16;
+
+/// TPMI_RH_HIERARCHY (can be NULL)
+pub type RhHierarchy = Handle;

@@ -246,3 +246,10 @@ impl Public<'_> {
         self.parameters.alg()
     }
 }
+
+/// TPMT_TK_CREATION
+#[derive(Clone, Copy, Debug, Default)]
+pub struct TkCreation<'a> {
+    pub hierarchy: tpmi::RhHierarchy,
+    pub digest: &'a [u8],
+}

@@ -8,6 +8,9 @@ use bitflags::bitflags;
 
 use crate::{MarshalFixed, UnmarshalFixed};
 
+/// TODO: Have an actual type for TPMA_LOCALITY
+pub type Locality = u8;
+
 bitflags! {
     /// TPMA_SESSION
     #[derive(Default)]

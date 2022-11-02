@@ -13,7 +13,7 @@
 use crate::{
     error::{MarshalError, UnmarshalError},
     marshal::{CommandData, ResponseData},
-    types::{tpm, tpm2b, tpml, tpms, tpmu, Handle},
+    types::{tpm, tpm2b, tpml, tpms, tpmt, Handle},
     Auths, Command, Marshal, Unmarshal,
 };
 
@@ -208,8 +208,8 @@ impl Auths<0> for ReadPublic {}
 #[derive(Clone, Copy, Default, Debug)]
 pub struct ReadPublicResponse<'t> {
     pub public: &'t [u8],
-    pub name: tpm2b::Out<'t, Option<tpmu::Name>>,
-    pub qualified_name: tpm2b::Out<'t, Option<tpmu::Name>>,
+    pub name: tpm2b::NameOut<'t>,
+    pub qualified_name: tpm2b::NameOut<'t>,
 }
 impl<'t> ResponseData<'t> for ReadPublicResponse<'t> {
     fn unmarshal_params(&mut self, buf: &mut &'t [u8]) -> Result<(), UnmarshalError> {
@@ -865,7 +865,7 @@ impl<'t> ResponseData<'t> for GetRandomResponse<'t> {
 /// TPM2 Library Specification - v1.59 - Part 3 - Section 22.4
 #[derive(Clone, Copy, Default, Debug)]
 pub struct PcrRead<'b> {
-    pub pcr_selection: tpml::In<'b, tpms::PcrSelection>,
+    pub pcr_selection: tpml::PcrSelectionIn<'b>,
 }
 impl CommandData for PcrRead<'_> {
     fn marshal_params(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
@@ -884,8 +884,8 @@ impl Auths<0> for PcrRead<'_> {}
 #[derive(Clone, Copy, Default, Debug)]
 pub struct PcrReadResponse<'t> {
     pub pcr_update_counter: u32,
-    pub pcr_selection: tpml::Out<'t, tpms::PcrSelection>,
-    pub pcr_values: tpml::Out<'t, &'t [u8]>,
+    pub pcr_selection: tpml::PcrSelectionOut<'t>,
+    pub pcr_values: tpml::DigestOut<'t>,
 }
 impl<'t> ResponseData<'t> for PcrReadResponse<'t> {
     fn unmarshal_params(&mut self, buf: &mut &'t [u8]) -> Result<(), UnmarshalError> {
@@ -1279,21 +1279,29 @@ impl<'t> ResponseData<'t> for PcrReadResponse<'t> {
 //     pub todo: (),
 // }
 
-// /// TPM2_CreatePrimary Command
-// ///
-// /// This command (and its response) are defined in the
-// /// TPM2 Library Specification - v1.59 - Part 3 - Section 24.1
-// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
-// pub struct CreatePrimary {
-//     pub todo: (),
-// }
-// /// TPM2_CreatePrimary Response
-// ///
-// /// See [CreatePrimary] for more information.
-// #[derive(Clone, Copy, Default, Debug, ResponseData)]
-// pub struct CreatePrimaryResponse {
-//     pub todo: (),
-// }
+/// TPM2_CreatePrimary Command
+///
+/// This command (and its response) are defined in the
+/// TPM2 Library Specification - v1.59 - Part 3 - Section 24.1
+#[derive(Clone, Copy, Debug)]
+pub struct CreatePrimary<'b> {
+    pub sensitive: &'b [u8],
+    pub public: tpm2b::PublicIn<'b>,
+    pub outsize_info: &'b [u8],
+    pub creation_pcr: tpml::PcrSelectionIn<'b>,
+}
+
+/// TPM2_CreatePrimary Response
+///
+/// See [CreatePrimary] for more information.
+#[derive(Clone, Copy, Default, Debug)]
+pub struct CreatePrimaryResponse<'t> {
+    pub public: tpm2b::PublicOut<'t>,
+    pub creation_data: tpm2b::CreationData<'t>,
+    pub creation_hash: &'t [u8],
+    pub creation_ticket: tpmt::TkCreation<'t>,
+    pub name: tpm2b::NameOut<'t>,
+}
 
 // /// TPM2_HierarchyControl Command
 // ///

@@ -4,11 +4,18 @@
 
 use core::marker::PhantomData;
 
+use super::{tpms, tpmt, tpmu};
 use crate::{
     error::{MarshalError, UnmarshalError},
     marshal::pop_array_mut,
     Marshal, MarshalFixed, Unmarshal,
 };
+
+pub type NameIn<'b> = In<'b, tpmu::Name>;
+pub type NameOut<'t> = Out<'t, tpmu::Name>;
+pub type PublicIn<'b> = In<'b, tpmt::Public<'b>>;
+pub type PublicOut<'t> = Out<'t, tpmt::Public<'t>>;
+pub type CreationData<'t> = Out<'t, tpms::CreationData<'t>>;
 
 #[derive(Clone, Copy, Debug)]
 pub enum In<'b, T> {
