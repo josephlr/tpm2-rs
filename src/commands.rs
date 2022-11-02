@@ -874,7 +874,7 @@ impl CommandData for PcrRead<'_> {
 }
 impl Command for PcrRead<'_> {
     const CODE: tpm::CC = tpm::CC::PcrRead;
-    type Response<'a> = PcrReadResponse<'a>;
+    type Response<'t> = PcrReadResponse<'t>;
 }
 impl Auths<0> for PcrRead<'_> {}
 
@@ -887,8 +887,8 @@ pub struct PcrReadResponse<'t> {
     pub pcr_selection: tpml::Out<'t, tpms::PcrSelection>,
     pub pcr_values: tpml::Out<'t, &'t [u8]>,
 }
-impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
-    fn unmarshal_params(&mut self, buf: &mut &'a [u8]) -> Result<(), UnmarshalError> {
+impl<'t> ResponseData<'t> for PcrReadResponse<'t> {
+    fn unmarshal_params(&mut self, buf: &mut &'t [u8]) -> Result<(), UnmarshalError> {
         self.pcr_update_counter.unmarshal(buf)?;
         self.pcr_selection.unmarshal(buf)?;
         self.pcr_values.unmarshal(buf)
