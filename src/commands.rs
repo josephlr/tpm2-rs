@@ -864,8 +864,8 @@ impl<'a> ResponseData<'a> for GetRandomResponse<'a> {
 /// This command (and its response) are defined in the
 /// TPM2 Library Specification - v1.59 - Part 3 - Section 22.4
 #[derive(Clone, Copy, Default, Debug)]
-pub struct PcrRead<'a> {
-    pub pcr_selection: tpml::PcrSelection<'a>,
+pub struct PcrRead<'b> {
+    pub pcr_selection: tpml::In<'b, tpms::PcrSelection>,
 }
 impl CommandData for PcrRead<'_> {
     fn marshal_params(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
@@ -882,10 +882,10 @@ impl Auths<0> for PcrRead<'_> {}
 ///
 /// See [PcrRead] for more information.
 #[derive(Clone, Copy, Default, Debug)]
-pub struct PcrReadResponse<'a> {
+pub struct PcrReadResponse<'t> {
     pub pcr_update_counter: u32,
-    pub pcr_selection: tpml::PcrSelection<'a>,
-    pub pcr_values: tpml::Digest<'a>,
+    pub pcr_selection: tpml::Out<'t, tpms::PcrSelection>,
+    pub pcr_values: tpml::Out<'t, &'t [u8]>,
 }
 impl<'a> ResponseData<'a> for PcrReadResponse<'a> {
     fn unmarshal_params(&mut self, buf: &mut &'a [u8]) -> Result<(), UnmarshalError> {
