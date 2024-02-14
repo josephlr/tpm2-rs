@@ -831,17 +831,22 @@ impl<'t> ResponseData<'t> for GetRandomResponse<'t> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 22.2
-// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
-// pub struct PcrExtend {
-//     pub todo: (),
-// }
-// /// TPM2_PCR_Extend Response
-// ///
-// /// See [PcrExtend] for more information.
-// #[derive(Clone, Copy, Default, Debug, ResponseData)]
-// pub struct PcrExtendResponse {
-//     pub todo: (),
-// }
+#[derive(Clone, Copy, Default, Debug)]
+pub struct PcrExtend<'b, 't> {
+    pub pcr_selection: tpml::In<'b, tpms::PcrSelection>,
+    pub pcr_values: tpml::In<'t, &'t [u8]>,
+}
+impl<'b, 't> CommandData for PcrExtend<'b, 't> {
+    fn marshal_params(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
+        self.pcr_selection.marshal(buf)?;
+        self.pcr_values.marshal(buf)
+    }
+}
+impl Command for PcrExtend<'_, '_> {
+    const CODE: tpm::CC = tpm::CC::PcrExtend;
+    type Response<'a> = ();
+}
+impl Auths<0> for PcrExtend<'_, '_> {}
 
 // /// TPM2_PCR_Event Command
 // ///
