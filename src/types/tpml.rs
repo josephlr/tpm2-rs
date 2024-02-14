@@ -6,7 +6,6 @@ use core::marker::PhantomData;
 
 use crate::{
     error::{MarshalError, UnmarshalError},
-    polyfill::ToUsize,
     Marshal, Unmarshal,
 };
 
@@ -91,7 +90,7 @@ impl<T> Default for Out<'_, T> {
 impl<T> Out<'_, T> {
     #[inline]
     pub fn len(&self) -> usize {
-        self.count.to_usize()
+        self.count as usize
     }
     #[inline]
     pub fn is_empty(&self) -> bool {

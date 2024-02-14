@@ -3,17 +3,6 @@
 use core::mem::size_of;
 const _: () = assert!(size_of::<usize>() >= 4, "usize must be at least 32 bits");
 
-pub(crate) trait ToUsize {
-    fn to_usize(self) -> usize;
-}
-
-impl ToUsize for u32 {
-    #[inline(always)]
-    fn to_usize(self) -> usize {
-        self as usize
-    }
-}
-
 pub(crate) trait ToArr<const N: usize> {
     fn to_arr(&mut self) -> &mut [u8; N];
 }

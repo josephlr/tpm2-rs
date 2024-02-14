@@ -37,7 +37,6 @@ pub enum UnmarshalError {
 pub enum DriverError {
     IntegerOverflow,
     #[cfg(feature = "std")]
-    #[doc(cfg(feature = "std"))]
     Io(std::io::Error),
 }
 
@@ -74,7 +73,6 @@ impl From<TryFromIntError> for DriverError {
 }
 
 #[cfg(feature = "std")]
-#[doc(cfg(feature = "std"))]
 mod std_impl {
     use super::*;
 

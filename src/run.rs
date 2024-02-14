@@ -5,7 +5,6 @@ use core::fmt::Debug;
 use crate::{
     error::{DriverError, Error, MarshalError, UnmarshalError},
     marshal::{pop_array_mut, CommandData, Marshal, MarshalFixed, ResponseData, Unmarshal},
-    polyfill::ToUsize,
     types::{tpm, tpms::AuthResponse, Auth, CommandHeader, ResponseHeader},
 };
 
@@ -200,7 +199,7 @@ fn run_impl<'a>(
     let rsp_header = ResponseHeader::unmarshal_val(&mut rsp_buf)?;
 
     // Check for errors
-    assert!(rsp_header.size.to_usize() == rsp_len);
+    assert!(rsp_header.size as usize == rsp_len);
     if let Some(tpm_err) = rsp_header.code {
         return Err(Error::Tpm(tpm_err));
     }

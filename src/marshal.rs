@@ -189,7 +189,6 @@ impl<'a> Unmarshal<'a> for &'a [u8] {
 }
 
 #[cfg(feature = "alloc")]
-#[doc(cfg(feature = "alloc"))]
 mod impl_vec {
     use alloc::vec::Vec;
 
