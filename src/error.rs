@@ -36,8 +36,12 @@ pub enum UnmarshalError {
 #[non_exhaustive]
 pub enum DriverError {
     IntegerOverflow,
+    BufferOverflow,
     #[cfg(feature = "std")]
     Io(std::io::Error),
+    Timeout,
+    TransportError,
+    LocalityUnavailable,
 }
 
 impl From<TpmError> for Error {
