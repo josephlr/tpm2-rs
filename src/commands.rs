@@ -3,7 +3,7 @@
 //! These structures should be fairly direct translations of the
 //! "TPM2_* Command" and "TPM2_* Response" tables in Part 3 of the TPM2 Spec.
 //!
-//! Of the 117 TPM2 commands, 5 are implemented.
+//! Of the 117 TPM2 commands, only some are implemented.
 //! If a command is not implemented, there will be a skeleton of code and doc
 //! comments which are commented out.
 //!
@@ -15,7 +15,7 @@ use tpm2_derive::{CommandData, ResponseData};
 use crate::{
     error::{MarshalError, UnmarshalError},
     marshal::{CommandData, ResponseData},
-    types::{tpm, tpm2b, tpml, tpms, tpmu, Handle},
+    types::{tpm, tpm2b, tpmi, tpml, tpms, tpmu, Handle},
     Auths, Command, Marshal, Unmarshal,
 };
 
@@ -47,21 +47,19 @@ impl Command for Shutdown {
 }
 impl Auths<0> for Shutdown {}
 
-// /// TPM2_SelfTest Command
-// ///
-// /// This command (and its response) are defined in the
-// /// TPM2 Library Specification - v1.59 - Part 3 - Section 10.2
-// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
-// pub struct SelfTest {
-//     pub todo: (),
-// }
-// /// TPM2_SelfTest Response
-// ///
-// /// See [SelfTest] for more information.
-// #[derive(Clone, Copy, Default, Debug, ResponseData)]
-// pub struct SelfTestResponse {
-//     pub todo: (),
-// }
+/// TPM2_SelfTest Command
+///
+/// This command (and its response) are defined in the
+/// TPM2 Library Specification - v1.59 - Part 3 - Section 10.2
+#[derive(Clone, Copy, Default, Debug, CommandData)]
+pub struct SelfTest {
+    pub full_test: tpmi::YesNo,
+}
+impl Command for SelfTest {
+    const CODE: tpm::CC = tpm::CC::SelfTest;
+    type Response<'a> = ();
+}
+impl Auths<0> for SelfTest {}
 
 // /// TPM2_IncrementalSelfTest Command
 // ///
@@ -509,14 +507,20 @@ pub struct GetRandomResponse<'t> {
     pub random_bytes: &'t [u8],
 }
 
-// /// TPM2_StirRandom Command
-// ///
-// /// This command (and its response) are defined in the
-// /// TPM2 Library Specification - v1.59 - Part 3 - Section 16.2
-// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
-// pub struct StirRandom {
-//     pub todo: (),
-// }
+/// TPM2_StirRandom Command
+///
+/// This command (and its response) are defined in the
+/// TPM2 Library Specification - v1.59 - Part 3 - Section 16.2
+#[derive(Clone, Copy, Default, Debug, CommandData)]
+pub struct StirRandom<'t> {
+    pub in_data: tpm2b::In<'t, &'t [u8]>,
+}
+impl<'t> Command for StirRandom<'t> {
+    const CODE: tpm::CC = tpm::CC::StirRandom;
+    type Response<'a> = ();
+}
+impl Auths<0> for StirRandom<'_> {}
+
 // /// TPM2_StirRandom Response
 // ///
 // /// See [StirRandom] for more information.
@@ -797,36 +801,53 @@ pub struct GetRandomResponse<'t> {
 //     pub todo: (),
 // }
 
-// /// TPM2_PCR_Extend Command
-// ///
-// /// This command (and its response) are defined in the
-// /// TPM2 Library Specification - v1.59 - Part 3 - Section 22.2
-#[derive(Clone, Copy, Default, Debug, CommandData)]
-pub struct PcrExtend<'b, 't> {
-    pub pcr_selection: tpml::In<'b, tpms::PcrSelection>,
-    pub pcr_values: tpml::In<'t, &'t [u8]>,
+/// TPM2_PCR_Extend Command
+///
+/// This command (and its response) are defined in the
+/// TPM2 Library Specification - v1.59 - Part 3 - Section 22.2
+#[derive(Clone, Copy, Default, Debug)]
+pub struct PcrExtend<'t> {
+    pub pcr: Handle,
+    pub pcr_values: tpml::DigestValues<'t>,
 }
-impl Command for PcrExtend<'_, '_> {
+impl<'t> CommandData for PcrExtend<'t> {
+    fn marshal_params(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
+        self.pcr_values.marshal(buf)
+    }
+    fn marshal_handles(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
+        self.pcr.marshal(buf)
+
+        // todo: something
+    }
+}
+impl Command for PcrExtend<'_> {
     const CODE: tpm::CC = tpm::CC::PcrExtend;
     type Response<'a> = ();
 }
-impl Auths<0> for PcrExtend<'_, '_> {}
+impl Auths<1> for PcrExtend<'_> {}
 
-// /// TPM2_PCR_Event Command
-// ///
-// /// This command (and its response) are defined in the
-// /// TPM2 Library Specification - v1.59 - Part 3 - Section 22.3
-// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
-// pub struct PcrEvent {
-//     pub todo: (),
-// }
-// /// TPM2_PCR_Event Response
-// ///
-// /// See [PcrEvent] for more information.
-// #[derive(Clone, Copy, Default, Debug, ResponseData)]
-// pub struct PcrEventResponse {
-//     pub todo: (),
-// }
+/// TPM2_PCR_Event Command
+///
+/// This command (and its response) are defined in the
+/// TPM2 Library Specification - v1.59 - Part 3 - Section 22.3
+#[derive(Clone, Copy, Default, Debug, CommandData)]
+pub struct PcrEvent<'b, 't> {
+    pub pcr_selection: tpml::In<'b, tpms::PcrSelection>,
+    pub event_data: tpm2b::In<'t, &'t [u8]>,
+}
+impl Command for PcrEvent<'_, '_> {
+    const CODE: tpm::CC = tpm::CC::PcrEvent;
+    type Response<'t> = PcrEventResponse<'t>;
+}
+impl Auths<0> for PcrEvent<'_, '_> {}
+
+/// TPM2_PCR_Event Response
+///
+/// See [PcrEvent] for more information.
+#[derive(Clone, Copy, Default, Debug, ResponseData)]
+pub struct PcrEventResponse<'t> {
+    pub pcr_values: tpml::Out<'t, &'t [u8]>,
+}
 
 /// TPM2_PCR_Read Command
 ///
@@ -1252,21 +1273,20 @@ pub struct PcrReadResponse<'t> {
 //     pub todo: (),
 // }
 
-// /// TPM2_HierarchyControl Command
-// ///
-// /// This command (and its response) are defined in the
-// /// TPM2 Library Specification - v1.59 - Part 3 - Section 24.2
-// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
-// pub struct HierarchyControl {
-//     pub todo: (),
-// }
-// /// TPM2_HierarchyControl Response
-// ///
-// /// See [HierarchyControl] for more information.
-// #[derive(Clone, Copy, Default, Debug, ResponseData)]
-// pub struct HierarchyControlResponse {
-//     pub todo: (),
-// }
+/// TPM2_HierarchyControl Command
+///
+/// This command (and its response) are defined in the
+/// TPM2 Library Specification - v1.59 - Part 3 - Section 24.2
+#[derive(Clone, Copy, Default, Debug, CommandData)]
+pub struct HierarchyControl {
+    pub rh_enables: tpmi::RhEnables,
+    pub state: tpmi::YesNo,
+}
+impl Command for HierarchyControl {
+    const CODE: tpm::CC = tpm::CC::HierarchyControl;
+    type Response<'a> = ();
+}
+impl Auths<1> for HierarchyControl {}
 
 // /// TPM2_SetPrimaryPolicy Command
 // ///
@@ -1348,14 +1368,20 @@ pub struct PcrReadResponse<'t> {
 //     pub todo: (),
 // }
 
-// /// TPM2_HierarchyChangeAuth Command
-// ///
-// /// This command (and its response) are defined in the
-// /// TPM2 Library Specification - v1.59 - Part 3 - Section 24.8
-// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
-// pub struct HierarchyChangeAuth {
-//     pub todo: (),
-// }
+/// TPM2_HierarchyChangeAuth Command
+///
+/// This command (and its response) are defined in the
+/// TPM2 Library Specification - v1.59 - Part 3 - Section 24.8
+#[derive(Clone, Copy, Default, Debug, CommandData)]
+pub struct HierarchyChangeAuth<'t> {
+    pub new_auth: tpm2b::In<'t, &'t [u8]>,
+}
+impl<'t> Command for HierarchyChangeAuth<'t> {
+    const CODE: tpm::CC = tpm::CC::HierarchyChangeAuth;
+    type Response<'a> = ();
+}
+impl<'t> Auths<1> for HierarchyChangeAuth<'t> {}
+
 // /// TPM2_HierarchyChangeAuth Response
 // ///
 // /// See [HierarchyChangeAuth] for more information.
@@ -1557,9 +1583,15 @@ impl Auths<0> for ReadClock {}
 /// TPM2_ReadClock Response
 ///
 /// See [ReadClock] for more information.
-#[derive(Clone, Copy, Default, Debug, ResponseData)]
+// TODO: deriving ReadResponse on this doesn't work b/c it has no lifetime parameter
+#[derive(Clone, Copy, Default, Debug)]
 pub struct ReadClockResponse {
     pub current_time: tpms::TimeInfo,
+}
+impl<'t> ResponseData<'t> for ReadClockResponse {
+    fn unmarshal_params(&mut self, buf: &mut &'t [u8]) -> Result<(), UnmarshalError> {
+        self.current_time.unmarshal(buf)
+    }
 }
 
 // /// TPM2_ClockSet Command
@@ -1594,21 +1626,30 @@ pub struct ReadClockResponse {
 //     pub todo: (),
 // }
 
-// /// TPM2_GetCapability Command
-// ///
-// /// This command (and its response) are defined in the
-// /// TPM2 Library Specification - v1.59 - Part 3 - Section 30.2
-// #[derive(Clone, Copy, Default, Debug, CommandData, Command, Auths)]
-// pub struct GetCapability {
-//     pub todo: (),
-// }
-// /// TPM2_GetCapability Response
-// ///
-// /// See [GetCapability] for more information.
-// #[derive(Clone, Copy, Default, Debug, ResponseData)]
-// pub struct GetCapabilityResponse {
-//     pub todo: (),
-// }
+/// TPM2_GetCapability Command
+///
+/// This command (and its response) are defined in the
+/// TPM2 Library Specification - v1.59 - Part 3 - Section 30.2
+#[derive(Clone, Copy, Default, Debug, CommandData)]
+pub struct GetCapability {
+    pub capability: tpm::TpmCap,
+    pub property: u32,
+    pub property_count: u32,
+}
+impl Command for GetCapability {
+    const CODE: tpm::CC = tpm::CC::GetCapability;
+    type Response<'t> = GetCapabilityResponse<'t>;
+}
+impl Auths<0> for GetCapability {}
+
+/// TPM2_GetCapability Response
+///
+/// See [GetCapability] for more information.
+#[derive(Clone, Copy, Default, Debug, ResponseData)]
+pub struct GetCapabilityResponse<'t> {
+    pub more_data: tpmi::YesNo,
+    pub capability_data: tpms::CapabilityData<'t>,
+}
 
 // /// TPM2_TestParms Command
 // ///

@@ -60,6 +60,38 @@ bitflags! {
     }
 }
 
+bitflags! {
+    /// TPMA_ALGORITHM
+    #[derive(Default)]
+    #[repr(transparent)]
+    pub struct Algorithm: u32 {
+        const ASYMMETRIC = 1 << 0;
+        const SYMMETRIC = 1 << 1;
+        const HASH = 1 << 2;
+        const OBJECT = 1 << 3;
+        const SIGNING = 1 << 8;
+        const ENCRYPTING = 1 << 9;
+        const METHOD = 1 << 10;
+
+        const RESERVED = !(0b11100001111);
+    }
+}
+
+bitflags! {
+    /// TPMA_CC
+    #[derive(Default)]
+    #[repr(transparent)]
+    pub struct Cc: u32 {
+        const COMMANDIDX = 0xff;
+        const NV = 1 << 22;
+        const EXTENSIVE = 1 << 23;
+        const FLUSHED = 1 << 24;
+        const CHANDLES = 7 << 25;
+        const RHANDLE = 1 << 28;
+        const V = 1 << 19;
+    }
+}
+
 macro_rules! impl_bitflags { ($($T: ty)+) => { $(
     impl MarshalFixed for $T {
         const SIZE: usize = mem::size_of::<Self>();
@@ -76,7 +108,7 @@ macro_rules! impl_bitflags { ($($T: ty)+) => { $(
     }
 )+ } }
 
-impl_bitflags!(Session Memory Object);
+impl_bitflags!(Session Memory Object Algorithm Cc);
 
 #[cfg(test)]
 mod test {
@@ -86,5 +118,6 @@ mod test {
         assert_eq!(Session::all().bits(), u8::MAX);
         assert_eq!(Memory::all().bits(), u32::MAX);
         assert_eq!(Object::all().bits(), u32::MAX);
+        assert_eq!(Algorithm::all().bits(), u32::MAX);
     }
 }

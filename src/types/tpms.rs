@@ -1,10 +1,10 @@
 //! `TPMS_*` Structure Types
 
-use super::{tpm, tpma, tpmi, tpmt, Handle};
+use super::{tpm, tpma, tpmi, tpml, tpmt, tpmu, Handle};
 use crate::{
     error::{MarshalError, UnmarshalError},
     marshal::{pop_array_mut, pop_slice},
-    polyfill::ToArr,
+    polyfill::ToMutArr,
     Marshal, MarshalFixed, Unmarshal,
 };
 
@@ -18,8 +18,8 @@ impl MarshalFixed for TimeInfo {
     const SIZE: usize = <u64 as MarshalFixed>::SIZE + <ClockInfo as MarshalFixed>::SIZE;
     type ARRAY = [u8; Self::SIZE];
     fn marshal_fixed(&self, arr: &mut Self::ARRAY) {
-        self.time.marshal_fixed(arr[0..8].to_arr());
-        self.clock_info.marshal_fixed(arr[8..].to_arr());
+        self.time.marshal_fixed(arr[0..8].to_mut_arr());
+        self.clock_info.marshal_fixed(arr[8..].to_mut_arr());
     }
 }
 impl Unmarshal<'_> for TimeInfo {
@@ -46,10 +46,10 @@ impl MarshalFixed for ClockInfo {
     type ARRAY = [u8; Self::SIZE];
 
     fn marshal_fixed(&self, arr: &mut Self::ARRAY) {
-        self.clock.marshal_fixed(arr[0..8].to_arr());
-        self.reset_count.marshal_fixed(arr[8..12].to_arr());
-        self.restart_count.marshal_fixed(arr[12..16].to_arr());
-        self.safe.marshal_fixed(arr[16..].to_arr());
+        self.clock.marshal_fixed(arr[0..8].to_mut_arr());
+        self.reset_count.marshal_fixed(arr[8..12].to_mut_arr());
+        self.restart_count.marshal_fixed(arr[12..16].to_mut_arr());
+        self.safe.marshal_fixed(arr[16..].to_mut_arr());
     }
 }
 impl Unmarshal<'_> for ClockInfo {
@@ -146,6 +146,25 @@ impl Unmarshal<'_> for PcrSelect {
     }
 }
 
+/// TPMS_TAGGED_PCR_SELECT
+#[derive(Clone, Copy, Default, Debug)]
+pub struct TaggedPcrSelect {
+    pub tag: tpm::PtPcr,
+    pub select: PcrSelect,
+}
+impl Marshal for TaggedPcrSelect {
+    fn marshal(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
+        self.tag.marshal(buf)?;
+        self.select.marshal(buf)
+    }
+}
+impl Unmarshal<'_> for TaggedPcrSelect {
+    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
+        self.tag.unmarshal(buf)?;
+        self.select.unmarshal(buf)
+    }
+}
+
 /// TPMS_PCR_SELECTION
 #[derive(Clone, Copy, Default, Debug)]
 pub struct PcrSelection {
@@ -227,4 +246,138 @@ pub struct EccParms {
 pub struct EccPoint<'t> {
     pub x: &'t [u8],
     pub y: &'t [u8],
+}
+
+/// TPMS_CAPABILITY_DATA
+#[derive(Clone, Copy, Debug)]
+pub struct CapabilityData<'t> {
+    pub capability: tpm::TpmCap,
+    pub data: tpmu::Capabilities<'t>,
+}
+
+impl Default for CapabilityData<'_> {
+    fn default() -> Self {
+        Self {
+            capability: tpm::TpmCap::default(),
+            data: tpmu::Capabilities::Algorithms(tpml::AlgProperty::default()),
+        }
+    }
+}
+
+impl<'t> Unmarshal<'t> for CapabilityData<'t> {
+    fn unmarshal(&mut self, buf: &mut &'t [u8]) -> Result<(), UnmarshalError> {
+        self.capability.unmarshal(buf)?;
+        self.data = match self.capability {
+            tpm::TpmCap::Algs => {
+                let mut prop = tpml::AlgProperty::default();
+                prop.unmarshal(buf)?;
+                tpmu::Capabilities::Algorithms(prop)
+            }
+            tpm::TpmCap::Handles => {
+                let mut h = tpml::Handle::default();
+                h.unmarshal(buf)?;
+                tpmu::Capabilities::Handles(h)
+            }
+            tpm::TpmCap::Commands => {
+                let mut c = tpml::Cca::default();
+                c.unmarshal(buf)?;
+                tpmu::Capabilities::Command(c)
+            }
+            tpm::TpmCap::PpCommands => {
+                let mut c = tpml::CommandCode::default();
+                c.unmarshal(buf)?;
+                tpmu::Capabilities::PpCommands(c)
+            }
+            tpm::TpmCap::AuditCommands => {
+                let mut c = tpml::CommandCode::default();
+                c.unmarshal(buf)?;
+                tpmu::Capabilities::AuditCommands(c)
+            }
+            tpm::TpmCap::Pcrs => {
+                let mut p = tpml::PcrSelection::default();
+                p.unmarshal(buf)?;
+                tpmu::Capabilities::AssignedPcr(p)
+            }
+            tpm::TpmCap::TpmProperties => {
+                let mut p = tpml::TaggedTpmProperty::default();
+                p.unmarshal(buf)?;
+                tpmu::Capabilities::TpmProperties(p)
+            }
+            tpm::TpmCap::PcrProperties => {
+                let mut p = tpml::TaggedPcrProperty::default();
+                p.unmarshal(buf)?;
+                tpmu::Capabilities::PcrProperties(p)
+            }
+            tpm::TpmCap::EccCurves => {
+                let mut c = tpml::EccCurve::default();
+                c.unmarshal(buf)?;
+                tpmu::Capabilities::EccCurves(c)
+            }
+            tpm::TpmCap::AuthPolicies => {
+                let mut c = tpml::TaggedPolicy::default();
+                c.unmarshal(buf)?;
+                tpmu::Capabilities::AuthPolicies(c)
+            }
+            tpm::TpmCap::VendorProperty => todo!(),
+        };
+
+        Ok(())
+    }
+}
+
+/// TPMS_ALG_PROPERTY
+#[derive(Clone, Copy, Debug, Default)]
+pub struct AlgProperty {
+    pub alg: tpm::Alg,
+    pub alg_properties: tpma::Algorithm,
+}
+impl Marshal for AlgProperty {
+    fn marshal(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
+        self.alg.marshal(buf)?;
+        self.alg_properties.marshal(buf)
+    }
+}
+impl Unmarshal<'_> for AlgProperty {
+    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
+        self.alg.unmarshal(buf)?;
+        self.alg_properties.unmarshal(buf)
+    }
+}
+
+/// TPMS_TAGGED_PROPERTY
+#[derive(Clone, Copy, Debug, Default)]
+pub struct TpmProperty {
+    pub property: tpm::Pt,
+    pub value: u32,
+}
+impl Marshal for TpmProperty {
+    fn marshal(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
+        self.property.marshal(buf)?;
+        self.value.marshal(buf)
+    }
+}
+impl Unmarshal<'_> for TpmProperty {
+    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
+        self.property.unmarshal(buf)?;
+        self.value.unmarshal(buf)
+    }
+}
+
+/// TPMS_TAGGED_POLICY
+#[derive(Clone, Copy, Debug, Default)]
+pub struct TaggedPolicy {
+    pub handle: Handle,
+    pub hash: Option<tpmt::Hash>,
+}
+impl Marshal for TaggedPolicy {
+    fn marshal(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
+        self.handle.marshal(buf)?;
+        self.hash.marshal(buf)
+    }
+}
+impl Unmarshal<'_> for TaggedPolicy {
+    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
+        self.handle.unmarshal(buf)?;
+        self.hash.unmarshal(buf)
+    }
 }

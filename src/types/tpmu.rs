@@ -2,7 +2,7 @@
 //!
 //! TODO: Explain why [`Name`] is weird
 
-use super::{tpms, tpmt, Handle};
+use super::{tpml, tpms, tpmt, Handle};
 use crate::{
     error::{MarshalError, UnmarshalError},
     marshal::pop_array,
@@ -61,4 +61,18 @@ pub enum PublicId<'t> {
     Rsa(&'t [u8]),
     Ecc(tpms::EccPoint<'t>),
     // Derive(tpms::Derive<'t>),
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum Capabilities<'t> {
+    Algorithms(tpml::AlgProperty<'t>),
+    Handles(tpml::Handle<'t>),
+    Command(tpml::Cca<'t>),
+    PpCommands(tpml::CommandCode<'t>),
+    AssignedPcr(tpml::PcrSelection<'t>),
+    PcrProperties(tpml::TaggedPcrProperty<'t>),
+    AuditCommands(tpml::CommandCode<'t>),
+    TpmProperties(tpml::TaggedTpmProperty<'t>),
+    EccCurves(tpml::EccCurve<'t>),
+    AuthPolicies(tpml::TaggedPolicy<'t>),
 }

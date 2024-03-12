@@ -6,8 +6,12 @@
 
 use core::num::NonZeroU32;
 
+use num_derive::FromPrimitive;
+use num_traits::FromPrimitive;
+
 use crate::{
     error::{TpmError, UnmarshalError},
+    polyfill::*,
     MarshalFixed, Unmarshal, UnmarshalFixed,
 };
 
@@ -22,10 +26,11 @@ pub mod rh {
 pub type KeyBits = u16;
 
 /// TPM_CC values
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Default, FromPrimitive)]
 #[non_exhaustive]
 #[repr(u32)]
 pub enum CC {
+    #[default]
     NvUndefineSpaceSpecial = 0x0000011f,
     EvictControl = 0x00000120,
     HierarchyControl = 0x00000121,
@@ -153,6 +158,14 @@ impl MarshalFixed for CC {
     }
 }
 
+impl UnmarshalFixed for CC {
+    fn unmarshal_fixed(arr: &Self::ARRAY) -> Self {
+        let raw_u32: u32 = u32::unmarshal_fixed(arr[0..4].to_arr());
+        let val: CC = FromPrimitive::from_u32(raw_u32).unwrap();
+        val
+    }
+}
+
 /// TPM_SU values
 #[derive(Clone, Copy, PartialEq, Eq, Default, Debug)]
 #[non_exhaustive]
@@ -221,7 +234,7 @@ impl Unmarshal<'_> for ST {
 /// TPM_ALG_ID
 ///
 /// TODO: This isn't all the ALG_IDs
-#[derive(Clone, Copy, Default, Debug)]
+#[derive(Clone, Copy, Default, Debug, FromPrimitive, Eq, PartialEq)]
 #[non_exhaustive]
 #[repr(u16)]
 pub enum Alg {
@@ -273,61 +286,22 @@ impl MarshalFixed for Alg {
         (*self as u16).marshal_fixed(arr)
     }
 }
-impl Unmarshal<'_> for Alg {
-    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
-        *self = match u16::unmarshal_val(buf)? {
-            0x0000 => Self::Error,
-            0x0001 => Self::Rsa,
-            0x0003 => Self::Tdes,
-            0x0004 => Self::Sha1,
-            0x0005 => Self::Hmac,
-            0x0006 => Self::Aes,
-            0x0007 => Self::Mgf1,
-            0x0008 => Self::KeyedHash,
-            0x000A => Self::Xor,
-            0x000B => Self::Sha256,
-            0x000C => Self::Sha384,
-            0x000D => Self::Sha512,
-            0x0010 => Self::Null,
-            0x0012 => Self::Sm3_256,
-            0x0013 => Self::Sm4,
-            0x0014 => Self::RsaSsa,
-            0x0015 => Self::RsaEs,
-            0x0016 => Self::RsaPss,
-            0x0017 => Self::Oaep,
-            0x0018 => Self::Ecdsa,
-            0x0019 => Self::Ecdh,
-            0x001A => Self::Ecdaa,
-            0x001B => Self::Sm2,
-            0x001C => Self::EcSchnorr,
-            0x001D => Self::Ecmqv,
-            0x0020 => Self::Kdf1Sp800_56A,
-            0x0021 => Self::Kdf2,
-            0x0022 => Self::Kdf1Sp800_108,
-            0x0023 => Self::Ecc,
-            0x0025 => Self::SymCipher,
-            0x0026 => Self::Camellia,
-            0x0027 => Self::Sha3_256,
-            0x0028 => Self::Sha3_384,
-            0x0029 => Self::Sha3_512,
-            0x0040 => Self::Ctr,
-            0x0041 => Self::Ofb,
-            0x0042 => Self::Cbc,
-            0x0043 => Self::Cfb,
-            0x0044 => Self::Ecb,
-            _ => return Err(UnmarshalError::InvalidValue),
-        };
-        Ok(())
+impl UnmarshalFixed for Alg {
+    fn unmarshal_fixed(arr: &Self::ARRAY) -> Self {
+        let raw_u16: u16 = u16::unmarshal_fixed(arr[0..2].to_arr());
+        let val: Alg = FromPrimitive::from_u16(raw_u16).unwrap();
+        val
     }
 }
 
 /// TPM_ECC_CURVE (TPMI_ECC_CURVE)
 ///
 /// List of reistered curve identifiers
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Default, FromPrimitive)]
 #[non_exhaustive]
 #[repr(u16)]
 pub enum EccCurve {
+    #[default]
     NistP192 = 0x0001,
     NistP224 = 0x0002,
     NistP256 = 0x0003,
@@ -336,4 +310,174 @@ pub enum EccCurve {
     BnP256 = 0x0010,
     BnP638 = 0x0011,
     Sm2P256 = 0x0020,
+}
+impl MarshalFixed for EccCurve {
+    const SIZE: usize = <u16 as MarshalFixed>::SIZE;
+    type ARRAY = [u8; Self::SIZE];
+    fn marshal_fixed(&self, arr: &mut Self::ARRAY) {
+        (*self as u16).marshal_fixed(arr)
+    }
+}
+impl UnmarshalFixed for EccCurve {
+    fn unmarshal_fixed(arr: &Self::ARRAY) -> Self {
+        let raw_u16: u16 = u16::unmarshal_fixed(arr[0..2].to_arr());
+        let val: EccCurve = FromPrimitive::from_u16(raw_u16).unwrap();
+        val
+    }
+}
+
+/// TPM_CAP (Capabilities)
+///
+/// Used in GetCapability calls to select type of value to be returned
+#[derive(Clone, Copy, Debug, Default, FromPrimitive)]
+#[non_exhaustive]
+#[repr(u32)]
+pub enum TpmCap {
+    #[default]
+    Algs = 0x0000,
+    Handles = 0x0001,
+    Commands = 0x0002,
+    PpCommands = 0x0003,
+    AuditCommands = 0x0004,
+    Pcrs = 0x0005,
+    TpmProperties = 0x0006,
+    PcrProperties = 0x0007,
+    EccCurves = 0x0008,
+    AuthPolicies = 0x0009,
+    VendorProperty = 0x100,
+}
+
+impl MarshalFixed for TpmCap {
+    const SIZE: usize = <u32 as MarshalFixed>::SIZE;
+    type ARRAY = [u8; Self::SIZE];
+    fn marshal_fixed(&self, arr: &mut Self::ARRAY) {
+        (*self as u32).marshal_fixed(arr)
+    }
+}
+
+impl UnmarshalFixed for TpmCap {
+    fn unmarshal_fixed(arr: &Self::ARRAY) -> Self {
+        let raw = u32::unmarshal_fixed(arr);
+        let val: TpmCap = FromPrimitive::from_u32(raw).unwrap();
+        val
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default, FromPrimitive)]
+#[non_exhaustive]
+#[repr(u32)]
+pub enum PtPcr {
+    #[default]
+    Save = 0x0,
+    ExtendL0 = 0x1,
+    ResetL0 = 0x2,
+    ExtendL1 = 0x3,
+    ResetL1 = 0x4,
+    ExtendL2 = 0x5,
+    ResetL2 = 0x6,
+    ExtendL3 = 0x7,
+    ResetL3 = 0x8,
+    ExtendL4 = 0x9,
+    ResetL4 = 0xa,
+    NoIncrement = 0x11,
+    DrtmReset = 0x12,
+    Policy = 0x13,
+    Auth = 0x14,
+}
+impl MarshalFixed for PtPcr {
+    const SIZE: usize = <u32 as MarshalFixed>::SIZE;
+    type ARRAY = [u8; Self::SIZE];
+    fn marshal_fixed(&self, arr: &mut Self::ARRAY) {
+        (*self as u32).marshal_fixed(arr)
+    }
+}
+impl UnmarshalFixed for PtPcr {
+    fn unmarshal_fixed(arr: &Self::ARRAY) -> Self {
+        let raw_u32: u32 = u32::unmarshal_fixed(arr[0..4].to_arr());
+        let val: PtPcr = FromPrimitive::from_u32(raw_u32).unwrap();
+        val
+    }
+}
+
+/// TPM_PT
+#[derive(Clone, Copy, Debug, Default, FromPrimitive)]
+#[non_exhaustive]
+#[repr(u32)]
+pub enum Pt {
+    #[default]
+    None = 0x0,
+    FamilyIndicator = 0x100,
+    Level = 0x101,
+    Revision = 0x102,
+    DayOfYear = 0x103,
+    Year = 0x104,
+    Manufacturer = 0x105,
+    VendorString1 = 0x106,
+    VendorString2 = 0x107,
+    VendorString3 = 0x108,
+    VendorString4 = 0x109,
+    VendorTpmType = 0x10a,
+    FirmwareVersion1 = 0x10b,
+    FirmwareVersion2 = 0x10c,
+    InputBuffer = 0x10d,
+    HrTransientMin = 0x10e,
+    HrPersistentMin = 0x10f,
+    HrLoadedMin = 0x110,
+    ActiveSessionsMax = 0x111,
+    PcrCount = 0x112,
+    PcrSelectMin = 0x113,
+    ContextGapMax = 0x114,
+    NvCountersMax = 0x116, // note: 0x115 is skipped
+    NvIndexMax = 0x117,
+    Memory = 0x118,
+    ClockUpdate = 0x119,
+    ContextHash = 0x11a,
+    ContextSym = 0x11b,
+    ContextSymSize = 0x11c,
+    OrderlyCount = 0x11d,
+    MaxCommandSize = 0x11e,
+    MaxResponseSize = 0x11f,
+    MaxDigest = 0x120,
+    MaxObjectContext = 0x121,
+    MaxSessionContext = 0x122,
+    PsFamilyIndicator = 0x123,
+    PsLevel = 0x124,
+    PsRevision = 0x125,
+    PsDayOfYear = 0x126,
+    PsYear = 0x127,
+    SplitMax = 0x128,
+    TotalCommands = 0x129,
+    LibraryCommands = 0x12a,
+    VendorCommands = 0x12b,
+    NvBufferMax = 0x12c,
+    Modes = 0x12d,
+    MaxCapBuffer = 0x12e,
+    Permanent = 0x200,
+    StartupClear = 0x201,
+    HrNvIndex = 0x202,
+    HrLoaded = 0x203,
+    HrLoadedAvail = 0x204,
+    HrActive = 0x205,
+    HrActiveAvail = 0x206,
+    HrTransientAvail = 0x207,
+    HrPersistent = 0x208,
+    HrPersistentAvail = 0x209,
+    NvCounters = 0x20a,
+    NvCountersAvail = 0x20b,
+}
+impl MarshalFixed for Pt {
+    const SIZE: usize = <u32 as MarshalFixed>::SIZE;
+    type ARRAY = [u8; Self::SIZE];
+    fn marshal_fixed(&self, arr: &mut Self::ARRAY) {
+        (*self as u32).marshal_fixed(arr)
+    }
+}
+impl UnmarshalFixed for Pt {
+    fn unmarshal_fixed(arr: &Self::ARRAY) -> Self {
+        let raw_u32: u32 = u32::unmarshal_fixed(arr[0..4].to_arr());
+        match FromPrimitive::from_u32(raw_u32) {
+            Some(val) => val,
+            None => panic!("{:x} is not a TpmPt", raw_u32),
+        }
+    }
 }

@@ -6,6 +6,8 @@ use core::marker::PhantomData;
 
 use crate::{
     error::{MarshalError, UnmarshalError},
+    types,
+    types::{tpm, tpma, tpms, tpmt},
     Marshal, Unmarshal,
 };
 
@@ -24,7 +26,7 @@ impl<T> In<'_, T> {
 
 impl<T> Clone for In<'_, T> {
     fn clone(&self) -> Self {
-        Self(self.0)
+        *self
     }
 }
 impl<T> Copy for In<'_, T> {}
@@ -69,11 +71,7 @@ pub struct Out<'t, T> {
 }
 impl<T> Clone for Out<'_, T> {
     fn clone(&self) -> Self {
-        Self {
-            count: self.count,
-            buf: self.buf,
-            phantom: self.phantom,
-        }
+        *self
     }
 }
 impl<T> Copy for Out<'_, T> {}
@@ -132,5 +130,115 @@ impl<'t, T: Unmarshal<'t> + Default> Unmarshal<'t> for Out<'t, T> {
         let data_len = orig.len() - buf.len();
         self.buf = &orig[..data_len];
         Ok(())
+    }
+}
+
+/// TPML_ALG_PROPERTY
+#[derive(Clone, Copy, Debug, Default)]
+pub struct AlgProperty<'t> {
+    pub handles: Out<'t, tpms::AlgProperty>,
+}
+impl<'t> Unmarshal<'t> for AlgProperty<'t> {
+    fn unmarshal(&mut self, buf: &mut &'t [u8]) -> Result<(), UnmarshalError> {
+        self.handles.unmarshal(buf)
+    }
+}
+
+/// TPML_HANDLE
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Handle<'t> {
+    pub handles: Out<'t, types::Handle>,
+}
+impl<'t> Unmarshal<'t> for Handle<'t> {
+    fn unmarshal(&mut self, buf: &mut &'t [u8]) -> Result<(), UnmarshalError> {
+        self.handles.unmarshal(buf)
+    }
+}
+
+/// TPML_CCA
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Cca<'t> {
+    pub attributes: Out<'t, tpma::Cc>,
+}
+impl<'t> Unmarshal<'t> for Cca<'t> {
+    fn unmarshal(&mut self, buf: &mut &'t [u8]) -> Result<(), UnmarshalError> {
+        self.attributes.unmarshal(buf)
+    }
+}
+
+/// TPML_PCR_SELECTION
+#[derive(Clone, Copy, Debug, Default)]
+pub struct PcrSelection<'t> {
+    pub selection: Out<'t, tpms::PcrSelection>,
+}
+impl<'t> Unmarshal<'t> for PcrSelection<'t> {
+    fn unmarshal(&mut self, buf: &mut &'t [u8]) -> Result<(), UnmarshalError> {
+        self.selection.unmarshal(buf)
+    }
+}
+
+/// TPML_TAGGED_PCR_PROPERTY
+#[derive(Clone, Copy, Debug, Default)]
+pub struct TaggedPcrProperty<'t> {
+    pub selection: Out<'t, tpms::TaggedPcrSelect>,
+}
+impl<'t> Unmarshal<'t> for TaggedPcrProperty<'t> {
+    fn unmarshal(&mut self, buf: &mut &'t [u8]) -> Result<(), UnmarshalError> {
+        self.selection.unmarshal(buf)
+    }
+}
+
+/// TPML_CC
+#[derive(Clone, Copy, Debug, Default)]
+pub struct CommandCode<'t> {
+    pub codes: Out<'t, tpm::CC>,
+}
+impl<'t> Unmarshal<'t> for CommandCode<'t> {
+    fn unmarshal(&mut self, buf: &mut &'t [u8]) -> Result<(), UnmarshalError> {
+        self.codes.unmarshal(buf)
+    }
+}
+
+/// TPML_TAGGED_TPM_PROPERTY
+#[derive(Clone, Copy, Debug, Default)]
+pub struct TaggedTpmProperty<'t> {
+    pub selection: Out<'t, tpms::TpmProperty>,
+}
+impl<'t> Unmarshal<'t> for TaggedTpmProperty<'t> {
+    fn unmarshal(&mut self, buf: &mut &'t [u8]) -> Result<(), UnmarshalError> {
+        self.selection.unmarshal(buf)
+    }
+}
+
+/// TPML_ECC_CURVE
+#[derive(Clone, Copy, Debug, Default)]
+pub struct EccCurve<'t> {
+    pub curves: Out<'t, tpm::EccCurve>,
+}
+impl<'t> Unmarshal<'t> for EccCurve<'t> {
+    fn unmarshal(&mut self, buf: &mut &'t [u8]) -> Result<(), UnmarshalError> {
+        self.curves.unmarshal(buf)
+    }
+}
+
+/// TPML_TAGGED_POLICY
+#[derive(Clone, Copy, Debug, Default)]
+pub struct TaggedPolicy<'t> {
+    pub policies: Out<'t, tpms::TaggedPolicy>,
+}
+impl<'t> Unmarshal<'t> for TaggedPolicy<'t> {
+    fn unmarshal(&mut self, buf: &mut &'t [u8]) -> Result<(), UnmarshalError> {
+        self.policies.unmarshal(buf)
+    }
+}
+
+/// TPML_DIGEST_VALUES
+#[derive(Clone, Copy, Debug, Default)]
+pub struct DigestValues<'t> {
+    pub digest: In<'t, tpmt::Hash>,
+}
+impl<'t> Marshal for DigestValues<'t> {
+    fn marshal(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
+        self.digest.marshal(buf)
     }
 }

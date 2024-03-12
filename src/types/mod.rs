@@ -1,6 +1,6 @@
 //! TODO: Explain the substructure here
 
-use crate::{error::UnmarshalError, polyfill::ToArr, MarshalFixed, Unmarshal};
+use crate::{error::UnmarshalError, polyfill::ToMutArr, MarshalFixed, Unmarshal};
 
 mod auth;
 pub use auth::*;
@@ -28,9 +28,9 @@ impl MarshalFixed for CommandHeader {
     type ARRAY = [u8; Self::SIZE];
 
     fn marshal_fixed(&self, arr: &mut Self::ARRAY) {
-        self.tag.marshal_fixed(arr[0..2].to_arr());
-        self.size.marshal_fixed(arr[2..6].to_arr());
-        self.code.marshal_fixed(arr[6..10].to_arr());
+        self.tag.marshal_fixed(arr[0..2].to_mut_arr());
+        self.size.marshal_fixed(arr[2..6].to_mut_arr());
+        self.code.marshal_fixed(arr[6..10].to_mut_arr());
     }
 }
 
@@ -69,6 +69,5 @@ mod test {
     #[test]
     fn header_size() {
         assert_eq!(CommandHeader::SIZE, 10);
-        // assert_eq!(ResponseHeader::SIZE, 10);
     }
 }

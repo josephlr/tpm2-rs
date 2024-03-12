@@ -12,7 +12,7 @@ pub struct AuthHandle<'a> {
     pub auth: &'a dyn Auth,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone, Default)]
 pub struct PasswordAuth<'a>(pub &'a [u8]);
 
 impl Auth for PasswordAuth<'_> {

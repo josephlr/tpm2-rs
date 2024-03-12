@@ -4,6 +4,7 @@
 //! TODO: Should we have these types at all?
 
 use super::tpm;
+use crate::marshal::{MarshalFixed, UnmarshalFixed};
 
 /// TPMI_ALG_HASH
 pub type AlgHash = tpm::Alg;
@@ -22,3 +23,33 @@ pub type AlgPublic = tpm::Alg;
 
 /// TPMI_RSA_KEY_BITS
 pub type RsaKeyBits = u16;
+
+/// TPMI_RH_ENABLES
+pub type RhEnables = u32;
+
+/// TPMI_YES_NO
+#[repr(u8)]
+#[derive(Debug, Copy, Clone, Default)]
+pub enum YesNo {
+    #[default]
+    No = 0,
+    Yes = 1,
+}
+
+impl MarshalFixed for YesNo {
+    const SIZE: usize = <u8 as MarshalFixed>::SIZE;
+    type ARRAY = [u8; Self::SIZE];
+    fn marshal_fixed(&self, arr: &mut Self::ARRAY) {
+        (*self as u8).marshal_fixed(arr)
+    }
+}
+
+impl UnmarshalFixed for YesNo {
+    fn unmarshal_fixed(arr: &Self::ARRAY) -> Self {
+        match arr[0] {
+            0 => YesNo::No,
+            1 => YesNo::Yes,
+            _ => unreachable!(),
+        }
+    }
+}
