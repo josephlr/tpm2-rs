@@ -10,6 +10,8 @@
 //! TODO:
 //!   - Add additional notes about TPM2_HMAC and TPM2_StartHMAC
 
+use tpm2_derive::{CommandData, ResponseData};
+
 use crate::{
     error::{MarshalError, UnmarshalError},
     marshal::{CommandData, ResponseData},
@@ -21,14 +23,9 @@ use crate::{
 ///
 /// This command (and its response) are defined in the
 /// TPM2 Library Specification - v1.59 - Part 3 - Section 9.3
-#[derive(Clone, Copy, Default, Debug)]
+#[derive(Clone, Copy, Default, Debug, CommandData)]
 pub struct Startup {
     pub startup_type: tpm::SU,
-}
-impl CommandData for Startup {
-    fn marshal_params(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
-        self.startup_type.marshal(buf)
-    }
 }
 impl Command for Startup {
     const CODE: tpm::CC = tpm::CC::Startup;
@@ -40,14 +37,9 @@ impl Auths<0> for Startup {}
 ///
 /// This command (and its response) are defined in the
 /// TPM2 Library Specification - v1.59 - Part 3 - Section 9.4
-#[derive(Clone, Copy, Default, Debug)]
+#[derive(Clone, Copy, Default, Debug, CommandData)]
 pub struct Shutdown {
     pub shutdown_type: tpm::SU,
-}
-impl CommandData for Shutdown {
-    fn marshal_params(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
-        self.shutdown_type.marshal(buf)
-    }
 }
 impl Command for Shutdown {
     const CODE: tpm::CC = tpm::CC::Shutdown;
@@ -187,14 +179,9 @@ impl Auths<0> for Shutdown {}
 ///
 /// This command (and its response) are defined in the
 /// TPM2 Library Specification - v1.59 - Part 3 - Section 12.4
-#[derive(Clone, Copy, Default, Debug)]
+#[derive(Clone, Copy, Default, Debug, CommandData)]
 pub struct ReadPublic {
     pub object_handle: Handle,
-}
-impl CommandData for ReadPublic {
-    fn marshal_handles(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
-        self.object_handle.marshal(buf)
-    }
 }
 impl Command for ReadPublic {
     const CODE: tpm::CC = tpm::CC::ReadPublic;
@@ -205,18 +192,11 @@ impl Auths<0> for ReadPublic {}
 /// TPM2_ReadPublic Response
 ///
 /// See [ReadPublic] for more information.
-#[derive(Clone, Copy, Default, Debug)]
+#[derive(Clone, Copy, Default, Debug, ResponseData)]
 pub struct ReadPublicResponse<'t> {
     pub public: &'t [u8],
     pub name: tpm2b::Out<'t, Option<tpmu::Name>>,
     pub qualified_name: tpm2b::Out<'t, Option<tpmu::Name>>,
-}
-impl<'t> ResponseData<'t> for ReadPublicResponse<'t> {
-    fn unmarshal_params(&mut self, buf: &mut &'t [u8]) -> Result<(), UnmarshalError> {
-        self.public.unmarshal(buf)?;
-        self.name.unmarshal(buf)?;
-        self.qualified_name.unmarshal(buf)
-    }
 }
 
 // /// TPM2_ActivateCredential Command
@@ -511,14 +491,9 @@ impl<'t> ResponseData<'t> for ReadPublicResponse<'t> {
 ///
 /// This command (and its response) are defined in the
 /// TPM2 Library Specification - v1.59 - Part 3 - Section 16.1
-#[derive(Clone, Copy, Default, Debug)]
+#[derive(Clone, Copy, Default, Debug, CommandData)]
 pub struct GetRandom {
     pub bytes_requested: u16,
-}
-impl CommandData for GetRandom {
-    fn marshal_params(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
-        self.bytes_requested.marshal(buf)
-    }
 }
 impl Command for GetRandom {
     const CODE: tpm::CC = tpm::CC::GetRandom;
@@ -529,14 +504,9 @@ impl Auths<0> for GetRandom {}
 /// TPM2_GetRandom Response
 ///
 /// See [GetRandom] for more information.
-#[derive(Clone, Copy, Default, Debug)]
+#[derive(Clone, Copy, Default, Debug, ResponseData)]
 pub struct GetRandomResponse<'t> {
     pub random_bytes: &'t [u8],
-}
-impl<'t> ResponseData<'t> for GetRandomResponse<'t> {
-    fn unmarshal_params(&mut self, buf: &mut &'t [u8]) -> Result<(), UnmarshalError> {
-        self.random_bytes.unmarshal(buf)
-    }
 }
 
 // /// TPM2_StirRandom Command
@@ -831,16 +801,10 @@ impl<'t> ResponseData<'t> for GetRandomResponse<'t> {
 // ///
 // /// This command (and its response) are defined in the
 // /// TPM2 Library Specification - v1.59 - Part 3 - Section 22.2
-#[derive(Clone, Copy, Default, Debug)]
+#[derive(Clone, Copy, Default, Debug, CommandData)]
 pub struct PcrExtend<'b, 't> {
     pub pcr_selection: tpml::In<'b, tpms::PcrSelection>,
     pub pcr_values: tpml::In<'t, &'t [u8]>,
-}
-impl<'b, 't> CommandData for PcrExtend<'b, 't> {
-    fn marshal_params(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
-        self.pcr_selection.marshal(buf)?;
-        self.pcr_values.marshal(buf)
-    }
 }
 impl Command for PcrExtend<'_, '_> {
     const CODE: tpm::CC = tpm::CC::PcrExtend;
@@ -868,14 +832,9 @@ impl Auths<0> for PcrExtend<'_, '_> {}
 ///
 /// This command (and its response) are defined in the
 /// TPM2 Library Specification - v1.59 - Part 3 - Section 22.4
-#[derive(Clone, Copy, Default, Debug)]
+#[derive(Clone, Copy, Default, Debug, CommandData)]
 pub struct PcrRead<'b> {
     pub pcr_selection: tpml::In<'b, tpms::PcrSelection>,
-}
-impl CommandData for PcrRead<'_> {
-    fn marshal_params(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
-        self.pcr_selection.marshal(buf)
-    }
 }
 impl Command for PcrRead<'_> {
     const CODE: tpm::CC = tpm::CC::PcrRead;
@@ -886,18 +845,11 @@ impl Auths<0> for PcrRead<'_> {}
 /// TPM2_PCR_Read Response
 ///
 /// See [PcrRead] for more information.
-#[derive(Clone, Copy, Default, Debug)]
+#[derive(Clone, Copy, Default, Debug, ResponseData)]
 pub struct PcrReadResponse<'t> {
     pub pcr_update_counter: u32,
     pub pcr_selection: tpml::Out<'t, tpms::PcrSelection>,
     pub pcr_values: tpml::Out<'t, &'t [u8]>,
-}
-impl<'t> ResponseData<'t> for PcrReadResponse<'t> {
-    fn unmarshal_params(&mut self, buf: &mut &'t [u8]) -> Result<(), UnmarshalError> {
-        self.pcr_update_counter.unmarshal(buf)?;
-        self.pcr_selection.unmarshal(buf)?;
-        self.pcr_values.unmarshal(buf)
-    }
 }
 
 // /// TPM2_PCR_Allocate Command
@@ -1605,14 +1557,9 @@ impl Auths<0> for ReadClock {}
 /// TPM2_ReadClock Response
 ///
 /// See [ReadClock] for more information.
-#[derive(Clone, Copy, Default, Debug)]
+#[derive(Clone, Copy, Default, Debug, ResponseData)]
 pub struct ReadClockResponse {
     pub current_time: tpms::TimeInfo,
-}
-impl ResponseData<'_> for ReadClockResponse {
-    fn unmarshal_params(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
-        self.current_time.unmarshal(buf)
-    }
 }
 
 // /// TPM2_ClockSet Command

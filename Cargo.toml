@@ -31,6 +31,7 @@ alloc = []
 [dependencies]
 cfg-if = "1.0"
 bitflags = "1"
+tpm2-derive = { path = "derive/" }
 
 [workspace]
 members = ["derive", "simulator"]
