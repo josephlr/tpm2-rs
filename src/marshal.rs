@@ -63,7 +63,10 @@ pub(crate) fn pop_array<'a, const N: usize>(
     if buf.len() < N {
         return Err(UnmarshalError::BufferOverflow);
     }
-    let (arr, suffix) = buf.split_array_ref();
+    let (a, b) = buf.split_at(N);
+    // Safety: The length of buf was already checked to be at least N
+    let (arr, suffix) = unsafe { (&*(a.as_ptr() as *const [u8; N]), b) };
+
     *buf = suffix;
     Ok(arr)
 }
@@ -76,7 +79,9 @@ pub(crate) fn pop_array_mut<'a, const N: usize>(
         return Err(MarshalError::BufferOverflow);
     }
     let old = mem::take(buf);
-    let (arr, suffix) = old.split_array_mut();
+    let (a, b) = old.split_at_mut(N);
+    // Safety: The length of buf was already checked to be at least N
+    let (arr, suffix) = unsafe { (&mut *(a.as_mut_ptr() as *mut [u8; N]), b) };
     *buf = suffix;
     Ok(arr)
 }
