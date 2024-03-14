@@ -27,6 +27,20 @@ pub type RsaKeyBits = u16;
 /// TPMI_RH_ENABLES
 pub type RhEnables = u32;
 
+pub fn hash_length(hash: AlgHash) -> usize {
+    match hash {
+        AlgHash::Sha1 => 20,
+        AlgHash::Sha256 => 32,
+        AlgHash::Sha384 => 48,
+        AlgHash::Sha512 => 64,
+        AlgHash::Sm3_256 => 32,
+        AlgHash::Sha3_256 => 32,
+        AlgHash::Sha3_384 => 48,
+        AlgHash::Sha3_512 => 64,
+        _ => panic!("Not a hash algorithm!"),
+    }
+}
+
 /// TPMI_YES_NO
 #[repr(u8)]
 #[derive(Debug, Copy, Clone, Default)]
