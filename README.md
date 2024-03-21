@@ -1,4 +1,4 @@
-# Safe Rust TSS for TPM2
+# This prototype is no longer maintained, see [the new `tpm-rs`](https://github.com/tpm-rs/tpm-rs) for actively maintained Rust TPM bindings.
 
 This `tpm2` contains:
   - A TPM2 TSS (similar to the `tss-esapi`)
