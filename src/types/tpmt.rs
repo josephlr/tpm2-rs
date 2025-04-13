@@ -48,6 +48,26 @@ impl Hash {
             Self::Sha3_512(d) => d,
         }
     }
+    fn unmarshal_with_alg(alg: tpmi::AlgHash, buf: &mut &[u8]) -> Result<Self, UnmarshalError> {
+        let v = match alg {
+            tpm::Alg::Sha1 => Self::Sha1(*pop_array(buf)?),
+            tpm::Alg::Sha256 => Self::Sha256(*pop_array(buf)?),
+            tpm::Alg::Sha384 => Self::Sha384(*pop_array(buf)?),
+            tpm::Alg::Sha512 => Self::Sha512(*pop_array(buf)?),
+            tpm::Alg::Sm3_256 => Self::Sm3_256(*pop_array(buf)?),
+            tpm::Alg::Sha3_256 => Self::Sha3_256(*pop_array(buf)?),
+            tpm::Alg::Sha3_384 => Self::Sha3_384(*pop_array(buf)?),
+            tpm::Alg::Sha3_512 => Self::Sha3_512(*pop_array(buf)?),
+            _ => return Err(UnmarshalError::InvalidValue),
+        };
+        Ok(v)
+    }
+}
+
+impl Default for Hash {
+    fn default() -> Self {
+        Self::Sha256([0; 32])
+    }
 }
 
 impl Marshal for Hash {
@@ -68,20 +88,21 @@ impl Marshal for Option<Hash> {
     }
 }
 
+impl Unmarshal<'_> for Hash {
+    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
+        let alg = tpm::Alg::unmarshal_val(buf)?;
+        *self = Hash::unmarshal_with_alg(alg, buf)?;
+        Ok(())
+    }
+}
+
 impl Unmarshal<'_> for Option<Hash> {
     fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
         let alg = tpm::Alg::unmarshal_val(buf)?;
-        *self = match alg {
-            tpm::Alg::Null => None,
-            tpm::Alg::Sha1 => Some(Hash::Sha1(*pop_array(buf)?)),
-            tpm::Alg::Sha256 => Some(Hash::Sha256(*pop_array(buf)?)),
-            tpm::Alg::Sha384 => Some(Hash::Sha384(*pop_array(buf)?)),
-            tpm::Alg::Sha512 => Some(Hash::Sha512(*pop_array(buf)?)),
-            tpm::Alg::Sm3_256 => Some(Hash::Sm3_256(*pop_array(buf)?)),
-            tpm::Alg::Sha3_256 => Some(Hash::Sha3_256(*pop_array(buf)?)),
-            tpm::Alg::Sha3_384 => Some(Hash::Sha3_384(*pop_array(buf)?)),
-            tpm::Alg::Sha3_512 => Some(Hash::Sha3_512(*pop_array(buf)?)),
-            _ => return Err(UnmarshalError::InvalidValue),
+        *self = if alg == tpm::Alg::Null {
+            None
+        } else {
+            Some(Hash::unmarshal_with_alg(alg, buf)?)
         };
         Ok(())
     }
@@ -120,6 +141,22 @@ impl PublicParms {
             }),
         }
     }
+    fn unmarshal_with_alg(alg: tpmi::AlgPublic, buf: &mut &[u8]) -> Result<Self, UnmarshalError> {
+        let v = match alg {
+            tpm::Alg::KeyedHash => Self::KeyedHash(Unmarshal::unmarshal_val(buf)?),
+            tpm::Alg::SymCipher => Self::SymCipher(Unmarshal::unmarshal_val(buf)?),
+            tpm::Alg::Rsa => Self::Rsa(Unmarshal::unmarshal_val(buf)?),
+            tpm::Alg::Ecc => Self::Ecc(Unmarshal::unmarshal_val(buf)?),
+            _ => return Err(UnmarshalError::InvalidValue),
+        };
+        Ok(v)
+    }
+}
+
+impl Default for PublicParms {
+    fn default() -> Self {
+        Self::KeyedHash(None)
+    }
 }
 
 /// TPMT_KEYEDHASH_SCHEME (TPMU_SCHEME_KEYEDHASH)
@@ -129,17 +166,87 @@ pub enum KeyedHashScheme {
     Xor(tpms::SchemeXor),
 }
 
-#[derive(Clone, Copy, Debug)]
+impl KeyedHashScheme {
+    pub const fn alg(&self) -> tpmi::AlgKeyedHashScheme {
+        match self {
+            KeyedHashScheme::Hmac(_) => tpm::Alg::Hmac,
+            KeyedHashScheme::Xor(_) => tpm::Alg::Xor,
+        }
+    }
+}
+
+impl Unmarshal<'_> for Option<KeyedHashScheme> {
+    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
+        *self = Self::unmarshal_val(buf)?;
+        Ok(())
+    }
+
+    fn unmarshal_val(buf: &mut &[u8]) -> Result<Self, UnmarshalError> {
+        match tpmi::AlgKeyedHashScheme::unmarshal_val(buf)? {
+            tpm::Alg::Null => Ok(None),
+            tpm::Alg::Hmac => Ok(Some(KeyedHashScheme::Hmac(Unmarshal::unmarshal_val(buf)?))),
+            tpm::Alg::Xor => Ok(Some(KeyedHashScheme::Xor(Unmarshal::unmarshal_val(buf)?))),
+            _ => Err(UnmarshalError::InvalidValue),
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default)]
 pub struct SymDefObject {
     pub algorithm: tpmi::AlgSymObject,
     pub key_bits: tpm::KeyBits,
     pub mode: tpmi::AlgSymMode,
 }
 
+impl Unmarshal<'_> for SymDefObject {
+    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
+        *self = Self::unmarshal_val(buf)?;
+        Ok(())
+    }
+    fn unmarshal_val(buf: &mut &[u8]) -> Result<Self, UnmarshalError> {
+        match Option::<SymDef>::unmarshal_val(buf)? {
+            Some(SymDef::Sym(s)) => Ok(s),
+            _ => Err(UnmarshalError::InvalidValue),
+        }
+    }
+}
+
+impl Unmarshal<'_> for Option<SymDefObject> {
+    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
+        *self = Self::unmarshal_val(buf)?;
+        Ok(())
+    }
+    fn unmarshal_val(buf: &mut &[u8]) -> Result<Self, UnmarshalError> {
+        match Option::<SymDef>::unmarshal_val(buf)? {
+            Some(SymDef::Sym(s)) => Ok(Some(s)),
+            Some(SymDef::Xor(_)) => Err(UnmarshalError::InvalidValue),
+            None => Ok(None),
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug)]
 pub enum SymDef {
     Sym(SymDefObject),
     Xor(tpmi::AlgHash),
+}
+
+impl Unmarshal<'_> for Option<SymDef> {
+    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
+        *self = Self::unmarshal_val(buf)?;
+        Ok(())
+    }
+    fn unmarshal_val(buf: &mut &[u8]) -> Result<Self, UnmarshalError> {
+        Ok(match tpmi::AlgSym::unmarshal_val(buf)? {
+            tpm::Alg::Null => None,
+            tpm::Alg::Xor => Some(SymDef::Xor(Unmarshal::unmarshal_val(buf)?)),
+            a => Some(SymDef::Sym(SymDefObject {
+                algorithm: a,
+                key_bits: Unmarshal::unmarshal_val(buf)?,
+                mode: Unmarshal::unmarshal_val(buf)?,
+            })),
+        })
+    }
 }
 
 /// TPMT_ASYM_SCHEME (TPMU_ASYM_SCHEME)
@@ -194,44 +301,63 @@ impl AsymScheme {
     }
 }
 
-/// TPMT_KDF_SCHEME (TPMU_KDF_SCHEME)
-///
-/// Currently cannot be used, as the KDF
-#[derive(Clone, Copy, Debug)]
-pub enum KdfScheme {
-    Mgf1(tpmi::AlgHash),
-    Kdf1Sp800_56A(tpmi::AlgHash),
-    Kdf2(tpmi::AlgHash),
-    Kdf1Sp800_108(tpmi::AlgHash),
-}
-
-impl KdfScheme {
-    /// The KDF Scheme algorithm
-    pub const fn alg(&self) -> tpmi::AlgKdf {
-        match self {
-            KdfScheme::Mgf1(_) => tpm::Alg::Mgf1,
-            KdfScheme::Kdf1Sp800_56A(_) => tpm::Alg::Kdf1Sp800_56A,
-            KdfScheme::Kdf2(_) => tpm::Alg::Kdf2,
-            KdfScheme::Kdf1Sp800_108(_) => tpm::Alg::Kdf1Sp800_108,
-        }
+impl Unmarshal<'_> for Option<AsymScheme> {
+    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
+        *self = Self::unmarshal_val(buf)?;
+        Ok(())
     }
 
-    /// The hash algorithm used in this signing method. Currently, all KDF
-    /// schemes use a hash algorithm (so no returning `Alg::Null`).
-    pub const fn hash(&self) -> tpmi::AlgHash {
-        match *self {
-            KdfScheme::Mgf1(h) => h,
-            KdfScheme::Kdf1Sp800_56A(h) => h,
-            KdfScheme::Kdf2(h) => h,
-            KdfScheme::Kdf1Sp800_108(h) => h,
-        }
+    fn unmarshal_val(buf: &mut &[u8]) -> Result<Self, UnmarshalError> {
+        Ok(match tpmi::AlgAsymScheme::unmarshal_val(buf)? {
+            tpm::Alg::Null => None,
+            tpm::Alg::RsaEs => Some(AsymScheme::RsaEs),
+            alg => {
+                let h = tpmi::AlgHash::unmarshal_val(buf)?;
+                Some(match alg {
+                    tpm::Alg::RsaSsa => AsymScheme::RsaSsa(h),
+                    tpm::Alg::RsaPss => AsymScheme::RsaPss(h),
+                    tpm::Alg::Oaep => AsymScheme::Oaep(h),
+                    tpm::Alg::Ecdsa => AsymScheme::Ecdsa(h),
+                    tpm::Alg::Ecdh => AsymScheme::Ecdh(h),
+                    tpm::Alg::Ecdaa => AsymScheme::Ecdaa(h, u16::unmarshal_val(buf)?),
+                    tpm::Alg::Sm2 => AsymScheme::Sm2(h),
+                    tpm::Alg::EcSchnorr => AsymScheme::EcSchnorr(h),
+                    tpm::Alg::Ecmqv => AsymScheme::Ecmqv(h),
+                    _ => return Err(UnmarshalError::InvalidValue),
+                })
+            }
+        })
+    }
+}
+
+/// TPMT_KDF_SCHEME (TPMU_KDF_SCHEME)
+#[derive(Clone, Copy, Debug, Default)]
+pub struct KdfScheme {
+    pub scheme: tpmi::AlgKdf,
+    pub hash: tpmi::AlgHash,
+}
+
+impl Unmarshal<'_> for Option<KdfScheme> {
+    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
+        *self = Self::unmarshal_val(buf)?;
+        Ok(())
+    }
+
+    fn unmarshal_val(buf: &mut &[u8]) -> Result<Self, UnmarshalError> {
+        Ok(match tpmi::AlgKdf::unmarshal_val(buf)? {
+            tpm::Alg::Null => None,
+            scheme => {
+                let hash = tpmi::AlgHash::unmarshal_val(buf)?;
+                Some(KdfScheme { scheme, hash })
+            }
+        })
     }
 }
 
 /// TPMT_PUBLIC
 ///
 /// The algorithm is encoded via the parameters field.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Default)]
 pub struct Public<'t> {
     pub name_alg: Option<tpmi::AlgHash>,
     pub object_attributes: tpma::Object,
@@ -244,6 +370,18 @@ impl Public<'_> {
     /// The Object's type
     pub const fn alg(&self) -> tpmi::AlgPublic {
         self.parameters.alg()
+    }
+}
+
+impl<'t> Unmarshal<'t> for Public<'t> {
+    fn unmarshal(&mut self, buf: &mut &'t [u8]) -> Result<(), UnmarshalError> {
+        let alg = tpmi::AlgPublic::unmarshal_val(buf)?;
+        self.name_alg.unmarshal(buf)?;
+        self.object_attributes.unmarshal(buf)?;
+        self.auth_policy.unmarshal(buf)?;
+        self.parameters = PublicParms::unmarshal_with_alg(alg, buf)?;
+        self.unique = tpmu::PublicId::unmarshal_with_alg(alg, buf)?;
+        Ok(())
     }
 }
 

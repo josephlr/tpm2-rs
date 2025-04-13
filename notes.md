@@ -1,3 +1,9 @@
+Idea for TPMT_PUBLIC types:
+
+
+Have TPMT_PUBLIC_PARMS include the unique field, just say that it's ignored when marshalling that type.
+Then, only use the unique field/fields when unmarshalling  
+
 TPML types inside non cmd/response structures
 - Everything about capabilities (inside TPMS_CAPABILITY_DATA / TPMU_CAPABILITIES) only out
 - TPMS_QUOTE_INFO (inside TPMU_ATTEST / TPMS_ATTEST / TPM2B_ATTEST) only out

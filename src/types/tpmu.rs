@@ -2,54 +2,8 @@
 //!
 //! TODO: Explain why [`Name`] is weird
 
-use super::{tpms, tpmt, Handle};
-use crate::{
-    error::{MarshalError, UnmarshalError},
-    marshal::pop_array,
-    Marshal, Unmarshal, UnmarshalFixed,
-};
-
-/// TPMU_NAME
-#[derive(Clone, Copy, Debug)]
-pub enum Name {
-    Handle(Handle),
-    Digest(tpmt::Hash),
-}
-
-impl Marshal for Name {
-    fn marshal(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
-        match self {
-            Name::Handle(h) => h.marshal(buf),
-            Name::Digest(d) => d.marshal(buf),
-        }
-    }
-}
-
-impl Marshal for Option<Name> {
-    fn marshal(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError> {
-        match self {
-            Some(n) => n.marshal(buf),
-            None => Ok(()),
-        }
-    }
-}
-
-impl Unmarshal<'_> for Option<Name> {
-    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
-        *self = match buf.len() {
-            0 => None,
-            4 => {
-                let arr: &[u8; 4] = pop_array(buf).unwrap();
-                Some(Name::Handle(Handle::unmarshal_fixed(arr)))
-            }
-            _ => {
-                let h = Option::<tpmt::Hash>::unmarshal_val(buf)?.unwrap();
-                Some(Name::Digest(h))
-            }
-        };
-        Ok(())
-    }
-}
+use super::{tpm, tpmi, tpms};
+use crate::{error::UnmarshalError, Unmarshal};
 
 /// TPMU_PUBLIC_ID
 ///
@@ -61,4 +15,26 @@ pub enum PublicId<'t> {
     Rsa(&'t [u8]),
     Ecc(tpms::EccPoint<'t>),
     // Derive(tpms::Derive<'t>),
+}
+
+impl<'t> PublicId<'t> {
+    pub(crate) fn unmarshal_with_alg(
+        alg: tpmi::AlgPublic,
+        buf: &mut &'t [u8],
+    ) -> Result<Self, UnmarshalError> {
+        let v = match alg {
+            tpm::Alg::KeyedHash => Self::KeyedHash(Unmarshal::unmarshal_val(buf)?),
+            tpm::Alg::SymCipher => Self::SymCipher(Unmarshal::unmarshal_val(buf)?),
+            tpm::Alg::Rsa => Self::Rsa(Unmarshal::unmarshal_val(buf)?),
+            tpm::Alg::Ecc => Self::Ecc(Unmarshal::unmarshal_val(buf)?),
+            _ => return Err(UnmarshalError::InvalidValue),
+        };
+        Ok(v)
+    }
+}
+
+impl Default for PublicId<'_> {
+    fn default() -> Self {
+        Self::KeyedHash(&[])
+    }
 }

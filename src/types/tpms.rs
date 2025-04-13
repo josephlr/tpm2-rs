@@ -1,6 +1,6 @@
 //! `TPMS_*` Structure Types
 
-use super::{tpm, tpma, tpmi, tpml, tpmt, tpm2b, Handle};
+use super::{tpm, tpm2b, tpma, tpmi, tpml, tpmt, Handle};
 use crate::{
     error::{MarshalError, UnmarshalError},
     marshal::{pop_array_mut, pop_slice},
@@ -205,7 +205,7 @@ pub struct AsymParms {
 }
 
 /// TPMS_RSA_PARMS
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Default)]
 pub struct RsaParms {
     pub symmetric: Option<tpmt::SymDefObject>,
     pub scheme: Option<tpmt::AsymScheme>,
@@ -213,8 +213,17 @@ pub struct RsaParms {
     pub exponent: u32,
 }
 
+impl Unmarshal<'_> for RsaParms {
+    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
+        self.symmetric.unmarshal(buf)?;
+        self.scheme.unmarshal(buf)?;
+        self.key_bits.unmarshal(buf)?;
+        self.exponent.unmarshal(buf)
+    }
+}
+
 /// TPMS_ECC_PARMS
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Default)]
 pub struct EccParms {
     pub symmetric: Option<tpmt::SymDefObject>,
     pub scheme: Option<tpmt::AsymScheme>,
@@ -222,21 +231,37 @@ pub struct EccParms {
     pub kdf: Option<tpmt::KdfScheme>,
 }
 
+impl Unmarshal<'_> for EccParms {
+    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
+        self.symmetric.unmarshal(buf)?;
+        self.scheme.unmarshal(buf)?;
+        self.curve_id.unmarshal(buf)?;
+        self.kdf.unmarshal(buf)
+    }
+}
+
 /// TPMS_ECC_POINT
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Default)]
 pub struct EccPoint<'t> {
     pub x: &'t [u8],
     pub y: &'t [u8],
 }
 
+impl<'t> Unmarshal<'t> for EccPoint<'t> {
+    fn unmarshal(&mut self, buf: &mut &'t [u8]) -> Result<(), UnmarshalError> {
+        self.x.unmarshal(buf)?;
+        self.y.unmarshal(buf)
+    }
+}
+
 /// TPMS_CREATION_DATA
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Default)]
 pub struct CreationData<'t> {
     pub pcr_select: tpml::PcrSelectionOut<'t>,
     pub pcr_digest: &'t [u8],
     pub locality: tpma::Locality,
     pub parent_name_alg: Option<tpmi::AlgHash>,
-    pub parent_name: tpm2b::NameOut<'t>,
-    pub parent_qualified_name: tpm2b::NameOut<'t>,
+    pub parent_name: tpm2b::Name,
+    pub parent_qualified_name: tpm2b::Name,
     pub outside_info: &'t [u8],
 }

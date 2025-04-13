@@ -207,9 +207,9 @@ impl Auths<0> for ReadPublic {}
 /// See [ReadPublic] for more information.
 #[derive(Clone, Copy, Default, Debug)]
 pub struct ReadPublicResponse<'t> {
-    pub public: &'t [u8],
-    pub name: tpm2b::NameOut<'t>,
-    pub qualified_name: tpm2b::NameOut<'t>,
+    pub public: tpm2b::PublicOut<'t>,
+    pub name: Option<tpm2b::Name>,
+    pub qualified_name: Option<tpm2b::Name>,
 }
 impl<'t> ResponseData<'t> for ReadPublicResponse<'t> {
     fn unmarshal_params(&mut self, buf: &mut &'t [u8]) -> Result<(), UnmarshalError> {
@@ -1286,7 +1286,7 @@ impl<'t> ResponseData<'t> for PcrReadResponse<'t> {
 #[derive(Clone, Copy, Debug)]
 pub struct CreatePrimary<'b> {
     pub sensitive: &'b [u8],
-    pub public: tpm2b::PublicIn<'b>,
+    pub public: &'b tpm2b::PublicIn<'b>,
     pub outsize_info: &'b [u8],
     pub creation_pcr: tpml::PcrSelectionIn<'b>,
 }
@@ -1300,7 +1300,7 @@ pub struct CreatePrimaryResponse<'t> {
     pub creation_data: tpm2b::CreationData<'t>,
     pub creation_hash: &'t [u8],
     pub creation_ticket: tpmt::TkCreation<'t>,
-    pub name: tpm2b::NameOut<'t>,
+    pub name: tpm2b::Name,
 }
 
 // /// TPM2_HierarchyControl Command

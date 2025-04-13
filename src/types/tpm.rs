@@ -221,7 +221,7 @@ impl Unmarshal<'_> for ST {
 /// TPM_ALG_ID
 ///
 /// TODO: This isn't all the ALG_IDs
-#[derive(Clone, Copy, Default, Debug)]
+#[derive(Clone, Copy, Default, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 #[repr(u16)]
 pub enum Alg {
@@ -273,6 +273,14 @@ impl MarshalFixed for Alg {
         (*self as u16).marshal_fixed(arr)
     }
 }
+impl MarshalFixed for Option<Alg> {
+    const SIZE: usize = Alg::SIZE;
+    type ARRAY = [u8; Self::SIZE];
+    fn marshal_fixed(&self, arr: &mut Self::ARRAY) {
+        self.unwrap_or(Alg::Null).marshal_fixed(arr)
+    }
+}
+
 impl Unmarshal<'_> for Alg {
     fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
         *self = match u16::unmarshal_val(buf)? {
@@ -320,14 +328,27 @@ impl Unmarshal<'_> for Alg {
         Ok(())
     }
 }
+impl Unmarshal<'_> for Option<Alg> {
+    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
+        let v = Alg::unmarshal_val(buf)?;
+        if v == Alg::Null {
+            *self = None;
+        } else {
+            *self = Some(v);
+        }
+        Ok(())
+    }
+}
 
 /// TPM_ECC_CURVE (TPMI_ECC_CURVE)
 ///
 /// List of reistered curve identifiers
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Default)]
 #[non_exhaustive]
 #[repr(u16)]
 pub enum EccCurve {
+    #[default]
+    None = 0x0000,
     NistP192 = 0x0001,
     NistP224 = 0x0002,
     NistP256 = 0x0003,
@@ -336,4 +357,30 @@ pub enum EccCurve {
     BnP256 = 0x0010,
     BnP638 = 0x0011,
     Sm2P256 = 0x0020,
+}
+
+impl MarshalFixed for EccCurve {
+    const SIZE: usize = 2;
+    type ARRAY = [u8; Self::SIZE];
+    fn marshal_fixed(&self, arr: &mut Self::ARRAY) {
+        (*self as u16).marshal_fixed(arr)
+    }
+}
+
+impl Unmarshal<'_> for EccCurve {
+    fn unmarshal(&mut self, buf: &mut &[u8]) -> Result<(), UnmarshalError> {
+        *self = match u16::unmarshal_val(buf)? {
+            0x0000 => Self::None,
+            0x0001 => Self::NistP192,
+            0x0002 => Self::NistP224,
+            0x0003 => Self::NistP256,
+            0x0004 => Self::NistP384,
+            0x0005 => Self::NistP521,
+            0x0010 => Self::BnP256,
+            0x0011 => Self::BnP638,
+            0x0020 => Self::Sm2P256,
+            _ => return Err(UnmarshalError::InvalidValue),
+        };
+        Ok(())
+    }
 }

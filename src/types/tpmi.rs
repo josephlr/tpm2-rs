@@ -19,6 +19,8 @@ pub type AlgSymMode = tpm::Alg;
 pub type AlgAsymScheme = tpm::Alg;
 /// TPMI_ALG_PUBLIC
 pub type AlgPublic = tpm::Alg;
+/// TPMI_ALG_KEYEDHASH_SCHEME
+pub type AlgKeyedHashScheme = tpm::Alg;
 
 /// TPMI_RSA_KEY_BITS
 pub type RsaKeyBits = u16;

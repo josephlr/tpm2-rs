@@ -20,7 +20,7 @@ fn main() {
         .run(ReadPublic { object_handle })
         .expect("ReadPublic failed");
 
-    println!("Public: {:x?}", rsp.public);
-    println!("Name: {:x?}", rsp.name.parse().unwrap());
-    println!("Qualified Name: {:x?}", rsp.qualified_name.parse().unwrap());
+    println!("Public: {:#?}", rsp.public);
+    println!("Name: {:x?}", rsp.name);
+    println!("Qualified Name: {:x?}", rsp.qualified_name);
 }

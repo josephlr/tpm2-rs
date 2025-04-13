@@ -8,9 +8,9 @@ pub trait Marshal {
     fn marshal(&self, buf: &mut &mut [u8]) -> Result<(), MarshalError>;
 }
 
-pub trait Unmarshal<'a> {
-    fn unmarshal(&mut self, buf: &mut &'a [u8]) -> Result<(), UnmarshalError>;
-    fn unmarshal_val(buf: &mut &'a [u8]) -> Result<Self, UnmarshalError>
+pub trait Unmarshal<'t> {
+    fn unmarshal(&mut self, buf: &mut &'t [u8]) -> Result<(), UnmarshalError>;
+    fn unmarshal_val(buf: &mut &'t [u8]) -> Result<Self, UnmarshalError>
     where
         Self: Default,
     {
@@ -44,11 +44,11 @@ mod sealed {
     }
 
     /// The object-safe supertrait of [`Response`](Command::Response)
-    pub trait ResponseData<'b> {
-        fn unmarshal_handles(&mut self, _: &mut &'b [u8]) -> Result<(), UnmarshalError> {
+    pub trait ResponseData<'t> {
+        fn unmarshal_handles(&mut self, _: &mut &'t [u8]) -> Result<(), UnmarshalError> {
             Ok(())
         }
-        fn unmarshal_params(&mut self, _: &mut &'b [u8]) -> Result<(), UnmarshalError> {
+        fn unmarshal_params(&mut self, _: &mut &'t [u8]) -> Result<(), UnmarshalError> {
             Ok(())
         }
     }
@@ -60,10 +60,9 @@ pub(crate) use sealed::*;
 pub(crate) fn pop_array<'a, const N: usize>(
     buf: &mut &'a [u8],
 ) -> Result<&'a [u8; N], UnmarshalError> {
-    if buf.len() < N {
-        return Err(UnmarshalError::BufferOverflow);
-    }
-    let (arr, suffix) = buf.split_array_ref();
+    let (arr, suffix) = buf
+        .split_first_chunk()
+        .ok_or(UnmarshalError::BufferOverflow)?;
     *buf = suffix;
     Ok(arr)
 }
@@ -72,11 +71,10 @@ pub(crate) fn pop_array<'a, const N: usize>(
 pub(crate) fn pop_array_mut<'a, const N: usize>(
     buf: &mut &'a mut [u8],
 ) -> Result<&'a mut [u8; N], MarshalError> {
-    if buf.len() < N {
-        return Err(MarshalError::BufferOverflow);
-    }
     let old = mem::take(buf);
-    let (arr, suffix) = old.split_array_mut();
+    let (arr, suffix) = old
+        .split_first_chunk_mut()
+        .ok_or(MarshalError::BufferOverflow)?;
     *buf = suffix;
     Ok(arr)
 }
